@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="theme-color" content="#1a0a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Berk & Dilara">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Berk & Dilara 💜</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0720;
+      --surface: #16102b;
+      --surface2: #1e1638;
+      --accent: #c084fc;
+      --accent2: #f472b6;
+      --text: #f1e9ff;
+      --muted: #8b7aaa;
+      --border: rgba(192, 132, 252, 0.15);
+      --glow: rgba(192, 132, 252, 0.08);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* Stars background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 8%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 25%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 70%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 88%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 90%, rgba(255,255,255,0.3) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 0 0 100px;
+    }
+
+    /* Header */
+    .header {
+      padding: 48px 24px 32px;
+      text-align: center;
+    }
+
+    .header-emoji {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: block;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .header-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+
+    /* Main counter */
+    .counter-card {
+      margin: 0 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .counter-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; left: 50%; transform: translateX(-50%);
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(192,132,252,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .counter-label {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .counter-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 400;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+
+    .counter-unit {
+      font-size: 18px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .counter-since {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .counter-since span {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Detail row */
+    .detail-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 0 20px 24px;
+    }
+
+    .detail-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 16px;
+      text-align: center;
+    }
+
+    .detail-card .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .detail-card .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 2px;
+    }
+
+    /* Section */
+    .section {
+      margin: 0 20px 8px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-left: 4px;
+    }
+
+    /* Event cards */
+    .event-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .event-card.soon {
+      border-color: rgba(244, 114, 182, 0.4);
+      background: linear-gradient(135deg, var(--surface), rgba(244,114,182,0.05));
+    }
+
+    .event-card.today {
+      border-color: rgba(192, 132, 252, 0.6);
+      background: linear-gradient(135deg, var(--surface), rgba(192,132,252,0.1));
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(192,132,252,0); }
+      50% { box-shadow: 0 0 20px 2px rgba(192,132,252,0.15); }
+    }
+
+    .event-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .event-info { flex: 1; min-width: 0; }
+
+    .event-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-date {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .event-countdown {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .event-days {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .event-days-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .badge-today {
+      font-size: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: rgba(13, 7, 32, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 12px 0 20px;
+      display: flex;
+      justify-content: space-around;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 4px 20px;
+      border-radius: 12px;
+      transition: color 0.2s;
+    }
+
+    .nav-btn.active, .nav-btn:active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; }
+
+    /* Notification button */
+    .notif-btn {
+      display: block;
+      width: calc(100% - 40px);
+      margin: 0 20px 20px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      color: var(--accent);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .notif-btn:active { background: var(--surface2); }
+    .notif-btn.enabled { color: var(--muted); border-style: dashed; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%; transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 13px;
+      color: var(--text);
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Responsive tweaks */
+    @media (max-height: 700px) {
+      .counter-number { font-size: 56px; }
+      .header { padding: 32px 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <span class="header-emoji">💜</span>
+    <div class="header-title">Berk & Dilara</div>
+  </div>
+
+  <!-- Main counter -->
+  <div class="counter-card">
+    <div class="counter-label">Birlikte</div>
+    <div class="counter-number" id="dayCount">0</div>
+    <div class="counter-unit">gün</div>
+    <div class="counter-since">
+      <span id="sinceDate">12 Şubat 2026</span>'dan beri
+    </div>
+  </div>
+
+  <!-- Detail row -->
+  <div class="detail-row">
+    <div class="detail-card">
+      <div class="num" id="weekCount">0</div>
+      <div class="lbl">Hafta</div>
+    </div>
+    <div class="detail-card">
+      <div class="num" id="monthCount">0</div>
+      <div class="lbl">Ay</div>
+    </div>
+  </div>
+
+  <!-- Notification button -->
+  <button class="notif-btn" id="notifBtn" onclick="requestNotification()">
+    🔔 Bildirimler için izin ver
+  </button>
+
+  <!-- Events -->
+  <div class="section">
+    <div class="section-title">Özel Günler</div>
+    <div id="eventsList"></div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    </svg>
+    Ana Sayfa
+  </button>
+  <button class="nav-btn" onclick="showToast('Yakında...')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+    Anılar
+  </button>
+  <button class="nav-btn" onclick="showToast('Yakında...')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+    Ayarlar
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const START_DATE = new Date('2026-02-12T00:00:00');
+
+  const EVENTS = [
+    { name: 'Yıldönümümüz', emoji: '💜', month: 2, day: 12 },
+    { name: "Dilara'nın Doğum Günü", emoji: '🎂', month: 8, day: 9 },
+    { name: "Berk'in Doğum Günü", emoji: '🎉', month: 3, day: 15 },
+    { name: "Cemil'in Sahiplenme Günü", emoji: '🐹', month: 6, day: 25 },
+    { name: 'Sevgililer Günü', emoji: '💝', month: 2, day: 14 },
+    { name: 'Kadınlar Günü', emoji: '🌸', month: 3, day: 8 },
+  ];
+
+  function today() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function updateCounter() {
+    const now = today();
+    const diff = Math.floor((now - START_DATE) / 86400000);
+    document.getElementById('dayCount').textContent = diff;
+    document.getElementById('weekCount').textContent = Math.floor(diff / 7);
+    document.getElementById('monthCount').textContent = Math.floor(diff / 30.44);
+  }
+
+  function nextOccurrence(month, day) {
+    const now = today();
+    const year = now.getFullYear();
+    let d = new Date(year, month - 1, day);
+    d.setHours(0, 0, 0, 0);
+    if (d < now) d = new Date(year + 1, month - 1, day);
+    return d;
+  }
+
+  function daysUntil(date) {
+    return Math.round((date - today()) / 86400000);
+  }
+
+  function formatDate(month, day) {
+    const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+    return `${day} ${months[month - 1]}`;
+  }
+
+  function renderEvents() {
+    const list = document.getElementById('eventsList');
+
+    const sorted = EVENTS.map(e => {
+      const next = nextOccurrence(e.month, e.day);
+      const days = daysUntil(next);
+      return { ...e, next, days };
+    }).sort((a, b) => a.days - b.days);
+
+    list.innerHTML = sorted.map(e => {
+      const isToday = e.days === 0;
+      const isSoon = e.days > 0 && e.days <= 7;
+      const cls = isToday ? 'today' : isSoon ? 'soon' : '';
+
+      const countdown = isToday
+        ? `<span class="badge-today">Bugün! 🎉</span>`
+        : `<div class="event-days">${e.days}</div><div class="event-days-label">gün kaldı</div>`;
+
+      return `
+        <div class="event-card ${cls}">
+          <div class="event-icon">${e.emoji}</div>
+          <div class="event-info">
+            <div class="event-name">${e.name}</div>
+            <div class="event-date">${formatDate(e.month, e.day)}</div>
+          </div>
+          <div class="event-countdown">${countdown}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  async function requestNotification() {
+    if (!('Notification' in window)) {
+      showToast('Bu tarayıcı bildirimleri desteklemiyor.');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      document.getElementById('notifBtn').textContent = '✓ Bildirimler aktif';
+      document.getElementById('notifBtn').classList.add('enabled');
+      localStorage.setItem('notifEnabled', '1');
+      scheduleNotifications();
+      showToast('Bildirimler açıldı! 🎉');
+    } else {
+      showToast('Bildirim izni verilmedi.');
+    }
+  }
+
+  function scheduleNotifications() {
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.ready.then(reg => {
+      EVENTS.forEach(e => {
+        const next = nextOccurrence(e.month, e.day);
+        const dayBefore = new Date(next);
+        dayBefore.setDate(dayBefore.getDate() - 1);
+        dayBefore.setHours(9, 0, 0, 0);
+
+        const msUntilDayBefore = dayBefore - Date.now();
+        const msUntilDay = next - Date.now();
+
+        if (msUntilDayBefore > 0) {
+          setTimeout(() => {
+            reg.showNotification(`Yarın: ${e.name} ${e.emoji}`, {
+              body: `${e.name} yarın! Hazırlanmaya başla 💜`,
+              icon: 'icon-192.png',
+              badge: 'icon-192.png',
+              tag: `${e.name}-before`
+            });
+          }, msUntilDayBefore);
+        }
+
+        if (msUntilDay > 0) {
+          setTimeout(() => {
+            reg.showNotification(`${e.name} ${e.emoji}`, {
+              body: `Bugün ${e.name}! Kutlu olsun 💜`,
+              icon: 'icon-192.png',
+              badge: 'icon-192.png',
+              tag: e.name
+            });
+          }, msUntilDay);
+        }
+      });
+    });
+  }
+
+  // Init
+  updateCounter();
+  renderEvents();
+
+  if (localStorage.getItem('notifEnabled') === '1') {
+    document.getElementById('notifBtn').textContent = '✓ Bildirimler aktif';
+    document.getElementById('notifBtn').classList.add('enabled');
+  }
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // Update counter at midnight
+  const now = new Date();
+  const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
+  setTimeout(() => {
+    updateCounter();
+    renderEvents();
+    setInterval(() => { updateCounter(); renderEvents(); }, 86400000);
+  }, msToMidnight);
+</script>
+</body>
+</html>
