@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-  <meta name="theme-color" content="#1a0a2e">
+  <meta name="theme-color" content="#1a0a2e" id="themeColorMeta">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Berk & Dilara">
@@ -25,6 +25,59 @@
       --muted: #8b7aaa;
       --border: rgba(192, 132, 252, 0.15);
       --glow: rgba(192, 132, 252, 0.08);
+      --nav-bg: rgba(13, 7, 32, 0.92);
+    }
+
+    [data-theme="bordo"] {
+      --bg: #0f0508;
+      --surface: #1e0a10;
+      --surface2: #2a0f18;
+      --accent: #e05580;
+      --accent2: #f4a0b8;
+      --text: #ffeef3;
+      --muted: #a06070;
+      --border: rgba(224, 85, 128, 0.15);
+      --glow: rgba(224, 85, 128, 0.08);
+      --nav-bg: rgba(15, 5, 8, 0.92);
+    }
+
+    [data-theme="gri"] {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface2: #1e1e1e;
+      --accent: #c0c0c0;
+      --accent2: #e8e0d8;
+      --text: #f0f0f0;
+      --muted: #707070;
+      --border: rgba(192, 192, 192, 0.15);
+      --glow: rgba(192, 192, 192, 0.08);
+      --nav-bg: rgba(10, 10, 10, 0.92);
+    }
+
+    [data-theme="gs"] {
+      --bg: #0a0500;
+      --surface: #150b00;
+      --surface2: #1f1200;
+      --accent: #e8a000;
+      --accent2: #e82020;
+      --text: #fff8ee;
+      --muted: #a07840;
+      --border: rgba(232, 160, 0, 0.18);
+      --glow: rgba(232, 160, 0, 0.08);
+      --nav-bg: rgba(10, 5, 0, 0.92);
+    }
+
+    [data-theme="bjk"] {
+      --bg: #050505;
+      --surface: #101010;
+      --surface2: #1a1a1a;
+      --accent: #f0f0f0;
+      --accent2: #b0b0b0;
+      --text: #ffffff;
+      --muted: #606060;
+      --border: rgba(240, 240, 240, 0.15);
+      --glow: rgba(240, 240, 240, 0.06);
+      --nav-bg: rgba(5, 5, 5, 0.92);
     }
 
     html, body {
@@ -59,23 +112,58 @@
     .app {
       position: relative;
       z-index: 1;
-      min-height: 100vh;
       max-width: 430px;
       margin: 0 auto;
-      padding: 0 0 100px;
+      padding-bottom: 100px;
+    }
+
+    #page-home {
+      padding-bottom: 100px;
     }
 
     /* Header */
     .header {
-      padding: 48px 24px 32px;
+      position: relative;
+      width: 100%;
+      height: 320px;
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+
+    .header-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+    }
+
+    .header-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.08) 0%,
+        transparent 20%,
+        transparent 40%,
+        var(--bg) 100%
+      );
+    }
+
+    .header-content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0 24px 20px;
       text-align: center;
     }
 
     .header-emoji {
-      font-size: 36px;
-      margin-bottom: 12px;
+      font-size: 28px;
+      margin-bottom: 6px;
       display: block;
       animation: pulse 3s ease-in-out infinite;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
     @keyframes pulse {
@@ -85,13 +173,15 @@
 
     .header-title {
       font-family: 'Playfair Display', serif;
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 600;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing: -0.3px;
+      text-shadow: none;
+      filter: drop-shadow(0 2px 12px rgba(0,0,0,0.6));
     }
 
     /* Main counter */
@@ -296,14 +386,14 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 430px;
-      background: rgba(13, 7, 32, 0.85);
+      background: color-mix(in srgb, var(--bg) 85%, transparent);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid var(--border);
       padding: 12px 0 20px;
       display: flex;
       justify-content: space-around;
-      z-index: 100;
+      z-index: 999;
     }
 
     .nav-btn {
@@ -372,13 +462,454 @@
       .counter-number { font-size: 56px; }
       .header { padding: 32px 24px 20px; }
     }
+
+    /* Settings panel */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .settings-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .settings-panel {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: 430px;
+      background: var(--surface);
+      border-radius: 24px 24px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      padding: 20px 24px 48px;
+      z-index: 1001;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .settings-panel.open {
+      transform: translateX(-50%) translateY(0);
+    }
+    .settings-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .settings-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .settings-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .theme-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .theme-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s;
+    }
+    .theme-btn.active {
+      border-color: var(--accent);
+    }
+    .theme-btn .swatch {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .theme-btn .swatch-mor {
+      background: linear-gradient(135deg, #c084fc, #f472b6);
+    }
+    .theme-btn .swatch-bordo {
+      background: linear-gradient(135deg, #e05580, #f4a0b8);
+    }
+    .theme-btn .swatch-gri {
+      background: linear-gradient(135deg, #c0c0c0, #e8e0d8);
+    }
+    .theme-btn .swatch-gs {
+      background: linear-gradient(135deg, #e8a000, #e82020);
+    }
+    .theme-btn .swatch-bjk {
+      background: linear-gradient(135deg, #f0f0f0, #303030);
+    }
+    .theme-btn span {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+
+    /* Page switching - fixed full screen, kendi içinde scroll */
+    .page {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      z-index: 1;
+    }
+    .page.active {
+      display: block;
+    }
+
+    .memories-page {
+      padding: 20px 20px 100px;
+      max-width: 430px;
+      margin: 0 auto;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      padding-left: 4px;
+    }
+
+    .memory-input-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .memory-input-card textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      resize: none;
+      min-height: 80px;
+      line-height: 1.6;
+    }
+
+    .memory-input-card textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .memory-input-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .author-select {
+      display: flex;
+      gap: 8px;
+    }
+
+    .author-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .author-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      border-color: transparent;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .send-btn:disabled {
+      opacity: 0.4;
+    }
+
+    .memory-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+
+    .memory-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .memory-author {
+      font-size: 12px;
+      font-weight: 500;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .memory-date {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .memory-text {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .memory-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .memory-delete:active { color: #e05555; }
+
+    .memories-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 40px 0;
+    }
+
+    .memories-loading {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 20px 0;
+    }
+
+
+    /* Bugün Ne Yapsak Panel */
+    .bny-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .bny-overlay.open { opacity: 1; pointer-events: all; }
+
+    .bny-panel {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%;
+      max-width: 430px;
+      background: var(--surface);
+      border-radius: 24px 24px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      padding: 20px 24px 120px;
+      z-index: 160;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .bny-panel.open { transform: translateX(-50%) translateY(0); }
+
+    .bny-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    .bny-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .bny-category {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .bny-cat-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 10px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .bny-cat-btn .cat-emoji { font-size: 24px; }
+    .bny-cat-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .bny-spin-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .bny-spin-btn:active { transform: scale(0.98); }
+    .bny-spin-btn:disabled { opacity: 0.4; }
+
+    .bny-result {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bny-result-emoji {
+      font-size: 36px;
+      animation: bounceIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    .bny-result-text {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      animation: bounceIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    .bny-placeholder {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
   </style>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWzpBdbdb_db25-tSD27A0IEGW1MeUlJM",
+      authDomain: "dilara-app-6c7ab.firebaseapp.com",
+      projectId: "dilara-app-6c7ab",
+      storageBucket: "dilara-app-6c7ab.firebasestorage.app",
+      messagingSenderId: "1047372766813",
+      appId: "1:1047372766813:web:0e6cb16013ea74927937b4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Global fonksiyonlar
+    window.dbAddMemory = async (text, author) => {
+      await addDoc(collection(db, 'memories'), {
+        text,
+        author,
+        createdAt: serverTimestamp()
+      });
+    };
+
+    window.dbGetMemories = async () => {
+      const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    };
+
+    window.dbDeleteMemory = async (id) => {
+      await deleteDoc(doc(db, 'memories', id));
+    };
+
+    window.firebaseReady = true;
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
 </head>
 <body>
 <div class="app">
+<div class="page active" id="page-home" style="background: var(--bg);">
   <div class="header">
-    <span class="header-emoji">💜</span>
-    <div class="header-title">Berk & Dilara</div>
+    <img class="header-photo" src="couple.jpg" alt="Berk & Dilara">
+    <div class="header-fade"></div>
+    <div class="header-content">
+      <span class="header-emoji">💜</span>
+      <div class="header-title">Berk & Dilara</div>
+    </div>
   </div>
 
   <!-- Main counter -->
@@ -415,21 +946,48 @@
   </div>
 </div>
 
+</div><!-- end page-home -->
+
+<!-- Memories Page -->
+<div class="page" id="page-memories" style="background: var(--bg);">
+  <div class="memories-page">
+    <div class="page-title">💌 Anılarımız</div>
+
+    <div class="memory-input-card">
+      <textarea id="memoryText" placeholder="Bugün ne güzel bir şey oldu?"></textarea>
+      <div class="memory-input-footer">
+        <div class="author-select">
+          <button class="author-btn active" id="btn-berk" onclick="selectAuthor('Berk')">Berk</button>
+          <button class="author-btn" id="btn-dilara" onclick="selectAuthor('Dilara')">Dilara</button>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="saveMemory()">Kaydet</button>
+      </div>
+    </div>
+
+    <div id="memoriesList"><div class="memories-loading">Anılar yükleniyor...</div></div>
+  </div>
+</div><!-- end page-memories -->
 <!-- Bottom nav -->
 <div class="bottom-nav">
-  <button class="nav-btn active">
+  <button class="nav-btn active" id="nav-home" onclick="showPage('home')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
     </svg>
     Ana Sayfa
   </button>
-  <button class="nav-btn" onclick="showToast('Yakında...')">
+  <button class="nav-btn" id="nav-memories" onclick="showPage('memories')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
     </svg>
     Anılar
   </button>
-  <button class="nav-btn" onclick="showToast('Yakında...')">
+  <button class="nav-btn" id="bnyNavBtn" onclick="toggleBNY()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    Ne Yapsak
+  </button>
+  <button class="nav-btn" id="settingsNavBtn" onclick="toggleSettings()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
       <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -438,7 +996,68 @@
   </button>
 </div>
 
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
+
+<!-- Settings panel -->
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-handle"></div>
+  <div class="settings-title">Ayarlar</div>
+
+  <div class="settings-label">Tema</div>
+  <div class="theme-grid">
+    <button class="theme-btn" id="theme-mor" onclick="setTheme('mor')">
+      <div class="swatch swatch-mor"></div>
+      <span>Mor</span>
+    </button>
+    <button class="theme-btn" id="theme-bordo" onclick="setTheme('bordo')">
+      <div class="swatch swatch-bordo"></div>
+      <span>Bordo</span>
+    </button>
+    <button class="theme-btn" id="theme-gri" onclick="setTheme('gri')">
+      <div class="swatch swatch-gri"></div>
+      <span>Gri</span>
+    </button>
+    <button class="theme-btn" id="theme-gs" onclick="setTheme('gs')">
+      <div class="swatch swatch-gs"></div>
+      <span>Galatasaray</span>
+    </button>
+    <button class="theme-btn" id="theme-bjk" onclick="setTheme('bjk')">
+      <div class="swatch swatch-bjk"></div>
+      <span>Beşiktaş</span>
+    </button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
+<!-- Bugün Ne Yapsak Overlay -->
+<div class="bny-overlay" id="bnyOverlay" onclick="toggleBNY()"></div>
+
+<!-- Bugün Ne Yapsak Panel -->
+<div class="bny-panel" id="bnyPanel">
+  <div class="bny-handle"></div>
+  <div class="bny-title">🎲 Bugün Ne Yapsak?</div>
+
+  <div class="bny-category">
+    <button class="bny-cat-btn" id="cat-ev" onclick="selectCategory('ev')">
+      <span class="cat-emoji">🏠</span>
+      Evde
+    </button>
+    <button class="bny-cat-btn" id="cat-disari" onclick="selectCategory('disari')">
+      <span class="cat-emoji">🌍</span>
+      Dışarıda
+    </button>
+  </div>
+
+  <button class="bny-spin-btn" id="bnySpinBtn" onclick="spinActivity()" disabled>
+    🎲 Ne Yapsak?
+  </button>
+
+  <div class="bny-result" id="bnyResult">
+    <span class="bny-placeholder">Önce bir kategori seç 👆</span>
+  </div>
+</div>
 
 <script>
   const START_DATE = new Date('2026-02-12T00:00:00');
@@ -447,7 +1066,8 @@
     { name: 'Yıldönümümüz', emoji: '💜', month: 2, day: 12 },
     { name: "Dilara'nın Doğum Günü", emoji: '🎂', month: 8, day: 9 },
     { name: "Berk'in Doğum Günü", emoji: '🎉', month: 3, day: 15 },
-    { name: "Cemil'in Sahiplenme Günü", emoji: '🐹', month: 6, day: 25 },
+    { name: "Cengiz'in Sahiplenme Günü", emoji: '🐹', month: 6, day: 25 },
+    { name: "Cengiz'i Anma Günü", emoji: '🕯️', month: 11, day: 10 },
     { name: 'Sevgililer Günü', emoji: '💝', month: 2, day: 14 },
     { name: 'Kadınlar Günü', emoji: '🌸', month: 3, day: 8 },
   ];
@@ -471,8 +1091,14 @@
     const year = now.getFullYear();
     let d = new Date(year, month - 1, day);
     d.setHours(0, 0, 0, 0);
+    // Bugün dahil, sadece dünden önce ise gelecek yıla al
     if (d < now) d = new Date(year + 1, month - 1, day);
     return d;
+  }
+
+  function isTodayEvent(month, day) {
+    const now = new Date();
+    return now.getMonth() + 1 === month && now.getDate() === day;
   }
 
   function daysUntil(date) {
@@ -527,11 +1153,17 @@
       showToast('Bu tarayıcı bildirimleri desteklemiyor.');
       return;
     }
+    // Zaten aktifse tekrar çalıştırma
+    if (localStorage.getItem('notifEnabled') === '1' && Notification.permission === 'granted') {
+      showToast('Bildirimler zaten aktif.');
+      return;
+    }
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       document.getElementById('notifBtn').textContent = '✓ Bildirimler aktif';
       document.getElementById('notifBtn').classList.add('enabled');
       localStorage.setItem('notifEnabled', '1');
+      // Bugünkü özel günleri kontrol et ve sadece gerçekten bugün olanları bildir
       scheduleNotifications();
       showToast('Bildirimler açıldı! 🎉');
     } else {
@@ -542,16 +1174,38 @@
   function scheduleNotifications() {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.ready.then(reg => {
+
+      // Bugün olan etkinlikler — sadece bugün bildirildiyse göster
+      const todayKey = new Date().toDateString();
+      const alreadyNotified = localStorage.getItem('notifiedDate') === todayKey;
+
       EVENTS.forEach(e => {
+        // Bugün mü?
+        if (isTodayEvent(e.month, e.day)) {
+          // Bugün daha önce bildirilmediyse gönder
+          if (!alreadyNotified) {
+            reg.showNotification(`${e.name} ${e.emoji}`, {
+              body: `Bugün ${e.name}! Kutlu olsun 💜`,
+              icon: 'icon-192.png',
+              badge: 'icon-192.png',
+              tag: e.name
+            });
+          }
+          return;
+        }
+
+        // Gelecekteki etkinlikler için setTimeout ile planla
         const next = nextOccurrence(e.month, e.day);
         const dayBefore = new Date(next);
         dayBefore.setDate(dayBefore.getDate() - 1);
         dayBefore.setHours(9, 0, 0, 0);
+        next.setHours(9, 0, 0, 0);
 
         const msUntilDayBefore = dayBefore - Date.now();
         const msUntilDay = next - Date.now();
 
-        if (msUntilDayBefore > 0) {
+        // Sadece 1 dakikadan fazla sonrası ise planla
+        if (msUntilDayBefore > 60000) {
           setTimeout(() => {
             reg.showNotification(`Yarın: ${e.name} ${e.emoji}`, {
               body: `${e.name} yarın! Hazırlanmaya başla 💜`,
@@ -562,7 +1216,7 @@
           }, msUntilDayBefore);
         }
 
-        if (msUntilDay > 0) {
+        if (msUntilDay > 60000) {
           setTimeout(() => {
             reg.showNotification(`${e.name} ${e.emoji}`, {
               body: `Bugün ${e.name}! Kutlu olsun 💜`,
@@ -573,12 +1227,182 @@
           }, msUntilDay);
         }
       });
+
+      // Bugün için bildirildi olarak işaretle
+      localStorage.setItem('notifiedDate', todayKey);
     });
+  }
+
+
+  // Bugün Ne Yapsak
+  const ACTIVITIES = {
+    ev: [
+      { emoji: '🎬', text: 'Film maratonu' },
+      { emoji: '📺', text: 'Yeni dizi başlat' },
+      { emoji: '🍳', text: 'Birlikte yemek yap' },
+      { emoji: '🎂', text: 'Pasta veya kek yap' },
+      { emoji: '🎲', text: 'Kutu oyunu oyna' },
+      { emoji: '🧩', text: 'Puzzle yap' },
+      { emoji: '💃', text: 'Dans edin' },
+      { emoji: '📸', text: 'Fotoğraf albümü yap' },
+      { emoji: '💌', text: 'Birbirine mektup yaz' },
+      { emoji: '🎨', text: 'Boyama / çizim yapın' },
+      { emoji: '🍿', text: 'Evde sinema gecesi' },
+      { emoji: '💆', text: 'Masaj yap' },
+      { emoji: '🎮', text: 'Oyun oynayın' },
+      { emoji: '🎵', text: 'Şarkı dinleyin' },
+      { emoji: '🛋️', text: 'Evde yaramazlık' },
+      { emoji: '🛏️', text: 'Yastık savaşı' },
+      { emoji: '🍕', text: 'Pizza yap birlikte' },
+    ],
+    disari: [
+      { emoji: '🎤', text: 'Karaoke' },
+      { emoji: '🎯', text: 'Poligon' },
+      { emoji: '🌊', text: 'Sahile git' },
+      { emoji: '🏛️', text: 'Müze gezisi' },
+      { emoji: '🍦', text: 'Dondurma ye' },
+      { emoji: '🎡', text: 'Lunapark' },
+      { emoji: '🏎️', text: 'Go-kart' },
+      { emoji: '🔐', text: 'Escape room' },
+      { emoji: '💦', text: 'Aquapark' },
+      { emoji: '⛵', text: 'Tekne turu' },
+      { emoji: '🦁', text: 'Hayvanat bahçesi' },
+      { emoji: '🌸', text: 'Botanik bahçesi' },
+      { emoji: '🎳', text: 'Bowling' },
+      { emoji: '🎬', text: 'Sinemaya git' },
+      { emoji: '☕', text: 'Kafeye otur' },
+      { emoji: '🚶', text: 'Yürüyüşe çık' },
+      { emoji: '🧺', text: 'Piknik yap' },
+      { emoji: '🛍️', text: 'Alışverişe çık' },
+      { emoji: '🥐', text: 'Kahvaltıya çık' },
+      { emoji: '🧁', text: 'Tatlıcıya git' },
+      { emoji: '☕', text: 'Çay bahçesine git' },
+      { emoji: '🥦', text: 'Pazar gezisi' },
+      { emoji: '🌅', text: 'Gün batımı izle' },
+      { emoji: '🌟', text: 'Yıldız seyret' },
+      { emoji: '🕯️', text: 'Mum ışığında yemek' },
+      { emoji: '🗺️', text: 'Yeni mahalle keşfi' },
+      { emoji: '🖼️', text: 'Sergi gez' },
+      { emoji: '📚', text: 'Kitapçıya git' },
+      { emoji: '🎭', text: 'Tiyatroya git' },
+      { emoji: '🎸', text: 'Konser / canlı müzik' },
+      { emoji: '🎓', text: 'Birlikte kurs alın' },
+      { emoji: '🌳', text: 'Parka git' },
+    ]
+  };
+
+  let selectedCategory = null;
+  let lastActivity = null;
+
+  function toggleBNY() {
+    const panel = document.getElementById('bnyPanel');
+    const overlay = document.getElementById('bnyOverlay');
+    const btn = document.getElementById('bnyNavBtn');
+    panel.classList.toggle('open');
+    overlay.classList.toggle('open');
+    btn?.classList.toggle('active');
+  }
+
+  function selectCategory(cat) {
+    selectedCategory = cat;
+    document.querySelectorAll('.bny-cat-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('cat-' + cat).classList.add('active');
+    document.getElementById('bnySpinBtn').disabled = false;
+    document.getElementById('bnyResult').innerHTML = '<span class="bny-placeholder">Hazır! Butona bas 🎲</span>';
+  }
+
+  // Her kategori için kalan aktivite havuzu
+  const remainingPool = { ev: [], disari: [] };
+
+  function getNextActivity(cat) {
+    // Havuz bittiyse yeniden doldur (hepsini karıştır)
+    if (remainingPool[cat].length === 0) {
+      remainingPool[cat] = [...ACTIVITIES[cat]].sort(() => Math.random() - 0.5);
+    }
+    // Havuzdan bir sonraki aktiviteyi al
+    return remainingPool[cat].pop();
+  }
+
+  function spinActivity() {
+    if (!selectedCategory) return;
+    const list = ACTIVITIES[selectedCategory];
+    const btn = document.getElementById('bnySpinBtn');
+    const result = document.getElementById('bnyResult');
+
+    // Havuzdan adil şekilde seç
+    const pick = getNextActivity(selectedCategory);
+
+    // Slot machine animasyonu
+    btn.disabled = true;
+    const totalDuration = 2500;
+    const startInterval = 80;
+    const endInterval = 300;
+    let elapsed = 0;
+    let currentInterval = startInterval;
+    let shuffled = [...list].sort(() => Math.random() - 0.5);
+    let idx = 0;
+
+    function showNext() {
+      const item = shuffled[idx % shuffled.length];
+      idx++;
+      result.innerHTML = `
+        <div class="bny-result-emoji" style="animation:none">${item.emoji}</div>
+        <div class="bny-result-text" style="animation:none">${item.text}</div>
+      `;
+      elapsed += currentInterval;
+      currentInterval = startInterval + (endInterval - startInterval) * (elapsed / totalDuration);
+
+      if (elapsed < totalDuration) {
+        setTimeout(showNext, currentInterval);
+      } else {
+        result.innerHTML = `
+          <div class="bny-result-emoji">${pick.emoji}</div>
+          <div class="bny-result-text">${pick.text}</div>
+        `;
+        btn.disabled = false;
+      }
+    }
+
+    showNext();
+  }
+
+  // Theme colors map for status bar
+  const THEME_COLORS = {
+    mor: '#0d0720',
+    bordo: '#0f0508',
+    gri: '#0a0a0a',
+    gs: '#0a0500',
+    bjk: '#050505'
+  };
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme === 'mor' ? '' : theme);
+    localStorage.setItem('theme', theme);
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('theme-' + theme);
+    if (btn) btn.classList.add('active');
+    // Update status bar color
+    const meta = document.getElementById('themeColorMeta');
+    if (meta) meta.setAttribute('content', THEME_COLORS[theme] || THEME_COLORS.mor);
+  }
+
+  function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    const overlay = document.getElementById('settingsOverlay');
+    const navBtn = document.getElementById('settingsNavBtn');
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open');
+    overlay.classList.toggle('open');
+    navBtn.classList.toggle('active');
   }
 
   // Init
   updateCounter();
   renderEvents();
+
+  // Load saved theme
+  const savedTheme = localStorage.getItem('theme') || 'mor';
+  setTheme(savedTheme);
 
   if (localStorage.getItem('notifEnabled') === '1') {
     document.getElementById('notifBtn').textContent = '✓ Bildirimler aktif';
@@ -588,6 +1412,92 @@
   // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+
+
+  // Page navigation
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const el = document.getElementById('page-' + page);
+    el.classList.add('active');
+    el.scrollTop = 0; // sayfanın kendi scroll'unu sıfırla
+    document.getElementById('nav-' + page)?.classList.add('active');
+    if (page === 'memories') loadMemories();
+  }
+
+  // Author selection
+  let selectedAuthor = 'Berk';
+  function selectAuthor(name) {
+    selectedAuthor = name;
+    document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + name.toLowerCase()).classList.add('active');
+  }
+
+  // Save memory to Firestore
+  async function saveMemory() {
+    const text = document.getElementById('memoryText').value.trim();
+    if (!text) return;
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Kaydediliyor...';
+    try {
+      await window.dbAddMemory(text, selectedAuthor);
+      document.getElementById('memoryText').value = '';
+      showToast('Anı kaydedildi 💜');
+      loadMemories();
+    } catch (e) {
+      showToast('Hata: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Kaydet';
+  }
+
+  // Load memories from Firestore
+  async function loadMemories() {
+    const list = document.getElementById('memoriesList');
+    if (!window.firebaseReady) {
+      list.innerHTML = '<div class="memories-loading">Bağlanıyor...</div>';
+      window.addEventListener('firebaseReady', loadMemories, { once: true });
+      return;
+    }
+    try {
+      const memories = await window.dbGetMemories();
+      if (memories.length === 0) {
+        list.innerHTML = '<div class="memories-empty">Henüz anı yok 💜<br>İlk anıyı sen ekle!</div>';
+        return;
+      }
+      list.innerHTML = memories.map(m => {
+        const date = m.createdAt?.toDate?.();
+        const dateStr = date ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        return `
+          <div class="memory-card">
+            <div class="memory-header">
+              <span class="memory-author">${m.author === 'Berk' ? '💙 Berk' : '💗 Dilara'}</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="memory-date">${dateStr}</span>
+                <button class="memory-delete" onclick="deleteMemory('${m.id}')" title="Sil">🗑️</button>
+              </div>
+            </div>
+            <div class="memory-text">${m.text}</div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="memories-empty">Anılar yüklenemedi.</div>';
+    }
+  }
+
+  async function deleteMemory(id) {
+    if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
+    try {
+      await window.dbDeleteMemory(id);
+      showToast('Anı silindi.');
+      loadMemories();
+    } catch (e) {
+      showToast('Silinemedi: ' + e.message);
+    }
   }
 
   // Update counter at midnight
