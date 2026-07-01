@@ -1649,6 +1649,10 @@
       document.getElementById("imageViewer").style.display = "flex";
   }
 
+  function closeImage() {
+    document.getElementById("imageViewer").style.display = "none";
+  }
+
   async function deleteMemory(id) {
     if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
     try {
