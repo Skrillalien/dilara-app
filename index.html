@@ -1040,6 +1040,26 @@
 
 </div>
 
+<div class="dashboard-card" id="nextEventCard">
+
+  <div class="dashboard-header">
+
+    <div class="dashboard-title">
+      🎉 Yaklaşan Özel Gün
+    </div>
+
+    <div class="dashboard-date" id="nextEventDays">
+      --
+    </div>
+
+  </div>
+
+  <div class="dashboard-text" id="nextEventName">
+    Yükleniyor...
+  </div>
+
+</div>
+
 <div class="dashboard-card" id="lastMemoryCard">
 
   <div class="dashboard-header">
@@ -1566,6 +1586,7 @@
   scheduleNotifications();
   updateDailyMessage();
   loadLastMemory();
+  loadNextEvent();
 
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'mor';
@@ -1755,6 +1776,65 @@
                 year:"numeric"
             });
 
+    }
+
+}
+
+function loadNextEvent() {
+
+    const today = new Date();
+
+    let closestEvent = null;
+    let minDays = Infinity;
+
+    EVENTS.forEach(event => {
+
+        const eventDate = new Date(
+            today.getFullYear(),
+            event.month - 1,
+            event.day
+        );
+
+        // Bu yıl geçtiyse gelecek yılı kullan
+        if (eventDate < today) {
+            eventDate.setFullYear(today.getFullYear() + 1);
+        }
+
+        // Saat farkından kaynaklanan hataları önlemek için
+        eventDate.setHours(0, 0, 0, 0);
+
+        const now = new Date(today);
+        now.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.round(
+            (eventDate - now) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays < minDays) {
+            minDays = diffDays;
+            closestEvent = event;
+        }
+
+    });
+
+    if (!closestEvent) return;
+
+    document.getElementById("nextEventName").textContent =
+        `${closestEvent.emoji} ${closestEvent.name}`;
+
+    if (minDays === 0) {
+
+        document.getElementById("nextEventDays").textContent =
+            "Bugün";
+
+    } else if (minDays === 1) {
+
+        document.getElementById("nextEventDays").textContent =
+            "Yarın";
+    } else {
+
+        document.getElementById("nextEventDays").textContent =
+            `${minDays} gün`;
     }
 
 }
