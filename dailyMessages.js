@@ -14,7 +14,7 @@ const DAILY_MESSAGES = [
 
 {
     title: "💌 Bugünün Mesajı",
-    category: "💌 Sevgi",
+    category: "🥰 Sevgi",
     text: "Sebepsiz yere 'Seni seviyorum.' deyin."
 },
 
