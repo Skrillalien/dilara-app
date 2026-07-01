@@ -1239,66 +1239,36 @@
     }
   }
 
-  function scheduleNotifications() {
+  async function scheduleNotifications() {
+  
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.ready.then(reg => {
-
-      // Bugün olan etkinlikler — sadece bugün bildirildiyse göster
-      const todayKey = new Date().toDateString();
-      const alreadyNotified = localStorage.getItem('notifiedDate') === todayKey;
-
-      EVENTS.forEach(e => {
-        // Bugün mü?
-        if (isTodayEvent(e.month, e.day)) {
-          // Bugün daha önce bildirilmediyse gönder
-          if (!alreadyNotified) {
-            reg.showNotification(`${e.name} ${e.emoji}`, {
-              body: `Bugün ${e.name}! Kutlu olsun 💜`,
-              icon: 'icon-192.png',
-              badge: 'icon-192.png',
-              tag: e.name
-            });
-          }
-          return;
-        }
-
-        // Gelecekteki etkinlikler için setTimeout ile planla
-        const next = nextOccurrence(e.month, e.day);
-        const dayBefore = new Date(next);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-        dayBefore.setHours(9, 0, 0, 0);
-        next.setHours(9, 0, 0, 0);
-
-        const msUntilDayBefore = dayBefore - Date.now();
-        const msUntilDay = next - Date.now();
-
-        // Sadece 1 dakikadan fazla sonrası ise planla
-        if (msUntilDayBefore > 60000) {
-          setTimeout(() => {
-            reg.showNotification(`Yarın: ${e.name} ${e.emoji}`, {
-              body: `${e.name} yarın! Hazırlanmaya başla 💜`,
-              icon: 'icon-192.png',
-              badge: 'icon-192.png',
-              tag: `${e.name}-before`
-            });
-          }, msUntilDayBefore);
-        }
-
-        if (msUntilDay > 60000) {
-          setTimeout(() => {
-            reg.showNotification(`${e.name} ${e.emoji}`, {
-              body: `Bugün ${e.name}! Kutlu olsun 💜`,
-              icon: 'icon-192.png',
-              badge: 'icon-192.png',
-              tag: e.name
-            });
-          }, msUntilDay);
-        }
-      });
-
-      // Bugün için bildirildi olarak işaretle
-      localStorage.setItem('notifiedDate', todayKey);
+    
+    if (Notification.permission !== 'granted') return;
+  
+    const reg = await navigator.serviceWorker.ready;
+    const today = new Date();
+    const todayKey = today.toDateString();
+  
+    // Bugün zaten bildirim gösterildiyse tekrar gösterme
+    if (localStorage.getItem('notifiedDate') === todayKey) {
+      return;
+    }
+  
+    // Bugün özel gün var mı?
+    const todayEvent = EVENTS.find(e =>
+      e.month === (today.getMonth() + 1) &&
+      e.day === today.getDate()
+    );
+  
+    if (!todayEvent) return;
+  
+    reg.showNotification(`${todayEvent.name} ${todayEvent.emoji}`, {
+      body: `Bugün ${todayEvent.name}! 💜`,
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      tag: 'today-event'
     });
+    localStorage.setItem('notifiedDate', todayKey);
   }
 
 
@@ -1478,6 +1448,7 @@
   // Init
   updateCounter();
   renderEvents();
+  scheduleNotifications();
 
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'mor';
