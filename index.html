@@ -666,6 +666,29 @@
       opacity: 0.4;
     }
 
+    .attach-btn {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 50%;
+      background: var(--surface2);
+      color: var(--accent);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s ease;
+    }
+    
+    .attach-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .attach-btn:hover {
+      background: var(--surface);
+    }
+    
     .memory-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -956,11 +979,42 @@
     <div class="memory-input-card">
       <textarea id="memoryText" placeholder="Bugün ne güzel bir şey oldu?"></textarea>
       <div class="memory-input-footer">
-        <div class="author-select">
-          <button class="author-btn active" id="btn-berk" onclick="selectAuthor('Berk')">Berk</button>
-          <button class="author-btn" id="btn-dilara" onclick="selectAuthor('Dilara')">Dilara</button>
-        </div>
-        <button class="send-btn" id="sendBtn" onclick="saveMemory()">Kaydet</button>
+      
+          <div class="author-select">
+              <button class="author-btn active" id="btn-berk" onclick="selectAuthor('Berk')">Berk</button>
+              <button class="author-btn" id="btn-dilara" onclick="selectAuthor('Dilara')">Dilara</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+              <button
+                  class="attach-btn"
+                  onclick="document.getElementById('photoInput').click()">📎
+              </button>
+              <button
+                  class="send-btn"
+                  id="sendBtn"
+                  onclick="saveMemory()">
+                  Kaydet
+              </button>
+          </div>
+      </div>
+      
+      <input
+          type="file"
+          id="photoInput"
+          accept="image/*"
+          style="display:none"
+          onchange="previewPhoto(event)">
+      <div
+          id="photoPreviewContainer"
+          style="display:none;margin-top:15px;">
+      
+          <img
+              id="photoPreview"
+              style="
+                  width:100%;
+                  border-radius:14px;
+                  display:block;
+              ">
       </div>
     </div>
 
