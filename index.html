@@ -1644,9 +1644,10 @@
         }
     });
 
-    function openImage(src) {
-        alert("Fotoğrafa tıklandı.");
-    }
+  function openImage(src) {
+      document.getElementById("viewerImage").src = src;
+      document.getElementById("imageViewer").style.display = "flex";
+  }
 
   async function deleteMemory(id) {
     if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
