@@ -1026,6 +1026,26 @@
 
 </div>
 
+<div class="dashboard-card" id="lastMemoryCard">
+
+  <div class="dashboard-title">
+    💌 Son Not
+  </div>
+
+  <div class="dashboard-author" id="lastMemoryAuthor">
+    --
+  </div>
+
+  <div class="dashboard-text" id="lastMemoryText">
+    Henüz not yok.
+  </div>
+
+  <div class="dashboard-date" id="lastMemoryDate">
+    --
+  </div>
+
+</div>
+
   <!-- Events -->
   <div class="section">
     <div class="section-title">Özel Günler</div>
@@ -1527,6 +1547,7 @@
   renderEvents();
   scheduleNotifications();
   updateDailyMessage();
+  loadLastMemory();
 
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'mor';
@@ -1685,6 +1706,35 @@
       list.innerHTML = '<div class="memories-empty">Anılar yüklenemedi.</div>';
     }
   }
+  
+  async function loadLastMemory() {
+
+    const memories = await window.dbGetMemories();
+
+    if(memories.length === 0) return;
+
+    const last = memories[0];
+
+    document.getElementById("lastMemoryAuthor").textContent =
+        last.author === "Berk" ? "💙 Berk" : "💗 Dilara";
+
+    document.getElementById("lastMemoryText").textContent =
+        last.text;
+
+    const date = last.createdAt?.toDate?.();
+
+    if(date){
+
+        document.getElementById("lastMemoryDate").textContent =
+            date.toLocaleDateString("tr-TR",{
+                day:"numeric",
+                month:"long",
+                year:"numeric"
+            });
+
+    }
+
+}
   
     document.addEventListener("click", function(e){
     
