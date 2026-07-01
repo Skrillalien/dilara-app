@@ -1502,6 +1502,19 @@
     document.getElementById('btn-' + name.toLowerCase()).classList.add('active');
   }
 
+  let selectedPhoto = null;  
+  function previewPhoto(event){ 
+      const file = event.target.files[0];
+      if(!file) return;
+      selectedPhoto = file;
+      const reader = new FileReader();
+      reader.onload=function(e){
+          document.getElementById("photoPreview").src=e.target.result;
+          document.getElementById("photoPreviewContainer").style.display="block";
+      }
+      reader.readAsDataURL(file);
+  }
+  
   // Save memory to Firestore
   async function saveMemory() {
     const text = document.getElementById('memoryText').value.trim();
