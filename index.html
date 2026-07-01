@@ -288,6 +288,40 @@
       margin-bottom: 12px;
       padding-left: 4px;
     }
+    
+    .dashboard-card {
+      margin: 18px 20px;
+      padding: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    }
+    
+    .dashboard-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    
+    .dashboard-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    
+    .daily-badge{
+      display:inline-block;
+      padding:6px 12px;
+      margin-bottom:12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      color:var(--accent);
+      font-size:12px;
+      font-weight:600;
+      border:1px solid var(--border);
+    }
 
     /* Event cards */
     .event-card {
@@ -892,7 +926,9 @@
     }
 
   </style>
-
+  
+  <script src="dailyMessages.js"></script>
+  
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -972,6 +1008,23 @@
   <button class="notif-btn" id="notifBtn" onclick="requestNotification()">
     🔔 Bildirimler için izin ver
   </button>
+  
+  <!-- Dashboard Card -->
+<div class="dashboard-card">
+
+    <div class="dashboard-title" id="dailyTitle">
+        💌 Bugünün Mesajı
+    </div>
+    
+    <div class="daily-badge" id="dailyBadge">
+      ❤️ Romantik
+    </div>
+    
+    <div class="dashboard-text" id="dailyMessage">
+      Birlikte geçen her gün yeni bir anı biriktiriyorsunuz. ❤️
+    </div>
+
+</div>
 
   <!-- Events -->
   <div class="section">
@@ -1139,6 +1192,58 @@
     { name: 'Sevgililer Günü', emoji: '💝', month: 2, day: 14 },
     { name: 'Kadınlar Günü', emoji: '🌸', month: 3, day: 8 },
   ];
+  
+    const DAILY_MESSAGES = [
+    {
+        category: "❤️ Romantik",
+        text: "Bugün birbirinize uzun uzun sarılın."
+    },
+    
+    {
+        category: "☕ Birlikte Yapın",
+        text: "Bugün birlikte bir kahve için."
+    },
+    
+    {
+        category: "🥰 Sevgi",
+        text: "Sebepsiz yere 'Seni seviyorum.' deyin."
+    },
+    
+    {
+        category: "📸 Anı",
+        text: "Bugün yeni bir fotoğraf çekilin."
+    },
+    
+    {
+        category: "🎵 Müzik",
+        text: "Birbirinize bugün yeni bir şarkı gönderin."
+    }
+    
+    ];
+
+    function updateDailyMessage() {
+    
+        const today = new Date();
+    
+        // Yılın kaçıncı günü?
+        const start = new Date(today.getFullYear(), 0, 0);
+        const diff = today - start;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
+    
+        const index = dayOfYear % DAILY_MESSAGES.length;
+    
+        const message = DAILY_MESSAGES[index];
+    
+        document.getElementById("dailyTitle").textContent =
+            message.title;
+    
+        document.getElementById("dailyBadge").textContent =
+            message.category;
+    
+        document.getElementById("dailyMessage").textContent =
+            message.text;
+    }
 
   function today() {
     const d = new Date();
@@ -1449,6 +1554,7 @@
   updateCounter();
   renderEvents();
   scheduleNotifications();
+  updateDailyMessage();
 
   // Load saved theme
   const savedTheme = localStorage.getItem('theme') || 'mor';
