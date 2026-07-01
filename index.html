@@ -1708,6 +1708,11 @@
   }
   
   async function loadLastMemory() {
+      
+    if (!window.firebaseReady) {
+        window.addEventListener('firebaseReady', loadLastMemory, { once: true });
+        return;
+    }
 
     const memories = await window.dbGetMemories();
 
