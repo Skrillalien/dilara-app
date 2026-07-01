@@ -306,6 +306,12 @@
       margin-bottom: 16px;
     }
     
+    .dashboard-subtitle{
+        margin-top:10px;
+        font-size:14px;
+        color:var(--muted);
+    }
+    
     .dashboard-text {
       font-size: 15px;
       line-height: 1.7;
@@ -1042,21 +1048,17 @@
 
 <div class="dashboard-card" id="nextEventCard">
 
-  <div class="dashboard-header">
-
     <div class="dashboard-title">
-      🎉 Yaklaşan Özel Gün
+        🎉 Yaklaşan Özel Gün
     </div>
 
-    <div class="dashboard-date" id="nextEventDays">
-      --
+    <div class="dashboard-text" id="nextEventName">
+        Yükleniyor...
     </div>
 
-  </div>
-
-  <div class="dashboard-text" id="nextEventName">
-    Yükleniyor...
-  </div>
+    <div class="dashboard-subtitle" id="nextEventInfo">
+        --
+    </div>
 
 </div>
 
@@ -1821,21 +1823,37 @@ function loadNextEvent() {
 
     document.getElementById("nextEventName").textContent =
         `${closestEvent.emoji} ${closestEvent.name}`;
-
-    if (minDays === 0) {
-
-        document.getElementById("nextEventDays").textContent =
-            "Bugün";
-
-    } else if (minDays === 1) {
-
-        document.getElementById("nextEventDays").textContent =
-            "Yarın";
-    } else {
-
-        document.getElementById("nextEventDays").textContent =
-            `${minDays} gün`;
+    
+    const eventDate = new Date(
+        today.getFullYear(),
+        closestEvent.month - 1,
+        closestEvent.day
+    );
+    
+    if (eventDate < today) {
+        eventDate.setFullYear(today.getFullYear() + 1);
     }
+    
+    const dateText = eventDate.toLocaleDateString("tr-TR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    
+    let remainText;
+    
+    if (minDays === 0) {
+        remainText = "Bugün 🎉";
+    }
+    else if (minDays === 1) {
+        remainText = "Yarın";
+    }
+    else {
+        remainText = `${minDays} gün kaldı`;
+    }
+    
+    document.getElementById("nextEventInfo").textContent =
+        `📅 ${dateText} • ${remainText}`;
 
 }
   
