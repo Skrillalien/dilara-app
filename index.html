@@ -901,10 +901,11 @@
     const db = getFirestore(app);
 
     // Global fonksiyonlar
-    window.dbAddMemory = async (text, author) => {
+    window.dbAddMemory = async (text, author, image = null) => {
       await addDoc(collection(db, 'memories'), {
         text,
         author,
+        image,
         createdAt: serverTimestamp()
       });
     };
@@ -1008,13 +1009,16 @@
           id="photoPreviewContainer"
           style="display:none;margin-top:15px;">
       
-          <img
-              id="photoPreview"
-              style="
-                  width:100%;
-                  border-radius:14px;
-                  display:block;
-              ">
+            <img
+                id="photoPreview"
+                style="
+                    width:90px;
+                    height:90px;
+                    object-fit:cover;
+                    border-radius:12px;
+                    display:block;
+                    border:1px solid var(--border);
+                ">
       </div>
     </div>
 
@@ -1502,18 +1506,56 @@
     document.getElementById('btn-' + name.toLowerCase()).classList.add('active');
   }
 
-  let selectedPhoto = null;  
-  function previewPhoto(event){ 
-      const file = event.target.files[0];
-      if(!file) return;
-      selectedPhoto = file;
-      const reader = new FileReader();
-      reader.onload=function(e){
-          document.getElementById("photoPreview").src=e.target.result;
-          document.getElementById("photoPreviewContainer").style.display="block";
-      }
-      reader.readAsDataURL(file);
-  }
+    let selectedPhoto = null;
+    
+    async function previewPhoto(event) {
+    
+        const file = event.target.files[0];
+    
+        if (!file) return;
+    
+        const img = new Image();
+    
+        img.src = URL.createObjectURL(file);
+    
+        img.onload = () => {
+    
+            const canvas = document.createElement("canvas");
+    
+            const MAX_WIDTH = 800;
+    
+            let width = img.width;
+            let height = img.height;
+    
+            if (width > MAX_WIDTH) {
+    
+                height = height * (MAX_WIDTH / width);
+                width = MAX_WIDTH;
+    
+            }
+    
+            canvas.width = width;
+            canvas.height = height;
+    
+            const ctx = canvas.getContext("2d");
+    
+            ctx.drawImage(img,0,0,width,height);
+    
+            selectedPhoto = canvas.toDataURL(
+                "image/jpeg",
+                0.65
+            );
+    
+            document.getElementById("photoPreview").src =
+                selectedPhoto;
+    
+            document.getElementById(
+                "photoPreviewContainer"
+            ).style.display = "block";
+    
+        };
+    
+    }
   
   // Save memory to Firestore
   async function saveMemory() {
@@ -1523,8 +1565,15 @@
     btn.disabled = true;
     btn.textContent = 'Kaydediliyor...';
     try {
-      await window.dbAddMemory(text, selectedAuthor);
+      await window.dbAddMemory(
+        text,
+        selectedAuthor,
+        selectedPhoto
+        );
       document.getElementById('memoryText').value = '';
+      selectedPhoto = null;
+      document.getElementById("photoInput").value = "";
+      document.getElementById("photoPreviewContainer").style.display = "none";
       showToast('Anı kaydedildi 💜');
       loadMemories();
     } catch (e) {
@@ -1560,7 +1609,16 @@
                 <button class="memory-delete" onclick="deleteMemory('${m.id}')" title="Sil">🗑️</button>
               </div>
             </div>
+        
             <div class="memory-text">${m.text}</div>
+        
+            ${m.image ? `
+              <img
+                src="${m.image}"
+                class="memory-image"
+                ">
+            ` : ''}
+        
           </div>
         `;
       }).join('');
@@ -1568,6 +1626,17 @@
       list.innerHTML = '<div class="memories-empty">Anılar yüklenemedi.</div>';
     }
   }
+  
+    document.addEventListener("click", function(e){
+    
+        if(e.target.classList.contains("memory-image")){
+            openImage(e.target.src);
+        }
+    });
+
+    function openImage(src) {
+        alert("Fotoğrafa tıklandı.");
+    }
 
   async function deleteMemory(id) {
     if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
