@@ -14,7 +14,6 @@ Birliktelik sayacı ve özel günler uygulaması.
 **Android:** Tarayıcıda aç → menü → "Ana ekrana ekle"
 **iPhone:** Safari'de aç → paylaş → "Ana Ekrana Ekle"
 
-
 ## Dosyalar
 
 - `index.html` — Uygulamanın kendisi
