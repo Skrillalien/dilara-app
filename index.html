@@ -410,11 +410,16 @@
   updateCounter();
   renderEvents();
   scheduleNotifications();
+
   updateDailyMessage();
   loadLastMemory();
   loadNextEvent();
   checkUserSelection();
   loadWaitingItems();
+  registerServiceWorker();
+
+  startMidnightUpdater();
+
 
 
   // Load saved theme
