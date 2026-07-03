@@ -1989,6 +1989,9 @@ async function loadWaitingItems() {
 
   card.style.display = "block";
 
+  console.log(card);
+  console.log(list);
+
   list.innerHTML = waiting.map(m => `
     <div class="waiting-item">
       <div class="waiting-title">
