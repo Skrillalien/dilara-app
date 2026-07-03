@@ -114,6 +114,12 @@ const DAILY_MESSAGES = [
     text: "İlk tanıştığınız günü birlikte hatırlayın."
 },
 
+    {
+    title: "🎯 Bugünün Görevi",
+    category: "❤️ Romantik",
+    text: "Bugün birbirinizi yiyin :)"
+},
+
 {
     title: "🎯 Bugünün Görevi",
     category: "🎮 Eğlence",
