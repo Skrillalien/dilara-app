@@ -70,3 +70,14 @@ async function scheduleNotifications() {
 
     localStorage.setItem('notifiedDate', todayKey);
 }
+
+function registerServiceWorker() {
+
+    if (!('serviceWorker' in navigator)) return;
+
+        navigator.serviceWorker
+            .register('sw.js')
+            .then(reg => reg.update())
+            .catch(console.error);
+
+}
