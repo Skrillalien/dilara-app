@@ -32,6 +32,12 @@ const DAILY_MESSAGES = [
 
 {
     title: "🎯 Bugünün Görevi",
+    category: "❤️ Romantik",
+    text: "Bugün birbirinizi yiyin :)"
+},
+    
+{
+    title: "🎯 Bugünün Görevi",
     category: "🌅 Birlikte Yapın",
     text: "Bugün gün batımını birlikte izleyin."
 },
@@ -112,12 +118,6 @@ const DAILY_MESSAGES = [
     title: "💌 Bugünün Mesajı",
     category: "❤️ Romantik",
     text: "İlk tanıştığınız günü birlikte hatırlayın."
-},
-
-    {
-    title: "🎯 Bugünün Görevi",
-    category: "❤️ Romantik",
-    text: "Bugün birbirinizi yiyin :)"
 },
 
 {
