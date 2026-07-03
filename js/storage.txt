@@ -1,0 +1,31 @@
+function saveTheme(theme){
+    localStorage.setItem("theme",theme);
+}
+
+function loadTheme(){
+    return localStorage.getItem("theme") || "mor";
+}
+
+function saveNotificationEnabled(){
+    localStorage.setItem("notifEnabled","1");
+}
+
+function isNotificationEnabled(){
+    return localStorage.getItem("notifEnabled")==="1";
+}
+
+function getLastNotificationDate(){
+    return localStorage.getItem("notifiedDate");
+}
+
+function setLastNotificationDate(date){
+    localStorage.setItem("notifiedDate",date);
+}
+
+function saveCurrentUser(user){
+    localStorage.setItem("currentUser",user);
+}
+
+function getCurrentUser(){
+    return localStorage.getItem("currentUser");
+}
