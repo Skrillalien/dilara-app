@@ -1865,6 +1865,7 @@ function showPage(page) {
         selectedAuthor,
         selectedPhoto
         );
+      loadWaitingItems();
       document.getElementById('memoryText').value = '';
       selectedPhoto = null;
       document.getElementById("photoInput").value = "";
@@ -1974,6 +1975,9 @@ async function loadWaitingItems() {
     m.author !== currentUser &&
     (!m.seenBy || !m.seenBy.includes(currentUser))
   );
+
+  console.log("Current User:", currentUser);
+  console.log("Waiting:", waiting);
 
   const card = document.getElementById("waitingCard");
   const list = document.getElementById("waitingList");
@@ -2101,14 +2105,17 @@ function loadNextEvent() {
   }
   
   function selectUser(user){
-
-    localStorage.setItem("currentUser", user);
-
-    document.getElementById("userSelectOverlay").style.display = "none";
-
-    showToast(`Hoş geldin ${user} 💜`);
-
-}
+  
+      localStorage.setItem("currentUser", user);
+  
+      document.getElementById("userSelectOverlay").style.display = "none";
+  
+      loadWaitingItems();
+      loadLastMemory();
+      loadNextEvent();
+  
+      showToast(`Hoş geldin ${user} 💜`);
+  }
 
 function checkUserSelection() {
 
