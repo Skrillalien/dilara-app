@@ -1958,6 +1958,11 @@ function showPage(page) {
 
 async function loadWaitingItems() {
 
+  if (!window.firebaseReady) {
+    window.addEventListener("firebaseReady", loadWaitingItems, { once: true });
+    return;
+  }
+
   const currentUser = localStorage.getItem("currentUser");
   if (!currentUser) return;
 
