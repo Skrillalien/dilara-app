@@ -1968,6 +1968,8 @@ async function loadWaitingItems() {
 
   const memories = await window.dbGetMemories();
 
+  console.log(memories);
+
   const waiting = memories.filter(m =>
     m.author !== currentUser &&
     (!m.seenBy || !m.seenBy.includes(currentUser))
