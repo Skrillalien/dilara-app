@@ -16,7 +16,6 @@ Birliktelik sayacı ve özel günler uygulaması.
 
 ## Dosyalar
 
-
 - `index.html` — Uygulamanın kendisi
 - `sw.js` — Service Worker (bildirimler + offline)
 - `manifest.json` — PWA ayarları
