@@ -50,11 +50,6 @@ const START_DATE = new Date('2026-02-12T00:00:00');
     return d;
   }
 
-  function isTodayEvent(month, day) {
-    const now = new Date();
-    return now.getMonth() + 1 === month && now.getDate() === day;
-  }
-
   function daysUntil(date) {
     return Math.round((date - today()) / 86400000);
   }
@@ -178,10 +173,27 @@ const START_DATE = new Date('2026-02-12T00:00:00');
   
   }
 
-  const now = new Date();
-  const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
-  setTimeout(() => {
-    updateCounter();
-    renderEvents();
-    setInterval(() => { updateCounter(); renderEvents(); }, 86400000);
-  }, msToMidnight);
+function startMidnightUpdater() {
+    const now = new Date();
+
+    const msToMidnight =
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + 1
+        ) - now;
+
+    setTimeout(() => {
+
+        updateCounter();
+        renderEvents();
+        loadNextEvent();
+
+        setInterval(() => {
+            updateCounter();
+            renderEvents();
+            loadNextEvent();
+        }, 86400000);
+
+    }, msToMidnight);
+}
