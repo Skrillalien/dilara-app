@@ -975,6 +975,32 @@
       font-size: 36px;
       animation: bounceIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
     }
+    
+    .waiting-item{
+        padding:12px 0;
+        border-bottom:1px solid var(--border);
+        cursor:pointer;
+        transition:.2s;
+    }
+    
+    .waiting-item:last-child{
+        border-bottom:none;
+    }
+    
+    .waiting-item:hover{
+        opacity:.85;
+    }
+    
+    .waiting-title{
+        font-weight:600;
+        color:var(--text);
+    }
+    
+    .waiting-desc{
+        margin-top:4px;
+        color:var(--muted);
+        font-size:13px;
+    }
 
     .bny-result-text {
       font-size: 18px;
@@ -1001,7 +1027,7 @@
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDWzpBdbdb_db25-tSD27A0IEGW1MeUlJM",
@@ -1021,6 +1047,7 @@
         text,
         author,
         image,
+        seenBy: [author],
         createdAt: serverTimestamp()
       });
     };
@@ -1033,6 +1060,31 @@
 
     window.dbDeleteMemory = async (id) => {
       await deleteDoc(doc(db, 'memories', id));
+    };
+    
+    window.dbMarkMemoriesSeen = async (user) => {
+
+      const q = query(collection(db, "memories"));
+      const snap = await getDocs(q);
+    
+      for (const d of snap.docs) {
+    
+        const data = d.data();
+    
+        if (data.author === user) continue;
+    
+        const seenBy = data.seenBy || [];
+    
+        if (!seenBy.includes(user)) {
+    
+          await updateDoc(doc(db, "memories", d.id), {
+            seenBy: [...seenBy, user]
+          });
+    
+        }
+    
+      }
+    
     };
 
     window.firebaseReady = true;
@@ -1124,6 +1176,16 @@
     🔔 Bildirimler için izin ver
   </button>
   
+<div class="dashboard-card" id="waitingCard" style="display:none;">
+
+    <div class="dashboard-title">
+        💌 Seni Bekleyenler
+    </div>
+
+    <div id="waitingList"></div>
+
+</div>
+ 
   <!-- Dashboard Card -->
 <div class="dashboard-card">
 
@@ -1685,6 +1747,7 @@
   loadLastMemory();
   loadNextEvent();
   checkUserSelection();
+  loadWaitingItems();
 
 
   // Load saved theme
@@ -1706,15 +1769,29 @@
 
 
   // Page navigation
-  function showPage(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const el = document.getElementById('page-' + page);
-    el.classList.add('active');
-    el.scrollTop = 0; // sayfanın kendi scroll'unu sıfırla
-    document.getElementById('nav-' + page)?.classList.add('active');
-    if (page === 'memories') loadMemories();
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  const el = document.getElementById('page-' + page);
+  el.classList.add('active');
+  el.scrollTop = 0;
+
+  document.getElementById('nav-' + page)?.classList.add('active');
+
+  if (page === 'memories') {
+
+    loadMemories();
+
+    const currentUser = localStorage.getItem("currentUser");
+
+    if (currentUser) {
+      window.dbMarkMemoriesSeen(currentUser)
+        .then(() => loadWaitingItems());
+    }
+
   }
+}
 
   // Author selection
   let selectedAuthor = 'Berk';
@@ -1876,6 +1953,41 @@
             });
 
     }
+
+}
+
+async function loadWaitingItems() {
+
+  const currentUser = localStorage.getItem("currentUser");
+  if (!currentUser) return;
+
+  const memories = await window.dbGetMemories();
+
+  const waiting = memories.filter(m =>
+    m.author !== currentUser &&
+    (!m.seenBy || !m.seenBy.includes(currentUser))
+  );
+
+  const card = document.getElementById("waitingCard");
+  const list = document.getElementById("waitingList");
+
+  if (waiting.length === 0) {
+    card.style.display = "none";
+    return;
+  }
+
+  card.style.display = "block";
+
+  list.innerHTML = waiting.map(m => `
+    <div class="waiting-item">
+      <div class="waiting-title">
+        💌 Yeni Not
+      </div>
+      <div class="waiting-desc">
+        ${m.author} sana yeni bir not bıraktı.
+      </div>
+    </div>
+  `).join("");
 
 }
 
