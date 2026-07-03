@@ -426,15 +426,6 @@
     document.getElementById('notifBtn').classList.add('enabled');
   }
 
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      reg.update();
-    }).catch(console.error);
-  }
-
-
-
   // Page navigation
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
