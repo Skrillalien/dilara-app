@@ -1,0 +1,82 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    updateDoc,
+    orderBy,
+    query,
+    serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDWzpBdbdb_db25-tSD27A0IEGW1MeUlJM",
+      authDomain: "dilara-app-6c7ab.firebaseapp.com",
+      projectId: "dilara-app-6c7ab",
+      storageBucket: "dilara-app-6c7ab.firebasestorage.app",
+      messagingSenderId: "1047372766813",
+      appId: "1:1047372766813:web:0e6cb16013ea74927937b4"
+    };
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+    window.dbAddMemory = async (text, author, image = null) => {
+      await addDoc(collection(db, 'memories'), {
+        text,
+        author,
+        image,
+        seenBy: [author],
+        createdAt: serverTimestamp()
+      });
+    };
+
+    window.dbGetMemories = async () => {
+      const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    };
+
+    window.dbDeleteMemory = async (id) => {
+      await deleteDoc(doc(db, 'memories', id));
+    };
+    
+    window.dbMarkMemoriesSeen = async (user) => {
+
+      const q = query(collection(db, "memories"));
+      const snap = await getDocs(q);
+    
+      for (const d of snap.docs) {
+    
+        const data = d.data();
+    
+        if (data.author === user) continue;
+    
+        const seenBy = data.seenBy || [];
+    
+        if (!seenBy.includes(user)) {
+    
+          await updateDoc(doc(db, "memories", d.id), {
+            seenBy: [...seenBy, user]
+          });
+        }
+      }
+    };
+
+window.firebase = {
+    addMemory,
+    getMemories,
+    deleteMemory,
+    markMemoriesSeen
+};
+
+window.firebaseReady = true;
+
+window.dispatchEvent(
+    new Event("firebaseReady")
+);
