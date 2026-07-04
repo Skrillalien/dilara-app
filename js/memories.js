@@ -168,3 +168,10 @@ function selectAuthor(name) {
     }
   }
 
+
+async function loadWaitingItems() {
+
+  if (!window.firebaseReady) {
+    window.addEventListener("firebaseReady", loadWaitingItems, { once: true });
+    return;
+  }
