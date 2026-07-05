@@ -26,47 +26,48 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
-    async function addMemory (text, author, image = null) => {
-      await addDoc(collection(db, 'memories'), {
+async function addMemory(text, author, image = null) {
+    await addDoc(collection(db, 'memories'), {
         text,
         author,
         image,
         seenBy: [author],
         createdAt: serverTimestamp()
-      });
-    };
+    });
+}
 
-    window.dbGetMemories = async () => {
-      const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    };
+async function getMemories() {
+    const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
 
-    window.dbDeleteMemory = async (id) => {
-      await deleteDoc(doc(db, 'memories', id));
-    };
+async function deleteMemory(id) {
+    await deleteDoc(doc(db, 'memories', id));
+}
     
-    window.dbMarkMemoriesSeen = async (user) => {
+async function markMemoriesSeen(user) {
 
-      const q = query(collection(db, "memories"));
-      const snap = await getDocs(q);
-    
-      for (const d of snap.docs) {
-    
+    const q = query(collection(db, "memories"));
+    const snap = await getDocs(q);
+
+    for (const d of snap.docs) {
+
         const data = d.data();
-    
+
         if (data.author === user) continue;
-    
+
         const seenBy = data.seenBy || [];
-    
+
         if (!seenBy.includes(user)) {
-    
-          await updateDoc(doc(db, "memories", d.id), {
-            seenBy: [...seenBy, user]
-          });
+
+            await updateDoc(doc(db, "memories", d.id), {
+                seenBy: [...seenBy, user]
+            });
+
         }
-      }
-    };
+    }
+}
 
 window.firebase = {
     addMemory,
