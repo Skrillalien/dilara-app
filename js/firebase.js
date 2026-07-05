@@ -26,7 +26,7 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 
-    window.dbAddMemory = async (text, author, image = null) => {
+    async function addMemory (text, author, image = null) => {
       await addDoc(collection(db, 'memories'), {
         text,
         author,
