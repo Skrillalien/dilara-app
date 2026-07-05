@@ -370,50 +370,6 @@ function showPage(page) {
   }
 }
 
-
-  const currentUser = localStorage.getItem("currentUser");
-  if (!currentUser) return;
-
-  const memories = await window.firebase.getMemories();
-
-  console.log(memories);
-
-  const waiting = memories.filter(m =>
-    m.author !== currentUser &&
-    (!m.seenBy || !m.seenBy.includes(currentUser))
-  );
-
-  console.log("Current User:", currentUser);
-  console.log("Waiting:", waiting);
-
-  const card = document.getElementById("waitingCard");
-  const list = document.getElementById("waitingList");
-
-  if (waiting.length === 0) {
-    card.style.display = "none";
-    return;
-  }
-
-  card.style.display = "block";
-  
-  card.style.background = "red";
-  card.style.height = "200px";
-
-  console.log(card);
-  console.log(list);
-
-  list.innerHTML = waiting.map(m => `
-    <div class="waiting-item">
-      <div class="waiting-title">
-        💌 Yeni Not
-      </div>
-      <div class="waiting-desc">
-        ${m.author} sana yeni bir not bıraktı.
-      </div>
-    </div>
-  `).join("");
-
-}
   
     document.addEventListener("click", function(e){
     
