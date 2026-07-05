@@ -63,7 +63,7 @@ function selectAuthor(name) {
     btn.disabled = true;
     btn.textContent = 'Kaydediliyor...';
     try {
-      await window.dbAddMemory(
+      await window.firebase.addMemory(
         text,
         selectedAuthor,
         selectedPhoto
@@ -90,7 +90,7 @@ function selectAuthor(name) {
       return;
     }
     try {
-      const memories = await window.dbGetMemories();
+      const memories = await window.firebase.getMemories();
       if (memories.length === 0) {
         list.innerHTML = '<div class="memories-empty">Henüz anı yok 💜<br>İlk anıyı sen ekle!</div>';
         return;
@@ -132,7 +132,7 @@ function selectAuthor(name) {
         return;
     }
 
-    const memories = await window.dbGetMemories();
+    const memories = await window.firebase.getMemories();
 
     if(memories.length === 0) return;
 
@@ -160,7 +160,7 @@ function selectAuthor(name) {
  async function deleteMemory(id) {
     if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
     try {
-      await window.dbDeleteMemory(id);
+      await window.firebase.deleteMemory(id);
       showToast('Anı silindi.');
       loadMemories();
     } catch (e) {
@@ -175,3 +175,4 @@ async function loadWaitingItems() {
     window.addEventListener("firebaseReady", loadWaitingItems, { once: true });
     return;
   }
+}
