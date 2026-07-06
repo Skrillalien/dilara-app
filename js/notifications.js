@@ -81,25 +81,3 @@ function registerServiceWorker() {
             .catch(console.error);
 
 }
-
-    function showWaitingPopup(author){
-    
-        document.getElementById("waitingPopupTitle").textContent =
-            `${author} sana yeni bir not bıraktı 💜`;
-    
-        document.getElementById("waitingPopup").style.display = "flex";
-    }
-    
-    function closeWaitingPopup(){
-    
-        document.getElementById("waitingPopup").style.display = "none";
-    
-    }
-    
-    function openWaitingPopup(){
-    
-        closeWaitingPopup();
-    
-        showPage("memories");
-    
-    }
