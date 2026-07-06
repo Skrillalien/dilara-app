@@ -163,6 +163,13 @@ function loadWaitingItems() {
         const list = document.getElementById('waitingList');
         if (waiting.length === 0) { card.style.display = 'none'; return; }
         card.style.display = 'block';
+        if (!sessionStorage.getItem("waitingPopupShown")) {
+        
+            showWaitingPopup(waiting[0].author);
+        
+            sessionStorage.setItem("waitingPopupShown", "1");
+        
+        }
         list.innerHTML = waiting.map(m => {
             const date = m.createdAt?.toDate?.();
             const dateStr = date ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' }) : '';
@@ -174,6 +181,30 @@ function loadWaitingItems() {
     });
 }
 
+function showWaitingPopup(author){
+
+    document.getElementById("waitingPopupTitle").textContent =
+        `${author} sana yeni bir not bıraktı 💜`;
+
+    document.getElementById("waitingPopup").style.display = "flex";
+}
+
+function closeWaitingPopup(){
+
+    document.getElementById("waitingPopup").style.display = "none";
+
+}
+
+function openWaitingPopup(){
+
+    closeWaitingPopup();
+
+    showPage("memories");
+
+}
+
 function openWaitingItems() {
     showPage("memories");
 }
+
+
