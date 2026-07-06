@@ -14,6 +14,40 @@
   <link rel="stylesheet" href="css/style.css">
   
 </head>
+
+<div id="waitingPopup" class="overlay">
+
+    <div class="user-card">
+
+        <div style="font-size:52px;margin-bottom:12px;">
+            💌
+        </div>
+
+        <div class="user-title" id="waitingPopupTitle">
+            Berk sana bir not bıraktı
+        </div>
+
+        <div style="color:var(--muted);margin:12px 0 26px;">
+            Hemen okumak ister misin?
+        </div>
+
+        <button class="user-btn" onclick="openWaitingPopup()">
+            💜 Şimdi Oku
+        </button>
+
+        <button
+            class="user-btn"
+            style="margin-top:10px;background:var(--surface);"
+            onclick="closeWaitingPopup()">
+
+            Daha Sonra
+
+        </button>
+
+    </div>
+
+</div>
+  
 <body>
 
   <script src="dailyMessages.js"></script>
