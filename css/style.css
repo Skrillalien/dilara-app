@@ -153,6 +153,31 @@
       filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
+    #randomIdeaBtn{
+      position: fixed;
+      right: 20px;
+      bottom: 90px;
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0,0,0,.3);
+      z-index: 999;
+      transition: .2s;
+  }
+
+  #randomIdeaBtn:hover{
+      transform: translateY(-2px);
+  }
+
+  #randomIdeaBtn:active{
+      transform: scale(.92);
+  }
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.08); }
