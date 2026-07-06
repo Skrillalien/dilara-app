@@ -36,18 +36,17 @@ function checkUserSelection() {
 
     const overlay = document.getElementById("userSelectOverlay");
 
-    if(!overlay) return;
+    if (!overlay) return;
 
     const user = localStorage.getItem("currentUser");
 
-    if(user){
-        document.getElementById("currentUserText").textContent = user;
+    const currentUserText = document.getElementById("currentUserText");
+    if (user && currentUserText) {
+        currentUserText.textContent = user;
     }
 
-    if(!user){
-
+    if (!user) {
         overlay.style.display = "flex";
-
     }
 }
 
