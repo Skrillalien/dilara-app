@@ -34,7 +34,17 @@ if (localStorage.getItem('notifEnabled') === '1') {
       loadNextEvent();
   
       showToast(`Hoş geldin ${user} 💜`);
+
+      document.getElementById("currentUserText").textContent = user;
   }
+
+function changeUser(){
+
+    localStorage.removeItem("currentUser");
+
+    document.getElementById("userSelectOverlay").style.display = "flex";
+
+}
 
 function checkUserSelection() {
 
@@ -43,6 +53,10 @@ function checkUserSelection() {
     if(!overlay) return;
 
     const user = localStorage.getItem("currentUser");
+
+    if(user){
+        document.getElementById("currentUserText").textContent = user;
+    }
 
     if(!user){
 
