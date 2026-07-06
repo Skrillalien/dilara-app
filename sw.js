@@ -1,4 +1,4 @@
-const CACHE_NAME = "berk-dilara-v1.2.11";
+const CACHE_NAME = "berk-dilara-v1.3.0";
 
 const FILES_TO_CACHE = [
   "./",
@@ -12,15 +12,13 @@ const FILES_TO_CACHE = [
 // Kurulum
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
   );
 
   self.skipWaiting();
 });
 
-// Aktifleştirme
+// Eski cache'leri sil
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -35,10 +33,14 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// Dosya yükleme
+// Fetch
 self.addEventListener("fetch", event => {
 
-  // HTML dosyaları her zaman internetten gelsin
+  if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+
+  // HTML
   if (event.request.mode === "navigate") {
 
     event.respondWith(
@@ -60,20 +62,43 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Diğer dosyalar önce cache
+  // JS ve CSS her zaman internetten gelsin
+  if (
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css")
+  ) {
+
+    event.respondWith(
+
+      fetch(event.request)
+        .then(response => {
+
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, copy);
+          });
+
+          return response;
+
+        })
+        .catch(() => caches.match(event.request))
+
+    );
+
+    return;
+  }
+
+  // Resimler ve diğer dosyalar cache-first
   event.respondWith(
+
     caches.match(event.request).then(cached => {
 
-      if (cached) {
-        return cached;
-      }
+      if (cached) return cached;
 
       return fetch(event.request).then(response => {
 
-        if (
-          event.request.method === "GET" &&
-          response.status === 200
-        ) {
+        if (response.status === 200) {
 
           const copy = response.clone();
 
@@ -88,6 +113,7 @@ self.addEventListener("fetch", event => {
       });
 
     })
+
   );
 
 });
