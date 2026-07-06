@@ -25,6 +25,7 @@
   <script src="js/notifications.js"></script>
   <script src="js/memories.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
 
   <div id="imageViewer" onclick="closeImage()">
   
@@ -167,7 +168,7 @@
 </div><!-- end page-home -->
 
 <!-- Memories Page -->
-<div class="page" id="page-memories" style="background: var(--bg);">
+<div class="page" id="page-memories">
   <div class="memories-page">
     <div class="page-title">💌 Anılarımız</div>
 
@@ -179,7 +180,7 @@
               <button class="author-btn active" id="btn-berk" onclick="selectAuthor('Berk')">Berk</button>
               <button class="author-btn" id="btn-dilara" onclick="selectAuthor('Dilara')">Dilara</button>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
+          <div class="memory-actions">
               <button
                   class="attach-btn"
                   onclick="document.getElementById('photoInput').click()">📎
@@ -193,26 +194,16 @@
           </div>
       </div>
       
-      <input
-          type="file"
-          id="photoInput"
-          accept="image/*"
-          style="display:none"
-          onchange="previewPhoto(event)">
-      <div
-          id="photoPreviewContainer"
-          style="display:none;margin-top:15px;">
+    <input
+        type="file"
+        id="photoInput"
+        accept="image/*"
+        class="hidden-input"
+        onchange="previewPhoto(event)">
+        
+      <div id="photoPreviewContainer" class="photo-preview-container">
       
-            <img
-                id="photoPreview"
-                style="
-                    width:90px;
-                    height:90px;
-                    object-fit:cover;
-                    border-radius:12px;
-                    display:block;
-                    border:1px solid var(--border);
-                ">
+        <img id="photoPreview">
       </div>
     </div>
 
@@ -310,87 +301,6 @@
     <span class="bny-placeholder">Önce bir kategori seç 👆</span>
   </div>
 </div>
-
-<script>
-
-  // Init
-  updateCounter();
-  renderEvents();
-  scheduleNotifications();
-
-  updateDailyMessage();
-  loadLastMemory();
-  loadNextEvent();
-  checkUserSelection();
-  loadWaitingItems();
-  registerServiceWorker();
-
-  startMidnightUpdater();
-
-
-
-  // Load saved theme
-  const savedTheme = localStorage.getItem('theme') || 'mor';
-  setTheme(savedTheme);
-
-  if (localStorage.getItem('notifEnabled') === '1') {
-    document.getElementById('notifBtn').textContent = '✓ Bildirimler aktif';
-    document.getElementById('notifBtn').classList.add('enabled');
-  }
-
-  
-    document.addEventListener("click", function(e){
-    
-        if(e.target.classList.contains("memory-image")){
-            openImage(e.target.src);
-        }
-    });
-
-  function openImage(src) {
-      document.getElementById("viewerImage").src = src;
-      document.getElementById("imageViewer").style.display = "flex";
-  }
-
-  function closeImage() {
-    document.getElementById("imageViewer").style.display = "none";
-  }
-
-  
-  function selectUser(user){
-  
-      localStorage.setItem("currentUser", user);
-  
-      document.getElementById("userSelectOverlay").style.display = "none";
-  
-      loadWaitingItems();
-      loadLastMemory();
-      loadNextEvent();
-  
-      showToast(`Hoş geldin ${user} 💜`);
-  }
-
-function checkUserSelection() {
-
-    const overlay = document.getElementById("userSelectOverlay");
-
-    if(!overlay) return;
-
-    const user = localStorage.getItem("currentUser");
-
-    if(!user){
-
-        overlay.style.display = "flex";
-
-    }
-}
-</script>
-
-
-<script>
-window.addEventListener("load", () => {
-    checkUserSelection();
-});
-</script>
   
 </body>
 </html>
