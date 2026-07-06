@@ -20,4 +20,4 @@ Birliktelik sayacı ve özel günler uygulaması.
 - `sw.js` — Service Worker (bildirimler + offline)
 - `manifest.json` — PWA ayarları
 - `icon-192.png` / `icon-512.png` — Uygulama ikonları
-- 
+  
