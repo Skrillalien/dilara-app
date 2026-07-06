@@ -16,16 +16,16 @@ function showPage(page) {
   document.getElementById('nav-' + page)?.classList.add('active');
 
   if (page === 'memories') {
-
-    loadMemories();
-
-    const currentUser = localStorage.getItem("currentUser");
-
-    if (currentUser) {
-      window.firebase.markMemoriesSeen(currentUser)
-        .then(() => loadWaitingItems());
-    }
-
+  
+      loadMemories();
+  
+      const currentUser = localStorage.getItem("currentUser");
+  
+      if (currentUser) {
+          window.firebase.markMemoriesSeen(currentUser)
+              .then(() => loadWaitingItems());
+      }
+  
   }
 }
 
