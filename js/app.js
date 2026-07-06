@@ -1,17 +1,3 @@
-// Init
-updateCounter();
-renderEvents();
-scheduleNotifications();
-
-updateDailyMessage();
-loadLastMemory();
-loadNextEvent();
-checkUserSelection();
-loadWaitingItems();
-registerServiceWorker();
-
-startMidnightUpdater();
-
 const savedTheme = localStorage.getItem('theme') || 'mor';
 setTheme(savedTheme);
 
@@ -66,5 +52,19 @@ function checkUserSelection() {
 }
 
 window.addEventListener("load", () => {
+    // Init
+    updateCounter();
+    renderEvents();
+    scheduleNotifications();
+    
+    updateDailyMessage();
+    loadLastMemory();
+    loadNextEvent();
     checkUserSelection();
+    checkUserSelection();
+    loadWaitingItems();
+    registerServiceWorker();
+    
+    startMidnightUpdater();
+
 });
