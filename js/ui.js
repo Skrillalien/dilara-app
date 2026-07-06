@@ -22,7 +22,7 @@ function showPage(page) {
     const currentUser = localStorage.getItem("currentUser");
 
     if (currentUser) {
-      window.dbMarkMemoriesSeen(currentUser)
+      window.firebase.markMemoriesSeen(currentUser)
         .then(() => loadWaitingItems());
     }
 
