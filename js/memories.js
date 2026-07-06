@@ -199,9 +199,6 @@ async function loadWaitingItems() {
   }
 
   card.style.display = "block";
-  
-  card.style.background = "red";
-  card.style.height = "200px";
 
   console.log(card);
   console.log(list);
