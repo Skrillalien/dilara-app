@@ -181,10 +181,10 @@ function loadWaitingItems() {
     });
 }
 
-function showWaitingPopup(author){
+function showWaitingPopup(author) {
 
     document.getElementById("waitingPopupTitle").textContent =
-        `${author} sana yeni bir not bıraktı 💜`;
+        `💌 ${author} sana tatlı bir not bıraktı`;
 
     document.getElementById("waitingPopup").style.display = "flex";
 }
