@@ -38,9 +38,8 @@ function showPage(page) {
     document.getElementById("imageViewer").style.display = "none";
   }
 
-    document.addEventListener("click", function(e){
-    
-        if(e.target.classList.contains("memory-image")){
-            openImage(e.target.src);
-        }
-    });
+  document.addEventListener("click", function(e){
+    if(e.target.classList.contains("memory-image")){
+      openImage(e.target.src);
+    }
+  });
