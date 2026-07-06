@@ -10,6 +10,7 @@ import {
     updateDoc,
     orderBy,
     query,
+    onSnapshot,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
@@ -69,11 +70,20 @@ async function markMemoriesSeen(user) {
     }
 }
 
+function listenMemories(callback) {
+    const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
+    return onSnapshot(q, (snap) => {
+        const memories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        callback(memories);
+    });
+}
+
 window.firebase = {
     addMemory,
     getMemories,
     deleteMemory,
-    markMemoriesSeen
+    markMemoriesSeen,
+    listenMemories    
 };
 
 window.firebaseReady = true;
