@@ -1110,17 +1110,18 @@
 }
 
 .biz-card{
-    background:var(--card);
-    border-radius:20px;
-    padding:22px 18px;
-    min-height:150px;
+    background: var(--card);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    padding:20px;
+    min-height:145px;
 
     display:flex;
     flex-direction:column;
     justify-content:space-between;
 
-    cursor:pointer;
     transition:.25s;
+    cursor:pointer;
 }
 
 .biz-card:hover{
@@ -1132,7 +1133,7 @@
 }
 
 .biz-card-icon{
-    font-size:42px;
+    font-size:30px;
 }
 
 .biz-card-text{
