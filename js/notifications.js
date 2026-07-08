@@ -36,20 +36,23 @@ async function requestNotification() {
 }
 
 async function scheduleNotifications() {
-
     if (!('serviceWorker' in navigator)) return;
-
     if (Notification.permission !== 'granted') return;
 
-    const reg = await navigator.serviceWorker.ready;
+    // 3 saniye içinde hazır olmazsa çık
+    let reg;
+    try {
+        reg = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]);
+    } catch {
+        return; // SW hazır olmadıysa sessizce çık
+    }
 
     const today = new Date();
-
     const todayKey = today.toDateString();
-
-    if (localStorage.getItem('notifiedDate') === todayKey) {
-        return;
-    }
+    if (localStorage.getItem('notifiedDate') === todayKey) return;
 
     const todayEvent = EVENTS.find(e =>
         e.month === (today.getMonth() + 1) &&
@@ -58,15 +61,12 @@ async function scheduleNotifications() {
 
     if (!todayEvent) return;
 
-    reg.showNotification(
-        `${todayEvent.name} ${todayEvent.emoji}`,
-        {
-            body: `Bugün ${todayEvent.name}! 💜`,
-            icon: 'icon-192.png',
-            badge: 'icon-192.png',
-            tag: 'today-event'
-        }
-    );
+    reg.showNotification(`${todayEvent.name} ${todayEvent.emoji}`, {
+        body: `Bugün ${todayEvent.name}! 💜`,
+        icon: 'icon-192.png',
+        badge: 'icon-192.png',
+        tag: 'today-event'
+    });
 
     localStorage.setItem('notifiedDate', todayKey);
 }
