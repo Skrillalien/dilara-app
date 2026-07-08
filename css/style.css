@@ -1103,20 +1103,28 @@
 /* ===== BİZ SAYFASI ===== */
 
 .biz-menu{
-    display:flex;
-    flex-direction:column;
+    display:grid;
+    grid-template-columns:1fr 1fr;
     gap:16px;
     margin-top:24px;
 }
 
 .biz-card{
-    display:flex;
-    align-items:center;
-    padding:18px;
-    border-radius:18px;
     background:var(--card);
+    border-radius:20px;
+    padding:22px 18px;
+    min-height:150px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
     cursor:pointer;
     transition:.25s;
+}
+
+.biz-card:hover{
+    transform:translateY(-4px);
 }
 
 .biz-card:hover{
@@ -1124,9 +1132,7 @@
 }
 
 .biz-card-icon{
-    font-size:30px;
-    width:48px;
-    text-align:center;
+    font-size:42px;
 }
 
 .biz-card-text{
@@ -1137,6 +1143,7 @@
 .biz-card-title{
     font-size:18px;
     font-weight:600;
+    margin-top:18px;
 }
 
 .biz-card-subtitle{
@@ -1146,6 +1153,13 @@
 }
 
 .biz-card-arrow{
+    align-self:flex-end;
     font-size:26px;
     opacity:.45;
+}
+
+.biz-card-soon{
+    margin-top:8px;
+    font-size:13px;
+    opacity:.55;
 }
