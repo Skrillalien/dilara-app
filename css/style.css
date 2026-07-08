@@ -1110,26 +1110,31 @@
 }
 
 .biz-card{
-    background: var(--card);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:24px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    border: 1px solid rgba(255,255,255,0.12);
+
+    box-shadow:0 8px 24px rgba(0,0,0,.15);
+    
+    border-radius: 22px;
+
     padding:20px;
-    min-height:145px;
+    min-height:150px;
 
     display:flex;
     flex-direction:column;
     justify-content:space-between;
 
-    transition:.25s;
+    transition:0.25s;
     cursor:pointer;
 }
 
 .biz-card:hover{
-    transform:translateY(-4px);
-}
-
-.biz-card:hover{
-    transform:translateY(-2px);
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.18);
 }
 
 .biz-card-icon{
