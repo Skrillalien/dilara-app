@@ -1099,3 +1099,53 @@
 .nav-btn.active .nav-icon {
     fill: currentColor;
 }
+
+/* ===== BİZ SAYFASI ===== */
+
+.biz-menu{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-top:24px;
+}
+
+.biz-card{
+    display:flex;
+    align-items:center;
+    padding:18px;
+    border-radius:18px;
+    background:var(--card);
+    cursor:pointer;
+    transition:.25s;
+}
+
+.biz-card:hover{
+    transform:translateY(-2px);
+}
+
+.biz-card-icon{
+    font-size:30px;
+    width:48px;
+    text-align:center;
+}
+
+.biz-card-text{
+    flex:1;
+    margin-left:12px;
+}
+
+.biz-card-title{
+    font-size:18px;
+    font-weight:600;
+}
+
+.biz-card-subtitle{
+    margin-top:4px;
+    font-size:13px;
+    opacity:.7;
+}
+
+.biz-card-arrow{
+    font-size:26px;
+    opacity:.45;
+}
