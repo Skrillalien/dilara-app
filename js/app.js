@@ -1,12 +1,11 @@
 const savedTheme = localStorage.getItem('theme') || 'mor';
 setTheme(savedTheme);
 
-if (localStorage.getItem('notifEnabled') === '1') {
-    document.getElementById('notifBtn').textContent =
-        '✓ Bildirimler aktif';
+const notifBtn = document.getElementById("notifBtn");
 
-    document.getElementById('notifBtn')
-        .classList.add('enabled');
+if (localStorage.getItem("notifEnabled") === "1" && notifBtn) {
+    notifBtn.textContent = "✓ Bildirimler aktif";
+    notifBtn.classList.add("enabled");
 }
 
   function selectUser(user){
