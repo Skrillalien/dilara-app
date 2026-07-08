@@ -1077,3 +1077,12 @@
     display: block;
     border: 1px solid var(--border);
 }
+
+.nav-icon {
+    fill: none;
+    transition: fill 0.25s ease;
+}
+
+.nav-btn.active .nav-icon {
+    fill: currentColor;
+}
