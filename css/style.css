@@ -1110,15 +1110,16 @@
 }
 
 .biz-card{
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255,255,255,.05);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 
-    border: 1px solid rgba(255,255,255,0.12);
-
-    box-shadow:0 8px 24px rgba(0,0,0,.15);
-    
+    border: 1px solid var(--border);
     border-radius: 22px;
+
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.18),
+        0 0 18px var(--glow);
 
     padding:20px;
     min-height:150px;
@@ -1127,14 +1128,18 @@
     flex-direction:column;
     justify-content:space-between;
 
-    transition:0.25s;
+    transition:.25s;
     cursor:pointer;
 }
 
 .biz-card:hover{
-    transform: translateY(-3px);
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.18);
+    transform:translateY(-3px);
+
+    border-color:var(--accent);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.22),
+        0 0 22px var(--glow);
 }
 
 .biz-card-icon{
