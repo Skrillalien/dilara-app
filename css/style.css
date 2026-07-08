@@ -1130,6 +1130,28 @@
 
     transition:.25s;
     cursor:pointer;
+
+    position:relative;
+    overflow:hidden;
+}
+
+.biz-card::before{
+    content:"";
+
+    position:absolute;
+    top:-40px;
+    left:-40px;
+
+    width:120px;
+    height:120px;
+
+    background:radial-gradient(circle,
+        var(--accent) 0%,
+        transparent 70%);
+
+    opacity:.18;
+
+    pointer-events:none;
 }
 
 .biz-card:hover{
