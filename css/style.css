@@ -1212,6 +1212,8 @@
         drop-shadow(0 0 10px var(--accent))
         drop-shadow(0 0 20px var(--accent));
 
+    animation: heartBreath 4s ease-in-out infinite;
+
     transition:.3s;
 }
 
@@ -1226,4 +1228,22 @@
     margin-top:8px;
     color:var(--muted);
     font-size:15px;
+}
+
+@keyframes heartBreath {
+
+    0%,100%{
+        transform:scale(1);
+        filter:
+            drop-shadow(0 0 10px var(--accent))
+            drop-shadow(0 0 20px var(--accent));
+    }
+
+    50%{
+        transform:scale(1.05);
+        filter:
+            drop-shadow(0 0 18px var(--accent))
+            drop-shadow(0 0 34px var(--accent));
+    }
+
 }
