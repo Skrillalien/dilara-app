@@ -1209,8 +1209,8 @@
     color:var(--accent);
 
     filter:
-        drop-shadow(0 0 6px var(--glow))
-        drop-shadow(0 0 18px var(--glow));
+        drop-shadow(0 0 10px var(--accent))
+        drop-shadow(0 0 20px var(--accent));
 
     transition:.3s;
 }
