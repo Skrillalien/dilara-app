@@ -1198,18 +1198,27 @@
 }
 
 .biz-header{
-    margin:10px 0 28px;
+    text-align:center;
+    margin:8px 0 32px;
 }
 
-.biz-header-icon{
-    font-size:22px;
-    margin-bottom:6px;
+.biz-heart{
+    width:64px;
+    height:64px;
+
+    color:var(--accent);
+
+    filter:
+        drop-shadow(0 0 6px var(--glow))
+        drop-shadow(0 0 18px var(--glow));
+
+    transition:.3s;
 }
 
 .biz-header-title{
+    margin-top:12px;
     font-size:34px;
     font-weight:700;
-    color:var(--text);
     letter-spacing:-0.5px;
 }
 
@@ -1217,5 +1226,4 @@
     margin-top:8px;
     color:var(--muted);
     font-size:15px;
-    line-height:1.5;
 }
