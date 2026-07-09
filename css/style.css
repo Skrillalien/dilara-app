@@ -1196,3 +1196,26 @@
     font-size:13px;
     opacity:.55;
 }
+
+.biz-header{
+    margin:10px 0 28px;
+}
+
+.biz-header-icon{
+    font-size:22px;
+    margin-bottom:6px;
+}
+
+.biz-header-title{
+    font-size:34px;
+    font-weight:700;
+    color:var(--text);
+    letter-spacing:-0.5px;
+}
+
+.biz-header-subtitle{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.5;
+}
