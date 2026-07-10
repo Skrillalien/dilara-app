@@ -21,11 +21,15 @@ if (localStorage.getItem("notifEnabled") === "1" && notifBtn) {
       showToast(`Hoş geldin ${user} 💜`);
 
       document.getElementById("currentUserText").textContent = user;
+
+      updateMemoryAuthorInfo();
   }
 
 function changeUser(){
 
     localStorage.removeItem("currentUser");
+
+    updateMemoryAuthorInfo();
 
     document.getElementById("userSelectOverlay").style.display = "flex";
 
@@ -71,6 +75,8 @@ window.addEventListener("load", () => {
 
     console.log("7");
     checkUserSelection();
+
+    updateMemoryAuthorInfo();
 
     console.log("8");
     loadWaitingItems();

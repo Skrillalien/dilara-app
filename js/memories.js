@@ -63,20 +63,22 @@ function selectAuthor(name) {
     btn.disabled = true;
     btn.textContent = 'Kaydediliyor...';
     try {
-      await window.firebase.addMemory(
-        text,
-        selectedAuthor,
-        selectedPhoto
+        const currentUser = localStorage.getItem("currentUser");
+
+        await window.firebase.addMemory(
+            text,
+            currentUser,
+            selectedPhoto
         );
-      loadWaitingItems();
-      document.getElementById('memoryText').value = '';
-      selectedPhoto = null;
-      document.getElementById("photoInput").value = "";
-      document.getElementById("photoPreviewContainer").style.display = "none";
-      showToast('Anı kaydedildi 💜');
-      loadMemories();
-    } catch (e) {
-      showToast('Hata: ' + e.message);
+        loadWaitingItems();
+        document.getElementById('memoryText').value = '';
+        selectedPhoto = null;
+        document.getElementById("photoInput").value = "";
+        document.getElementById("photoPreviewContainer").style.display = "none";
+        showToast('Anı kaydedildi 💜');
+        loadMemories();
+    }   catch (e) {
+        showToast('Hata: ' + e.message);
     }
     btn.disabled = false;
     btn.textContent = 'Kaydet';
@@ -207,4 +209,20 @@ function openWaitingItems() {
     showPage("memories");
 }
 
+function updateMemoryAuthorInfo(){
 
+    const user = localStorage.getItem("currentUser");
+    const info = document.getElementById("memoryAuthorInfo");
+
+    if (!info) return;
+
+    if (!user){
+        info.textContent = "";
+        return;
+    }
+
+    info.textContent =
+        user === "Berk"
+            ? "💙 Bu anı Berk adına kaydedilecek"
+            : "💗 Bu anı Dilara adına kaydedilecek";
+}

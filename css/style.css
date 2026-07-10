@@ -1230,6 +1230,13 @@
     font-size:15px;
 }
 
+.memory-author-info{
+    margin-bottom:12px;
+    font-size:14px;
+    color:var(--muted);
+    font-weight:500;
+}
+
 @keyframes heartBreath {
 
     0%,100%{
