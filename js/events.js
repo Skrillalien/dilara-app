@@ -64,7 +64,8 @@ const START_DATE = new Date('2026-02-12T00:00:00');
     const diff = Math.floor((now - START_DATE) / 86400000);
     document.getElementById('dayCount').textContent = diff;
     document.getElementById('weekCount').textContent = Math.floor(diff / 7);
-    document.getElementById('monthCount').textContent = Math.floor(diff / 30.44);
+    document.getElementById('monthCount').textContent =
+    calculateMonths(START_DATE, now);
   }
 
   function renderEvents() {
@@ -196,4 +197,17 @@ function startMidnightUpdater() {
         }, 86400000);
 
     }, msToMidnight);
+}
+
+function calculateMonths(start, end){
+
+    let months =
+        (end.getFullYear() - start.getFullYear()) * 12 +
+        (end.getMonth() - start.getMonth());
+
+    if(end.getDate() < start.getDate()){
+        months--;
+    }
+
+    return months;
 }
