@@ -1371,3 +1371,35 @@
     transform:scale(.9);
 
 }
+
+.memory-badge{
+
+    position:absolute;
+
+    right:8px;
+    bottom:8px;
+
+    width:26px;
+    height:26px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    border-radius:50%;
+
+    background:rgba(0,0,0,.45);
+    backdrop-filter:blur(8px);
+
+    color:white;
+
+    z-index:5;
+
+}
+
+.memory-badge svg{
+
+    width:14px;
+    height:14px;
+
+}
