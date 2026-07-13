@@ -1256,3 +1256,45 @@
 
 }
 
+/* ===== FOTOĞRAFLAR ===== */
+
+.photos-page{
+    padding:20px 20px 100px;
+    max-width:430px;
+    margin:0 auto;
+}
+
+.photos-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.photos-title{
+    font-size:28px;
+    font-weight:700;
+}
+
+.photos-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.photo-item{
+    width:100%;
+    aspect-ratio:1/1;
+
+    object-fit:cover;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    transition:.25s;
+}
+
+.photo-item:hover{
+    transform:scale(1.03);
+}

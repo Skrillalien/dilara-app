@@ -27,6 +27,12 @@ function showPage(page) {
       }
   
   }
+
+  if (page === "our-photos"){
+
+    loadPhotos();
+
+  }
 }
 
   function openImage(src) {
