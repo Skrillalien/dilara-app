@@ -1325,3 +1325,49 @@
     height:28px;
     display:block;
 }
+
+.photo-card{
+    position:relative;
+}
+
+.photo-menu-btn{
+
+    position:absolute;
+
+    top:8px;
+    right:8px;
+
+    width:28px;
+    height:28px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    border:none;
+    border-radius:50%;
+
+    background:rgba(0,0,0,.45);
+    backdrop-filter:blur(8px);
+
+    color:white;
+
+    cursor:pointer;
+
+    z-index:5;
+
+    transition:.2s;
+}
+
+.photo-menu-btn svg{
+
+    width:16px;
+    height:16px;
+
+}
+
+.photo-menu-btn:active{
+
+    transform:scale(.9);
+
+}

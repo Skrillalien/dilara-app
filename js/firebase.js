@@ -113,12 +113,22 @@ async function getPhotos() {
 
 }
 
+async function deletePhoto(photoId){
+
+    await deleteDoc(
+        doc(db, "photos", photoId)
+    );
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
     getPhotos,
     getMemories,
+    deletePhoto,
     deleteMemory,
     markMemoriesSeen,
     listenMemories
 };
+

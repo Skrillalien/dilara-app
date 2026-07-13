@@ -10,11 +10,16 @@ const demoPhotos = [
 async function getGalleryItems() {
 
     const memories = await window.firebase.getMemories();
-    const photos = await window.firebase.getPhotos();
+    const photos = (await window.firebase.getPhotos())
+    .map(p => ({
+        ...p,
+        type: "photo"
+    }));
 
     const memoryPhotos = memories
         .filter(m => m.image)
         .map(m => ({
+            id: m.id,
             image: m.image,
             createdAt: m.createdAt,
             type: "memory",
@@ -47,10 +52,62 @@ async function loadPhotos() {
     photos.forEach(photo => {
 
         grid.innerHTML += `
+        <div class="photo-card">
+
             <img
                 src="${photo.image}"
                 class="photo-item"
                 onclick="openImage('${photo.image}')">
+
+            ${
+                photo.type === "memory"
+                ? `
+                <div class="memory-badge">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8">
+
+                        <path d="M8 3h7l4 4v14H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+
+                        <path d="M15 3v5h5"/>
+
+                        <path d="M10 12h6"/>
+
+                        <path d="M10 16h4"/>
+
+                    </svg>
+
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                photo.type === "photo"
+                ? `
+                <button
+                    class="photo-menu-btn"
+                    onclick="openPhotoMenu(event, '${photo.id}')">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="currentColor">
+
+                        <circle cx="12" cy="5" r="1.8"/>
+                        <circle cx="12" cy="12" r="1.8"/>
+                        <circle cx="12" cy="19" r="1.8"/>
+
+                    </svg>
+
+                </button>
+                `
+                : ""
+            }
+
+        </div>
         `;
 
     });
@@ -117,5 +174,35 @@ async function previewGalleryPhoto(event) {
         document.getElementById("galleryPhotoInput").value = "";
 
     };
+
+}
+
+let selectedPhotoId = null;
+
+function openPhotoMenu(event, photoId){
+
+    event.stopPropagation();
+
+    selectedPhotoId = photoId;
+
+    if(confirm("Bu fotoğraf silinsin mi?")){
+
+        deleteSelectedPhoto();
+
+    }
+
+}
+
+async function deleteSelectedPhoto(){
+
+    if(!selectedPhotoId) return;
+
+    await window.firebase.deletePhoto(selectedPhotoId);
+
+    selectedPhotoId = null;
+
+    showToast("🗑️ Fotoğraf silindi");
+
+    loadPhotos();
 
 }
