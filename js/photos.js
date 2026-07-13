@@ -7,6 +7,33 @@ const demoPhotos = [
     "couple.jpg"
 ];
 
+async function getGalleryItems() {
+
+    const memories = await window.firebase.getMemories();
+    const photos = await window.firebase.getPhotos();
+
+    const memoryPhotos = memories
+        .filter(m => m.image)
+        .map(m => ({
+            image: m.image,
+            createdAt: m.createdAt,
+            type: "memory",
+            text: m.text,
+            author: m.author
+        }));
+
+    return [...memoryPhotos, ...photos]
+        .sort((a, b) => {
+
+            const ta = a.createdAt?.seconds || 0;
+            const tb = b.createdAt?.seconds || 0;
+
+            return tb - ta;
+
+        });
+
+}
+
 async function loadPhotos() {
 
     const grid = document.getElementById("photosGrid");
@@ -15,7 +42,7 @@ async function loadPhotos() {
 
     grid.innerHTML = "";
 
-    const photos = await window.firebase.getPhotos();
+    const photos = await getGalleryItems();
 
     photos.forEach(photo => {
 
