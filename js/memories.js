@@ -175,7 +175,7 @@ function loadWaitingItems() {
         list.innerHTML = waiting.map(m => {
             const date = m.createdAt?.toDate?.();
             const dateStr = date ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' }) : '';
-            return `<div class="waiting-item" onclick="openWaitingItems()">
+            return `<div class="waiting-item" onclick="openOurMemories()">
                 <div class="waiting-title">💌 ${m.author} sana yeni bir not bıraktı</div>
                 ${dateStr ? `<div class="waiting-desc">${dateStr}</div>` : ''}
             </div>`;
@@ -197,16 +197,9 @@ function closeWaitingPopup(){
 
 }
 
-function openWaitingPopup(){
-
+function openOurMemories() {
     closeWaitingPopup();
-
-    showPage("memories");
-
-}
-
-function openWaitingItems() {
-    showPage("memories");
+    showPage("our-memories");
 }
 
 function updateMemoryAuthorInfo(){

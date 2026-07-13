@@ -31,7 +31,7 @@
             Hemen okumak ister misin?
         </div>
 
-        <button class="user-btn" onclick="openWaitingPopup()">
+        <button class="user-btn" onclick="openOurMemories()">
             💜 Şimdi Oku
         </button>
 
@@ -235,6 +235,31 @@
   </div>
 </div><!-- end page-memories -->
 
+<!-- Photos Page -->
+<div class="page" id="page-our-photos">
+
+    <div class="photos-page">
+
+        <div class="photos-header">
+
+            <button class="back-btn" onclick="showPage('memories')">
+                ←
+            </button>
+
+            <div class="photos-title">
+                📷 Fotoğraflarımız
+            </div>
+
+        </div>
+
+        <div class="photos-grid">
+
+        </div>
+
+    </div>
+
+</div>
+
 <!-- Biz Page -->
 <div class="page" id="page-memories">
 
@@ -276,12 +301,14 @@
         
         </div>
     
-        <div class="biz-card soon" onclick="showToast('🚧 Yakında eklenecek')">
+        <div class="biz-card" onclick="showPage('our-photos')">
             <div class="biz-card-icon">📷</div>
     
             <div class="biz-card-title">Fotoğraflarımız</div>
     
-            <div class="biz-card-soon">Yakında...</div>
+            <div class="biz-card-subtitle">
+              Birlikte çektiğimiz kareler
+            </div>
         </div>
     
         <div class="biz-card soon" onclick="showToast('🚧 Yakında eklenecek')">
