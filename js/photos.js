@@ -1,3 +1,5 @@
+let galleryItems = [];
+
 const demoPhotos = [
     "couple.jpg",
     "couple.jpg",
@@ -47,9 +49,9 @@ async function loadPhotos() {
 
     grid.innerHTML = "";
 
-    const photos = await getGalleryItems();
+    galleryItems = await getGalleryItems();
 
-    photos.forEach(photo => {
+    galleryItems.forEach((photo, index) => {
 
         const html = `
             <div class="photo-card">
@@ -57,7 +59,7 @@ async function loadPhotos() {
                 <img
                     src="${photo.image}"
                     class="photo-item"
-                    onclick="openImage('${photo.image}')">
+                    onclick="openImage(${index})">
 
                 ${
                     photo.type === "memory"

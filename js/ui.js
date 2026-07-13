@@ -54,14 +54,56 @@ function showPage(page) {
   }
 }
 
-  function openImage(src) {
-      document.getElementById("viewerImage").src = src;
-      document.getElementById("imageViewer").style.display = "flex";
-  }
+function openImage(index) {
 
-  function closeImage() {
+    const photo = galleryItems[index];
+
+    document.getElementById("viewerImage").src = photo.image;
+
+    document.getElementById("viewerAuthor").textContent =
+        photo.author ? `💙 ${photo.author}` : "";
+
+    if (photo.createdAt?.seconds) {
+
+        const date = new Date(photo.createdAt.seconds * 1000);
+
+        document.getElementById("viewerDate").textContent =
+            date.toLocaleDateString("tr-TR", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+
+    } else {
+
+        document.getElementById("viewerDate").textContent = "";
+
+    }
+
+    if (photo.type === "memory" && photo.text) {
+
+        document.getElementById("viewerText").textContent =
+            photo.text;
+
+        document.getElementById("viewerText").style.display =
+            "block";
+
+    } else {
+
+        document.getElementById("viewerText").style.display =
+            "none";
+
+    }
+
+    document.getElementById("imageViewer").style.display = "flex";
+
+}
+
+function closeImage() {
+
     document.getElementById("imageViewer").style.display = "none";
-  }
+
+}
 
   document.addEventListener("click", function(e){
     if(e.target.classList.contains("memory-image")){

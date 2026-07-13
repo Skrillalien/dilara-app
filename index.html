@@ -54,11 +54,26 @@
 
 <body>
 
-  <div id="imageViewer" onclick="closeImage()">
-  
-      <img id="viewerImage">
-  
-  </div>
+    <div id="imageViewer" onclick="closeImage()">
+
+        <img
+            id="viewerImage"
+            onclick="event.stopPropagation()">
+
+        <div
+            class="viewer-info"
+            id="viewerInfo"
+            onclick="event.stopPropagation()">
+
+            <div id="viewerAuthor"></div>
+
+            <div id="viewerDate"></div>
+
+            <div id="viewerText"></div>
+
+        </div>
+
+    </div>
     
     <div id="userSelectOverlay" class="overlay">
 
