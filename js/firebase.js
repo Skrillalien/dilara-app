@@ -91,14 +91,6 @@ function listenMemories(callback) {
     });
 }
 
-window.firebase = {
-    addMemory,
-    getMemories,
-    deleteMemory,
-    markMemoriesSeen,
-    listenMemories    
-};
-
 window.firebaseReady = true;
 
 window.dispatchEvent(
@@ -120,3 +112,13 @@ async function getPhotos() {
     }));
 
 }
+
+window.firebase = {
+    addMemory,
+    addPhoto,
+    getPhotos,
+    getMemories,
+    deleteMemory,
+    markMemoriesSeen,
+    listenMemories
+};
