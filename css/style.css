@@ -1288,7 +1288,12 @@
 
     object-fit:cover;
 
-    border-radius:14px;
+    border-radius:18px;
+
+    border:1px solid var(--border);
+
+    box-shadow:
+        0 6px 20px rgba(0,0,0,.18);
 
     cursor:pointer;
 
@@ -1297,4 +1302,40 @@
 
 .photo-item:hover{
     transform:scale(1.03);
+}
+
+.photo-item:active{
+    transform:scale(.96);
+}
+
+.photo-fab{
+
+    position:fixed;
+
+    right:24px;
+    bottom:95px;
+
+    width:64px;
+    height:64px;
+
+    border:none;
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        var(--accent),
+        var(--accent2)
+    );
+
+    color:white;
+
+    font-size:36px;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.25),
+        0 0 18px var(--glow);
+
+    transition:.25s;
 }
