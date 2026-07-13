@@ -51,64 +51,50 @@ async function loadPhotos() {
 
     photos.forEach(photo => {
 
-        grid.innerHTML += `
-        <div class="photo-card">
+        const html = `
+            <div class="photo-card">
 
-            <img
-                src="${photo.image}"
-                class="photo-item"
-                onclick="openImage('${photo.image}')">
+                <img
+                    src="${photo.image}"
+                    class="photo-item"
+                    onclick="openImage('${photo.image}')">
 
-            ${
-                photo.type === "memory"
-                ? `
-                <div class="memory-badge">
+                ${
+                    photo.type === "memory"
+                        ? `
+                            <div class="memory-badge">
+                                TEST
+                            </div>
+                        `
+                        : ""
+                }
 
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8">
+                ${
+                    photo.type === "photo"
+                        ? `
+                            <button
+                                class="photo-menu-btn"
+                                onclick="openPhotoMenu(event, '${photo.id}')">
 
-                        <path d="M8 3h7l4 4v14H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor">
 
-                        <path d="M15 3v5h5"/>
+                                    <circle cx="12" cy="5" r="1.8"/>
+                                    <circle cx="12" cy="12" r="1.8"/>
+                                    <circle cx="12" cy="19" r="1.8"/>
 
-                        <path d="M10 12h6"/>
+                                </svg>
 
-                        <path d="M10 16h4"/>
+                            </button>
+                        `
+                        : ""
+                }
 
-                    </svg>
-
-                </div>
-                `
-                : ""
-            }
-
-            ${
-                photo.type === "photo"
-                ? `
-                <button
-                    class="photo-menu-btn"
-                    onclick="openPhotoMenu(event, '${photo.id}')">
-
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="currentColor">
-
-                        <circle cx="12" cy="5" r="1.8"/>
-                        <circle cx="12" cy="12" r="1.8"/>
-                        <circle cx="12" cy="19" r="1.8"/>
-
-                    </svg>
-
-                </button>
-                `
-                : ""
-            }
-
-        </div>
+            </div>
         `;
+
+        grid.insertAdjacentHTML("beforeend", html);
 
     });
 
