@@ -37,6 +37,19 @@ async function addMemory(text, author, image = null) {
     });
 }
 
+async function addPhoto(image, author) {
+
+    await addDoc(collection(db, "photos"), {
+
+        image,
+        author,
+
+        createdAt: serverTimestamp()
+
+    });
+
+}
+
 async function getMemories() {
     const q = query(collection(db, 'memories'), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
@@ -91,3 +104,19 @@ window.firebaseReady = true;
 window.dispatchEvent(
     new Event("firebaseReady")
 );
+
+async function getPhotos() {
+
+    const snap = await getDocs(
+        query(
+            collection(db, "photos"),
+            orderBy("createdAt", "desc")
+        )
+    );
+
+    return snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+}

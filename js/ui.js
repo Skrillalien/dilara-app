@@ -10,6 +10,9 @@ function showPage(page) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
   const el = document.getElementById('page-' + page);
+
+  const fab = document.getElementById("randomIdeaBtn");
+
   el.classList.add('active');
   el.scrollTop = 0;
 
@@ -25,13 +28,29 @@ function showPage(page) {
           window.firebase.markMemoriesSeen(currentUser)
               .then(() => loadWaitingItems());
       }
-  
   }
 
   if (page === "our-photos"){
-
     loadPhotos();
+  }
 
+  if (fab) {
+    if (page === "home") {
+        fab.style.display = "flex";
+        fab.textContent = "🎲";
+        fab.onclick = toggleBNY;
+    } else if (page === "our-photos") {
+        fab.style.display = "flex";
+        fab.innerHTML = `
+        <svg class="fab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        `;
+        fab.onclick = selectPhoto;
+    } else {
+        fab.style.display = "none";
+    }
   }
 }
 

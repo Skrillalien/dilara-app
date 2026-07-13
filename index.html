@@ -256,9 +256,12 @@
 
       </div>
 
-      <button class="photo-fab" onclick="selectPhoto()">
-          +
-      </button>
+      <input
+        type="file"
+        id="galleryPhotoInput"
+        accept="image/*"
+        class="hidden-input"
+        onchange="previewGalleryPhoto(event)">
 
     </div>
 
