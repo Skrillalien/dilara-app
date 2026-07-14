@@ -151,19 +151,17 @@ function closeActionMenu() {
 
 async function performDeleteAction() {
 
-    console.log(currentActionType, currentActionId);
-
     if (!currentActionType || !currentActionId) return;
 
     closeActionMenu();
 
     if (currentActionType === "photo") {
 
-        await deletePhoto(currentActionId);
+        await window.firebase.deletePhoto(currentActionId);
 
     } else if (currentActionType === "song") {
 
-        await deleteSong(currentActionId);
+        await window.firebase.deleteSong(currentActionId);
 
     }
 
