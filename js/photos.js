@@ -54,6 +54,26 @@ function getMonthTitle(createdAt) {
 
 }
 
+function groupPhotosByMonth(photos) {
+
+    const groups = {};
+
+    photos.forEach(photo => {
+
+        const month = getMonthTitle(photo.createdAt);
+
+        if (!groups[month]) {
+            groups[month] = [];
+        }
+
+        groups[month].push(photo);
+
+    });
+
+    return groups;
+
+}
+
 async function loadPhotos() {
 
     const grid = document.getElementById("photosGrid");
@@ -64,89 +84,98 @@ async function loadPhotos() {
 
     galleryItems = await getGalleryItems();
 
-    let currentMonth = "";
+    const groups = groupPhotosByMonth(galleryItems);
 
-    galleryItems.forEach((photo, index) => {
+    let globalIndex = 0;
 
-        const monthTitle = getMonthTitle(photo.createdAt);
+    Object.entries(groups).forEach(([month, photos]) => {
 
-        if (monthTitle !== currentMonth) {
+        grid.insertAdjacentHTML(
+            "beforeend",
+            `
+            <div class="photos-month-title">
 
-            currentMonth = monthTitle;
-
-            grid.insertAdjacentHTML(
-                "beforeend",
-                `
-                <div class="photos-month-title">
-                    ${monthTitle}
+                <div class="photos-month-name">
+                    ${month}
                 </div>
-                `
-            );
-        }
 
-        const html = `
-            <div class="photo-card">
-
-                <img
-                    src="${photo.image}"
-                    class="photo-item"
-                    onclick="openImage(${index})">
-
-                ${
-                    photo.type === "memory"
-                        ? `
-                            <div class="memory-badge">
-
-                                <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round">
-
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                    <path d="M14 2v6h6"/>
-                                    <path d="M8 13h8"/>
-                                    <path d="M8 17h5"/>
-
-                                </svg>
-
-                            </div>
-                        `
-                        : ""
-                }
-
-                ${
-                    photo.type === "photo"
-                        ? `
-                            <button
-                                class="photo-menu-btn"
-                                onclick="openPhotoMenu(event, '${photo.id}')">
-
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor">
-
-                                    <circle cx="12" cy="5" r="1.8"/>
-                                    <circle cx="12" cy="12" r="1.8"/>
-                                    <circle cx="12" cy="19" r="1.8"/>
-
-                                </svg>
-
-                            </button>
-                        `
-                        : ""
-                }
+                <div class="photos-month-count">
+                    ${photos.length} fotoğraf
+                </div>
 
             </div>
-        `;
+            `
+        );
 
-        grid.insertAdjacentHTML("beforeend", html);
+        photos.forEach(photo => {
+
+            const html = `
+                <div class="photo-card">
+
+                    <img
+                        src="${photo.image}"
+                        class="photo-item"
+                        onclick="openImage(${globalIndex})">
+
+                    ${
+                        photo.type === "memory"
+                            ? `
+                                <div class="memory-badge">
+
+                                    <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round">
+
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <path d="M14 2v6h6"/>
+                                        <path d="M8 13h8"/>
+                                        <path d="M8 17h5"/>
+
+                                    </svg>
+
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    ${
+                        photo.type === "photo"
+                            ? `
+                                <button
+                                    class="photo-menu-btn"
+                                    onclick="openPhotoMenu(event, '${photo.id}')">
+
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor">
+
+                                        <circle cx="12" cy="5" r="1.8"/>
+                                        <circle cx="12" cy="12" r="1.8"/>
+                                        <circle cx="12" cy="19" r="1.8"/>
+
+                                    </svg>
+
+                                </button>
+                            `
+                            : ""
+                    }
+
+                </div>
+            `;
+
+            grid.insertAdjacentHTML("beforeend", html);
+
+            globalIndex++;
+
+        });
 
     });
 
