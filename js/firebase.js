@@ -37,6 +37,48 @@ async function addMemory(text, author, image = null) {
     });
 }
 
+async function addSong(link, note, author) {
+
+    await addDoc(collection(db, "songs"), {
+
+        link,
+        note,
+        author,
+
+        seenBy: [author],
+
+        createdAt: serverTimestamp()
+
+    });
+
+}
+
+function listenSongs(callback) {
+
+    const q = query(
+        collection(db, "songs"),
+        orderBy("createdAt", "desc")
+    );
+
+    return onSnapshot(q, (snap) => {
+
+        callback(
+            snap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        );
+
+    });
+
+}
+
+async function deleteSong(id) {
+
+    await deleteDoc(doc(db, "songs", id));
+
+}
+
 async function addPhoto(image, author) {
 
     await addDoc(collection(db, "photos"), {
@@ -129,6 +171,10 @@ window.firebase = {
     deletePhoto,
     deleteMemory,
     markMemoriesSeen,
-    listenMemories
+    listenMemories,
+
+    addSong,
+    listenSongs,
+    deleteSong
 };
 

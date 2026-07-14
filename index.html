@@ -213,24 +213,30 @@
 <div class="page" id="page-our-memories">
   <div class="memories-page">
 
-    <div class="biz-card-icon">
+    <div class="photos-header">
 
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-            
-            <path d="M4 6h16v12H4z"/>
-            <path d="M4 7l8 6 8-6"/>
+        <div class="biz-card-icon">
 
-        </svg>
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M4 6h16v12H4z"/>
+                <path d="M4 7l8 6 8-6"/>
+
+            </svg>
+
+        </div>
+
+        <div class="header-title">
+            Anılarımız
+        </div>
 
     </div>
-
-    <div class="header-title">Anılarımız</div>
 
     <div class="memory-input-card">
       <div id="memoryAuthorInfo" class="memory-author-info"></div>
@@ -309,6 +315,43 @@
         accept="image/*"
         class="hidden-input"
         onchange="previewGalleryPhoto(event)">
+
+    </div>
+
+</div>
+
+<!-- Songs Page -->
+<div class="page" id="page-our-songs">
+
+    <div class="photos-page">
+
+        <div class="photos-header">
+
+            <div class="biz-card-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round">
+
+                    <path d="M9 18V6l10-2v12"/>
+                    <circle cx="7" cy="18" r="2"/>
+                    <circle cx="17" cy="16" r="2"/>
+
+                </svg>
+
+            </div>
+
+            <div class="header-title">
+                Şarkılarımız
+            </div>
+
+        </div>
+
+        <div id="songsList"></div>
 
     </div>
 
@@ -396,7 +439,7 @@
             </div>
         </div>
     
-        <div class="biz-card soon" onclick="showToast('🚧 Yakında eklenecek')">
+        <div class="biz-card soon" onclick="showPage('our-songs')">
             <div class="biz-card-icon">
 
               <svg
@@ -419,7 +462,7 @@
     
             <div class="biz-card-title">Şarkılarımız</div>
     
-            <div class="biz-card-soon">Yakında...</div>
+            <div class="biz-card-subtitle">Birbirimize bıraktığımız şarkılar</div>
         </div>
     
         <div class="biz-card soon" onclick="showToast('🚧 Yakında eklenecek')">
