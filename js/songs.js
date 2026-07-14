@@ -2,6 +2,8 @@ let currentSongs = [];
 
 function loadSongs() {
 
+    console.log("loadSongs çalıştı");
+    
     const list = document.getElementById("songsList");
 
     if (!window.firebaseReady) {
