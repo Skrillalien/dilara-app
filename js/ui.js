@@ -151,6 +151,9 @@ function closeActionMenu() {
 
 async function performDeleteAction() {
 
+    console.log(currentActionType, currentActionId);
+    console.log("çalıştı");
+
     if (!currentActionType || !currentActionId) return;
 
     closeActionMenu();

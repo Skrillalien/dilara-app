@@ -55,36 +55,26 @@ function checkUserSelection() {
 
 window.addEventListener("load", () => {
 
-    console.log("1");
     updateCounter();
 
-    console.log("2");
     renderEvents();
 
-    console.log("3");
     scheduleNotifications();
 
-    console.log("4");
     updateDailyMessage();
 
-    console.log("5");
     loadLastMemory();
 
-    console.log("6");
     loadNextEvent();
 
-    console.log("7");
     checkUserSelection();
 
     updateMemoryAuthorInfo();
 
-    console.log("8");
     loadWaitingItems();
 
-    console.log("9");
     registerServiceWorker();
 
-    console.log("10");
     startMidnightUpdater();
 
 });
