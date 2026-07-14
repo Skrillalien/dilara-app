@@ -60,8 +60,16 @@ function openImage(index) {
 
     document.getElementById("viewerImage").src = photo.image;
 
-    document.getElementById("viewerAuthor").textContent =
-        photo.author ? `💙 ${photo.author}` : "";
+        if (photo.author === "Berk") {
+            document.getElementById("viewerAuthor").textContent =
+                "💙 Berk";
+        } else if (photo.author === "Dilara") {
+            document.getElementById("viewerAuthor").textContent =
+                "💗 Dilara";
+        } else {
+            document.getElementById("viewerAuthor").textContent =
+                "";
+        }
 
     if (photo.createdAt?.seconds) {
 

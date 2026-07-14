@@ -112,7 +112,7 @@ function loadMemories() {
                     <button class="memory-delete" onclick="deleteMemory('${m.id}')" title="Sil">🗑️</button>
                   </div>
                 </div>
-                <div class="memory-text">${m.text}</div>
+                <div class="memory-text">${formatMemoryText(m.text)}</div>
                 ${m.image ? `
                     <img
                         src="${m.image}"
@@ -264,5 +264,22 @@ function openMemoryImage(memoryId) {
         memory.text ? "block" : "none";
 
     document.getElementById("imageViewer").style.display = "flex";
+
+}
+
+function formatMemoryText(text) {
+
+    return text.replace(
+        /#[a-zA-Z0-9ğüşöçıİĞÜŞÖÇ]+/g,
+        match => {
+
+            return `
+                <span class="memory-tag">
+                    ${match}
+                </span>
+            `;
+
+        }
+    );
 
 }
