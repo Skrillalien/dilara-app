@@ -151,21 +151,30 @@ function closeActionMenu() {
 
 async function performDeleteAction() {
 
+    console.log("Silme başladı");
+
     console.log(currentActionType, currentActionId);
-    console.log("çalıştı");
 
-    if (!currentActionType || !currentActionId) return;
+    try {
 
-    closeActionMenu();
+        if (currentActionType === "photo") {
 
-    if (currentActionType === "photo") {
+            await window.firebase.deletePhoto(currentActionId);
 
-        await window.firebase.deletePhoto(currentActionId);
+        } else if (currentActionType === "song") {
 
-    } else if (currentActionType === "song") {
+            await window.firebase.deleteSong(currentActionId);
 
-        await window.firebase.deleteSong(currentActionId);
+        }
+
+        console.log("Silme başarılı");
+
+    } catch (e) {
+
+        console.error(e);
 
     }
+
+    closeActionMenu();
 
 }
