@@ -1209,7 +1209,24 @@
 }
 
 .biz-card-icon{
-    font-size:30px;
+
+    width:28px;
+    height:28px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    color:var(--accent);
+
+    flex-shrink:0;
+}
+
+.biz-card-icon svg{
+
+    width:24px;
+    height:24px;
+
 }
 
 .biz-card-text{
