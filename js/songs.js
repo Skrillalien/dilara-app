@@ -77,3 +77,39 @@ function loadSongs() {
     });
 
 }
+
+async function saveSong() {
+
+    const link = document.getElementById("songLink").value.trim();
+    const note = document.getElementById("songNote").value.trim();
+
+    if (!link) {
+
+        showToast("Önce bir şarkı linki gir 💜");
+
+        return;
+
+    }
+
+    const currentUser = localStorage.getItem("currentUser");
+
+    try {
+
+        await window.firebase.addSong(
+            link,
+            note,
+            currentUser
+        );
+
+        document.getElementById("songLink").value = "";
+        document.getElementById("songNote").value = "";
+
+        showToast("🎵 Şarkı bırakıldı");
+
+    } catch (e) {
+
+        showToast("Hata: " + e.message);
+
+    }
+
+}

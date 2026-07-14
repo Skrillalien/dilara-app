@@ -351,6 +351,33 @@
 
         </div>
 
+        <div class="memory-input-card">
+
+            <input
+                id="songLink"
+                type="text"
+                class="song-input"
+                placeholder="YouTube Music / Spotify / YouTube linki">
+
+            <textarea
+                id="songNote"
+                placeholder="Bu şarkıyı neden bırakıyorsun? (İsteğe bağlı)">
+            </textarea>
+
+            <div class="memory-input-footer">
+
+                <button
+                    class="send-btn"
+                    onclick="saveSong()">
+
+                    Gönder
+
+                </button>
+
+            </div>
+
+        </div>
+
         <div id="songsList"></div>
 
     </div>
@@ -614,6 +641,7 @@
   <script src="js/notifications.js?v=2"></script>
   <script src="js/memories.js?v=2"></script>
   <script src="js/photos.js?v=1"></script>
+  <script src="js/songs.js?v=1"></script>
 
   <script src="js/ui.js?v=2"></script>
 
