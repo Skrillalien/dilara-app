@@ -1315,11 +1315,6 @@
     margin-bottom:24px;
 }
 
-.photos-title{
-    font-size:28px;
-    font-weight:700;
-}
-
 .photos-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
