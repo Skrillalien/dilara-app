@@ -100,8 +100,8 @@ function openImage(index) {
 
     if (photo.type === "memory" && photo.text) {
 
-        document.getElementById("viewerText").textContent =
-            photo.text;
+        document.getElementById("viewerText").innerHTML =
+            formatMemoryText(photo.text);
 
         document.getElementById("viewerText").style.display =
             "block";
@@ -176,5 +176,17 @@ async function performDeleteAction() {
     }
 
     closeActionMenu();
+
+}
+
+function openCard(page, element) {
+
+    navigator.vibrate?.(10);
+
+    setTimeout(() => {
+
+        showPage(page);
+
+    }, 180);
 
 }

@@ -136,7 +136,8 @@ function loadLastMemory() {
         const last = memories[0];
         document.getElementById('lastMemoryAuthor').textContent =
             last.author === 'Berk' ? '💙 Berk' : '💗 Dilara';
-        document.getElementById('lastMemoryText').textContent = last.text;
+        document.getElementById('lastMemoryText').innerHTML =
+            formatMemoryText(last.text);
         const date = last.createdAt?.toDate?.();
         if (date) {
             document.getElementById('lastMemoryDate').textContent =

@@ -1829,3 +1829,15 @@
     color:#ff5b5b;
 
 }
+
+.song-meta{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-top:14px;
+
+}

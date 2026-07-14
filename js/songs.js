@@ -105,12 +105,6 @@ function loadSongs() {
 
                         <div class="song-header-right">
 
-                            <div class="song-date">
-
-                                ${dateStr}
-
-                            </div>
-
                             <svg
                                 class="song-link-icon"
                                 viewBox="0 0 24 24"
@@ -130,12 +124,15 @@ function loadSongs() {
 
                     </div>
 
-                    <div class="song-author">
-
-                        ${song.author === "Berk"
-                            ? "💙 Berk"
-                            : "💗 Dilara"}
-
+                    <div class="song-meta">
+                        <div class="song-author">
+                            ${song.author === "Berk"
+                                ? "💙 Berk"
+                                : "💗 Dilara"}
+                        </div>
+                        <div class="song-date">
+                            ${dateStr}
+                        </div>
                     </div>
 
                     ${
