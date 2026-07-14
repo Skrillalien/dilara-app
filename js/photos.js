@@ -250,13 +250,7 @@ function openPhotoMenu(event, photoId){
 
     event.stopPropagation();
 
-    selectedPhotoId = photoId;
-
-    if(confirm("Bu fotoğraf silinsin mi?")){
-
-        deleteSelectedPhoto();
-
-    }
+    openActionMenu("photo", photoId);
 
 }
 

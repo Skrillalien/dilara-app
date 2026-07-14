@@ -1,3 +1,6 @@
+let currentActionType = null;
+let currentActionId = null;
+  
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -125,3 +128,41 @@ function closeImage() {
       openImage(e.target.src);
     }
   });
+
+function openActionMenu(type, id) {
+
+    currentActionType = type;
+    currentActionId = id;
+
+    document.getElementById("actionOverlay").classList.add("active");
+    document.getElementById("actionSheet").classList.add("active");
+
+}
+
+function closeActionMenu() {
+
+    document.getElementById("actionOverlay").classList.remove("active");
+    document.getElementById("actionSheet").classList.remove("active");
+
+    currentActionType = null;
+    currentActionId = null;
+
+}
+
+async function performDeleteAction() {
+
+    if (!currentActionType || !currentActionId) return;
+
+    closeActionMenu();
+
+    if (currentActionType === "photo") {
+
+        await deletePhoto(currentActionId);
+
+    } else if (currentActionType === "song") {
+
+        await deleteSong(currentActionId);
+
+    }
+
+}
