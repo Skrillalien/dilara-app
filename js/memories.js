@@ -1,6 +1,8 @@
 let selectedAuthor = 'Berk';
 let selectedPhoto = null;
 
+let currentMemories = [];
+
 function selectAuthor(name) {
   selectedAuthor = name;
   document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
@@ -93,6 +95,7 @@ function loadMemories() {
     }
     list.innerHTML = '<div class="memories-loading">Yükleniyor...</div>';
     window.firebase.listenMemories((memories) => {
+        currentMemories = memories;
         if (memories.length === 0) {
             list.innerHTML = '<div class="memories-empty">Henüz anı yok 💜<br>İlk anıyı sen ekle!</div>';
             return;
@@ -110,7 +113,12 @@ function loadMemories() {
                   </div>
                 </div>
                 <div class="memory-text">${m.text}</div>
-                ${m.image ? `<img src="${m.image}" class="memory-image">` : ''}
+                ${m.image ? `
+                    <img
+                        src="${m.image}"
+                        class="memory-image"
+                        onclick="openMemoryImage('${m.id}')">
+                ` : ''}
               </div>`;
         }).join('');
         // Bekleyen notları da güncelle
@@ -218,4 +226,43 @@ function updateMemoryAuthorInfo(){
         user === "Berk"
             ? "💙 Bu anı Berk adına kaydedilecek"
             : "💗 Bu anı Dilara adına kaydedilecek";
+}
+
+function openMemoryImage(memoryId) {
+
+    const memory = currentMemories.find(m => m.id === memoryId);
+
+    if (!memory) return;
+
+    document.getElementById("viewerImage").src = memory.image;
+
+    document.getElementById("viewerAuthor").textContent =
+        memory.author === "Berk" ? "💙 Berk" : "💗 Dilara";
+
+    if (memory.createdAt?.toDate) {
+
+        document.getElementById("viewerDate").textContent =
+            memory.createdAt.toDate().toLocaleDateString(
+                "tr-TR",
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+    } else {
+
+        document.getElementById("viewerDate").textContent = "";
+
+    }
+
+    document.getElementById("viewerText").textContent =
+        memory.text || "";
+
+    document.getElementById("viewerText").style.display =
+        memory.text ? "block" : "none";
+
+    document.getElementById("imageViewer").style.display = "flex";
+
 }
