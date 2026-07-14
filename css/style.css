@@ -1495,3 +1495,228 @@
     font-size:12px;
 
 }
+
+.song-card{
+
+    margin-bottom:16px;
+
+    padding:18px;
+
+    border-radius:22px;
+
+    background:var(--surface);
+
+    border:1px solid var(--border);
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.18);
+
+}
+
+.song-card:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.song-card:active{
+
+    transform:scale(.98);
+
+}
+
+.song-header-right{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
+
+    gap:8px;
+
+}
+
+.song-link-icon{
+
+    width:18px;
+
+    height:18px;
+
+    color:var(--muted);
+
+    opacity:.7;
+
+    transition:.2s;
+
+}
+
+.song-card:hover .song-link-icon{
+
+    color:var(--accent);
+
+    opacity:1;
+
+}
+
+.song-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:16px;
+
+}
+
+.song-title{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    font-size:20px;
+
+    font-weight:700;
+
+    color:var(--text);
+
+}
+
+.song-title-icon{
+
+    width:22px;
+
+    height:22px;
+
+    color:var(--accent);
+
+    flex-shrink:0;
+
+}
+
+.song-artist{
+
+    margin-top:4px;
+
+    font-size:15px;
+
+    color:var(--muted);
+
+}
+
+.song-date{
+
+    font-size:13px;
+
+    color:var(--muted);
+
+    white-space:nowrap;
+
+}
+
+.song-author{
+
+    margin-top:14px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+}
+
+.song-note{
+
+    margin-top:14px;
+
+    padding:14px;
+
+    border-radius:16px;
+
+    background:rgba(255,255,255,.04);
+
+    color:var(--text);
+
+    line-height:1.6;
+
+}
+
+.song-open-btn{
+
+    width:100%;
+
+    margin-top:18px;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:16px;
+
+    background:linear-gradient(
+        135deg,
+        var(--accent),
+        var(--accent2)
+    );
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.song-open-btn:hover{
+
+    transform:translateY(-1px);
+
+}
+
+.song-open-btn:active{
+
+    transform:scale(.97);
+
+}
+
+.song-input{
+
+    width:100%;
+
+    margin-bottom:12px;
+
+    padding:14px 16px;
+
+    border-radius:16px;
+
+    border:1px solid var(--border);
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    font-size:15px;
+
+    outline:none;
+
+    box-sizing:border-box;
+
+}
+
+.song-input::placeholder{
+
+    color:var(--muted);
+
+}

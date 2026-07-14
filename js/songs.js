@@ -46,35 +46,115 @@ function loadSongs() {
 
         }
 
-        list.innerHTML = songs.map(song => `
+        list.innerHTML = songs.map(song => {
 
-            <div class="song-card">
+            const date = song.createdAt?.toDate?.();
 
-                <div class="song-author">
+            const dateStr = date
+                ? date.toLocaleDateString("tr-TR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                })
+                : "";
 
-                    ${song.author === "Berk"
-                        ? "💙 Berk"
-                        : "💗 Dilara"}
+            return `
 
-                </div>
-
-                <div class="song-note">
-
-                    ${song.note || ""}
-
-                </div>
-
-                <button
-                    class="song-open-btn"
+                <div
+                    class="song-card"
                     onclick="window.open('${song.link}','_blank')">
 
-                    ▶ Dinle
+                    <div class="song-header">
 
-                </button>
+                        <div>
 
-            </div>
+                            <div class="song-title">
 
-        `).join("");
+                                <svg
+                                    class="song-title-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round">
+
+                                    <path d="M9 18V6l10-2v12"/>
+
+                                    <circle cx="7" cy="18" r="2"/>
+
+                                    <circle cx="17" cy="16" r="2"/>
+
+                                </svg>
+
+                                <span>
+
+                                    ${song.title}
+
+                                </span>
+
+                            </div>
+
+                            <div class="song-artist">
+
+                                ${song.artist}
+
+                            </div>
+
+                        </div>
+
+                        <div class="song-header-right">
+
+                            <div class="song-date">
+
+                                ${dateStr}
+
+                            </div>
+
+                            <svg
+                                class="song-link-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+
+                                <path d="M7 17L17 7"/>
+
+                                <path d="M8 7h9v9"/>
+
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                    <div class="song-author">
+
+                        ${song.author === "Berk"
+                            ? "💙 Berk"
+                            : "💗 Dilara"}
+
+                    </div>
+
+                    ${
+                        song.note
+                            ? `
+                                <div class="song-note">
+
+                                    ${song.note}
+
+                                </div>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+            `;
+
+        }).join("");
 
     });
 
@@ -83,6 +163,8 @@ function loadSongs() {
 async function saveSong() {
 
     const link = document.getElementById("songLink").value.trim();
+    const title = document.getElementById("songTitle").value.trim();
+    const artist = document.getElementById("songArtist").value.trim();
     const note = document.getElementById("songNote").value.trim();
 
     if (!link) {
@@ -99,11 +181,15 @@ async function saveSong() {
 
         await window.firebase.addSong(
             link,
+            title,
+            artist,
             note,
             currentUser
         );
 
         document.getElementById("songLink").value = "";
+        document.getElementById("songTitle").value = "";
+        document.getElementById("songArtist").value = "";
         document.getElementById("songNote").value = "";
 
         showToast("🎵 Şarkı bırakıldı");

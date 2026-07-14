@@ -37,11 +37,13 @@ async function addMemory(text, author, image = null) {
     });
 }
 
-async function addSong(link, note, author) {
+async function addSong(link, title, artist, note, author) {
 
     await addDoc(collection(db, "songs"), {
 
         link,
+        title,
+        artist,
         note,
         author,
 
