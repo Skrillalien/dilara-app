@@ -126,24 +126,6 @@ function loadSongs() {
 
                             </svg>
 
-                            <button
-                                class="photo-menu-btn"
-                                onclick="openSongMenu(event, '${song.id}')">
-
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor">
-
-                                    <circle cx="12" cy="5" r="1.8"/>
-                                    <circle cx="12" cy="12" r="1.8"/>
-                                    <circle cx="12" cy="19" r="1.8"/>
-
-                                </svg>
-
-                            </button>
-
                         </div>
 
                     </div>
@@ -167,6 +149,24 @@ function loadSongs() {
                             `
                             : ""
                     }
+
+                        <button
+                            class="photo-menu-btn"
+                            onclick="openSongMenu(event, '${song.id}')">
+
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor">
+
+                                <circle cx="12" cy="5" r="1.8"/>
+                                <circle cx="12" cy="12" r="1.8"/>
+                                <circle cx="12" cy="19" r="1.8"/>
+
+                            </svg>
+
+                        </button>
 
                 </div>
 
