@@ -6,33 +6,40 @@
   }
 
 function showPage(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
-  const el = document.getElementById('page-' + page);
+    console.log("showPage:", page);
 
-  const fab = document.getElementById("randomIdeaBtn");
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
-  el.classList.add('active');
-  el.scrollTop = 0;
+    const el = document.getElementById('page-' + page);
 
-  document.getElementById('nav-' + page)?.classList.add('active');
+    const fab = document.getElementById("randomIdeaBtn");
 
-  if (page === 'memories') {
+    el.classList.add('active');
+    el.scrollTop = 0;
+
+    document.getElementById('nav-' + page)?.classList.add('active');
+
+    if (page === 'memories') {
   
-      loadMemories();
+        loadMemories();
   
-      const currentUser = localStorage.getItem("currentUser");
+        const currentUser = localStorage.getItem("currentUser");
   
-      if (currentUser) {
-          window.firebase.markMemoriesSeen(currentUser)
-              .then(() => loadWaitingItems());
-      }
-  }
+        if (currentUser) {
+            window.firebase.markMemoriesSeen(currentUser)
+                .then(() => loadWaitingItems());
+        }
+    }
 
   if (page === "our-photos"){
     loadPhotos();
   }
+
+  if (page === "our-songs") {
+    loadSongs();
+}
 
   if (fab) {
     if (page === "home") {
