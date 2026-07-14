@@ -258,8 +258,8 @@ function openMemoryImage(memoryId) {
 
     }
 
-    document.getElementById("viewerText").textContent =
-        memory.text || "";
+    document.getElementById("viewerText").innerHTML =
+        formatMemoryText(memory.text || "");
 
     document.getElementById("viewerText").style.display =
         memory.text ? "block" : "none";

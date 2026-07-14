@@ -68,6 +68,8 @@ function openImage(index) {
 
     const photo = galleryItems[index];
 
+    if (!photo) return;
+
     document.getElementById("viewerImage").src = photo.image;
 
         if (photo.author === "Berk") {
@@ -122,12 +124,6 @@ function closeImage() {
     document.getElementById("imageViewer").style.display = "none";
 
 }
-
-  document.addEventListener("click", function(e){
-    if(e.target.classList.contains("memory-image")){
-      openImage(e.target.src);
-    }
-  });
 
 function openActionMenu(type, id) {
 
