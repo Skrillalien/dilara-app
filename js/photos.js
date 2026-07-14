@@ -41,6 +41,19 @@ async function getGalleryItems() {
 
 }
 
+function getMonthTitle(createdAt) {
+
+    if (!createdAt?.seconds) return "";
+
+    const date = new Date(createdAt.seconds * 1000);
+
+    return date.toLocaleDateString("tr-TR", {
+        year: "numeric",
+        month: "long"
+    });
+
+}
+
 async function loadPhotos() {
 
     const grid = document.getElementById("photosGrid");
@@ -51,7 +64,25 @@ async function loadPhotos() {
 
     galleryItems = await getGalleryItems();
 
+    let currentMonth = "";
+
     galleryItems.forEach((photo, index) => {
+
+        const monthTitle = getMonthTitle(photo.createdAt);
+
+        if (monthTitle !== currentMonth) {
+
+            currentMonth = monthTitle;
+
+            grid.insertAdjacentHTML(
+                "beforeend",
+                `
+                <div class="photos-month-title">
+                    ${monthTitle}
+                </div>
+                `
+            );
+        }
 
         const html = `
             <div class="photo-card">
