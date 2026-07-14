@@ -151,6 +151,8 @@ function closeActionMenu() {
 
 async function performDeleteAction() {
 
+    console.log(currentActionType, currentActionId);
+
     if (!currentActionType || !currentActionId) return;
 
     closeActionMenu();
