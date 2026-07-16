@@ -6,6 +6,8 @@ let currentMemories = [];
 let currentWaitingMemories = [];
 let currentWaitingSongs = [];
 
+let waitingPopupType = "none";
+
 function selectAuthor(name) {
   selectedAuthor = name;
   document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
@@ -190,14 +192,17 @@ function updateWaitingCard() {
 
         if (memories.length && songs.length) {
 
+            waitingPopupType = "both";
             text = `💜 ${author} sana bir not ve bir şarkı bıraktı`;
 
         } else if (memories.length) {
 
+            waitingPopupType = "memories";
             text = `💌 ${author} sana yeni bir not bıraktı`;
 
         } else {
 
+            waitingPopupType = "songs";
             text = `🎵 ${author} sana yeni bir şarkı bıraktı`;
 
         }
@@ -334,6 +339,22 @@ function showWaitingPopup(message) {
     document.getElementById("waitingPopupTitle").textContent =
         message;
 
+    const btn = document.querySelector("#waitingPopup .user-btn");
+
+    if (waitingPopupType === "songs") {
+
+        btn.innerHTML = "💜 Şimdi Dinle";
+
+    } else if (waitingPopupType === "both") {
+
+        btn.innerHTML = "💜 Biz'e Git";
+
+    } else {
+
+        btn.innerHTML = "💜 Şimdi Oku";
+
+    }
+
     document.getElementById("waitingPopup").style.display = "flex";
 
 }
@@ -352,6 +373,26 @@ function openOurMemories() {
 function openOurSongs() {
     closeWaitingPopup();
     showPage("our-songs");
+}
+
+function openWaitingItem() {
+
+    closeWaitingPopup();
+
+    if (waitingPopupType === "songs") {
+
+        showPage("our-songs");
+
+    } else if (waitingPopupType === "both") {
+
+        showPage("biz");
+
+    } else {
+
+        showPage("our-memories");
+
+    }
+
 }
 
 function updateMemoryAuthorInfo(){
