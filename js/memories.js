@@ -6,6 +6,9 @@ let currentMemories = [];
 let currentWaitingMemories = [];
 let currentWaitingSongs = [];
 
+let memoriesLoaded = false;
+let songsLoaded = false;
+
 let waitingPopupType = "none";
 
 function selectAuthor(name) {
@@ -186,32 +189,35 @@ function updateWaitingCard() {
         memories[0]?.author ||
         songs[0]?.author;
 
-    if (!sessionStorage.getItem("waitingPopupShown")) {
+    let newPopupType = "";
 
-        let text = "";
+    if (memories.length && songs.length) {
 
-        if (memories.length && songs.length) {
+        newPopupType = "both";
+        waitingPopupType = "both";
+        text = `💜 ${author} sana bir not ve bir şarkı bıraktı`;
 
-            waitingPopupType = "both";
-            text = `💜 ${author} sana bir not ve bir şarkı bıraktı`;
+    } else if (memories.length) {
 
-        } else if (memories.length) {
+        newPopupType = "memories";
+        waitingPopupType = "memories";
+        text = `💌 ${author} sana yeni bir not bıraktı`;
 
-            waitingPopupType = "memories";
-            text = `💌 ${author} sana yeni bir not bıraktı`;
+    } else {
 
-        } else {
+        newPopupType = "songs";
+        waitingPopupType = "songs";
+        text = `🎵 ${author} sana yeni bir şarkı bıraktı`;
 
-            waitingPopupType = "songs";
-            text = `🎵 ${author} sana yeni bir şarkı bıraktı`;
+    }
 
-        }
+    if (sessionStorage.getItem("waitingPopupShown") !== newPopupType) {
 
         showWaitingPopup(text);
 
         sessionStorage.setItem(
             "waitingPopupShown",
-            "1"
+            newPopupType
         );
 
     }
