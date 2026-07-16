@@ -11,6 +11,8 @@ let songsLoaded = false;
 
 let waitingPopupType = "none";
 
+let waitingPopupClosed = false;
+
 function selectAuthor(name) {
   selectedAuthor = name;
   document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
@@ -211,14 +213,22 @@ function updateWaitingCard() {
 
     }
 
-    if (sessionStorage.getItem("waitingPopupShown") !== newPopupType) {
+    if (!waitingPopupClosed) {
 
-        showWaitingPopup(text);
+        const popup = document.getElementById("waitingPopup");
 
-        sessionStorage.setItem(
-            "waitingPopupShown",
-            newPopupType
-        );
+        if (popup.style.display === "flex") {
+
+            // Popup zaten açık.
+            // İçeriğini güncelle.
+            showWaitingPopup(text);
+
+        } else {
+
+            // Popup kapalıysa ilk kez aç.
+            showWaitingPopup(text);
+
+        }
 
     }
 
@@ -367,6 +377,8 @@ function showWaitingPopup(message) {
 
 function closeWaitingPopup(){
 
+    waitingPopupClosed = true;
+
     document.getElementById("waitingPopup").style.display = "none";
 
 }
@@ -391,7 +403,7 @@ function openWaitingItem() {
 
     } else if (waitingPopupType === "both") {
 
-        showPage("memories");
+        showPage("us");
 
     } else {
 
