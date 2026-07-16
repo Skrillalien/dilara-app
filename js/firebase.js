@@ -11,7 +11,8 @@ import {
     orderBy,
     query,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    arrayUnion
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
