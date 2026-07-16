@@ -162,6 +162,9 @@ function loadLastMemory() {
 
 function updateWaitingCard() {
 
+    console.log("Memories:", currentWaitingMemories);
+    console.log("Songs:", currentWaitingSongs);
+
     const card = document.getElementById("waitingCard");
     const list = document.getElementById("waitingList");
 
