@@ -24,7 +24,7 @@ function showPage(page) {
 
     document.getElementById('nav-' + page)?.classList.add('active');
 
-    if (page === 'memories') {
+    if (page === 'our-memories') {
 
         loadMemories();
 
