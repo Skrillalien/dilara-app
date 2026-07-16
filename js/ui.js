@@ -25,43 +25,52 @@ function showPage(page) {
     document.getElementById('nav-' + page)?.classList.add('active');
 
     if (page === 'memories') {
-  
+
         loadMemories();
-  
+
         const currentUser = localStorage.getItem("currentUser");
-  
+
         if (currentUser) {
             window.firebase.markMemoriesSeen(currentUser)
                 .then(() => loadWaitingItems());
         }
     }
 
-  if (page === "our-photos"){
-    loadPhotos();
-  }
-
-  if (page === "our-songs") {
-    loadSongs();
-}
-
-  if (fab) {
-    if (page === "home") {
-        fab.style.display = "flex";
-        fab.textContent = "🎲";
-        fab.onclick = toggleBNY;
-    } else if (page === "our-photos") {
-        fab.style.display = "flex";
-        fab.innerHTML = `
-        <svg class="fab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14"/>
-            <path d="M5 12h14"/>
-        </svg>
-        `;
-        fab.onclick = selectPhoto;
-    } else {
-        fab.style.display = "none";
+    if (page === "our-photos") {
+        loadPhotos();
     }
-  }
+
+    if (page === "our-songs") {
+
+        loadSongs();
+
+        const currentUser = localStorage.getItem("currentUser");
+
+        if (currentUser) {
+            window.firebase.markSongsSeen(currentUser)
+                .then(() => loadWaitingItems());
+        }
+
+    }
+
+    if (fab) {
+        if (page === "home") {
+            fab.style.display = "flex";
+            fab.textContent = "🎲";
+            fab.onclick = toggleBNY;
+        } else if (page === "our-photos") {
+            fab.style.display = "flex";
+            fab.innerHTML = `
+            <svg class="fab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+            </svg>
+            `;
+            fab.onclick = selectPhoto;
+        } else {
+            fab.style.display = "none";
+        }
+    }
 }
 
 function openImage(index) {
