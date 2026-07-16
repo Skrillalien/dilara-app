@@ -156,6 +156,7 @@ async function performDeleteAction() {
         if (currentActionType === "photo") {
 
             await window.firebase.deletePhoto(currentActionId);
+            loadPhotos();
 
         } else if (currentActionType === "song") {
 

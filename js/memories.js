@@ -3,6 +3,9 @@ let selectedPhoto = null;
 
 let currentMemories = [];
 
+let currentWaitingMemories = [];
+let currentWaitingSongs = [];
+
 function selectAuthor(name) {
   selectedAuthor = name;
   document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
@@ -157,47 +160,179 @@ function loadLastMemory() {
     }
   }
 
+function updateWaitingCard() {
+
+    const card = document.getElementById("waitingCard");
+    const list = document.getElementById("waitingList");
+
+    const memories = currentWaitingMemories || [];
+    const songs = currentWaitingSongs || [];
+
+    if (memories.length === 0 && songs.length === 0) {
+
+        card.style.display = "none";
+        return;
+
+    }
+
+    card.style.display = "block";
+
+    const author =
+        memories[0]?.author ||
+        songs[0]?.author;
+
+    if (!sessionStorage.getItem("waitingPopupShown")) {
+
+        let text = "";
+
+        if (memories.length && songs.length) {
+
+            text = `💜 ${author} sana bir not ve bir şarkı bıraktı`;
+
+        } else if (memories.length) {
+
+            text = `💌 ${author} sana yeni bir not bıraktı`;
+
+        } else {
+
+            text = `🎵 ${author} sana yeni bir şarkı bıraktı`;
+
+        }
+
+        showWaitingPopup(text);
+
+        sessionStorage.setItem(
+            "waitingPopupShown",
+            "1"
+        );
+
+    }
+
+    list.innerHTML = "";
+
+    memories.forEach(m => {
+
+        const date = m.createdAt?.toDate?.();
+
+        const dateStr = date
+            ? date.toLocaleDateString(
+                "tr-TR",
+                {
+                    day: "numeric",
+                    month: "long"
+                }
+            )
+            : "";
+
+        list.innerHTML += `
+            <div
+                class="waiting-item"
+                onclick="openOurMemories()">
+
+                <div class="waiting-title">
+
+                    💌 ${m.author} sana yeni bir not bıraktı
+
+                </div>
+
+                ${
+                    dateStr
+                        ? `<div class="waiting-desc">${dateStr}</div>`
+                        : ""
+                }
+
+            </div>
+        `;
+
+    });
+
+    songs.forEach(s => {
+
+        const date = s.createdAt?.toDate?.();
+
+        const dateStr = date
+            ? date.toLocaleDateString(
+                "tr-TR",
+                {
+                    day: "numeric",
+                    month: "long"
+                }
+            )
+            : "";
+
+        list.innerHTML += `
+            <div
+                class="waiting-item"
+                onclick="openOurSongs()">
+
+                <div class="waiting-title">
+
+                    🎵 ${s.author} sana yeni bir şarkı bıraktı
+
+                </div>
+
+                ${
+                    dateStr
+                        ? `<div class="waiting-desc">${dateStr}</div>`
+                        : ""
+                }
+
+            </div>
+        `;
+
+    });
+
+}
 
 function loadWaitingItems() {
+
     if (!window.firebaseReady) {
-        window.addEventListener('firebaseReady', loadWaitingItems, { once: true });
+
+        window.addEventListener(
+            "firebaseReady",
+            loadWaitingItems,
+            { once: true }
+        );
+
         return;
+
     }
-    const currentUser = localStorage.getItem('currentUser');
+
+    const currentUser = localStorage.getItem("currentUser");
+
     if (!currentUser) return;
+
     window.firebase.listenMemories((memories) => {
-        const waiting = memories.filter(m =>
+
+        currentWaitingMemories = memories.filter(m =>
             m.author !== currentUser &&
             (!m.seenBy || !m.seenBy.includes(currentUser))
         );
-        const card = document.getElementById('waitingCard');
-        const list = document.getElementById('waitingList');
-        if (waiting.length === 0) { card.style.display = 'none'; return; }
-        card.style.display = 'block';
-        if (!sessionStorage.getItem("waitingPopupShown")) {
-        
-            showWaitingPopup(waiting[0].author);
-        
-            sessionStorage.setItem("waitingPopupShown", "1");
-        
-        }
-        list.innerHTML = waiting.map(m => {
-            const date = m.createdAt?.toDate?.();
-            const dateStr = date ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' }) : '';
-            return `<div class="waiting-item" onclick="openOurMemories()">
-                <div class="waiting-title">💌 ${m.author} sana yeni bir not bıraktı</div>
-                ${dateStr ? `<div class="waiting-desc">${dateStr}</div>` : ''}
-            </div>`;
-        }).join('');
+
+        updateWaitingCard();
+
     });
+
+    window.firebase.listenSongs((songs) => {
+
+        currentWaitingSongs = songs.filter(s =>
+            s.author !== currentUser &&
+            (!s.seenBy || !s.seenBy.includes(currentUser))
+        );
+
+        updateWaitingCard();
+
+    });
+
 }
 
-function showWaitingPopup(author) {
+function showWaitingPopup(message) {
 
     document.getElementById("waitingPopupTitle").textContent =
-        `💌 ${author} sana tatlı bir not bıraktı`;
+        message;
 
     document.getElementById("waitingPopup").style.display = "flex";
+
 }
 
 function closeWaitingPopup(){
@@ -209,6 +344,11 @@ function closeWaitingPopup(){
 function openOurMemories() {
     closeWaitingPopup();
     showPage("our-memories");
+}
+
+function openOurSongs() {
+    closeWaitingPopup();
+    showPage("our-songs");
 }
 
 function updateMemoryAuthorInfo(){

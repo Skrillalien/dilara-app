@@ -55,6 +55,29 @@ async function addSong(link, title, artist, note, author) {
 
 }
 
+async function markSongsSeen(currentUser) {
+
+    const snapshot = await getDocs(collection(db, "songs"));
+
+    for (const song of snapshot.docs) {
+
+        const data = song.data();
+
+        if (
+            data.author !== currentUser &&
+            (!data.seenBy || !data.seenBy.includes(currentUser))
+        ) {
+
+            await updateDoc(song.ref, {
+                seenBy: arrayUnion(currentUser)
+            });
+
+        }
+
+    }
+
+}
+
 function listenSongs(callback) {
 
     const q = query(
@@ -177,6 +200,7 @@ window.firebase = {
 
     addSong,
     listenSongs,
-    deleteSong
+    deleteSong,
+    markSongsSeen
 };
 
