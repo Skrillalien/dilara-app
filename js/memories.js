@@ -391,7 +391,7 @@ function openWaitingItem() {
 
     } else if (waitingPopupType === "both") {
 
-        showPage("biz");
+        showPage("memories");
 
     } else {
 
