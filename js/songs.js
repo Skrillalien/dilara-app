@@ -125,13 +125,16 @@ function loadSongs() {
                     </div>
 
                     <div class="song-meta">
-                        <div class="song-author">
-                            ${song.author === "Berk"
-                                ? "💙 Berk"
-                                : "💗 Dilara"}
-                        </div>
-                        <div class="song-date">
-                            ${dateStr}
+                        <div class="song-info-row">
+                            <div class="song-author">
+                                ${song.author === "Berk"
+                                    ? "💙 Berk"
+                                    : "💗 Dilara"}
+                            </div>
+
+                            <div class="song-date">
+                                ${dateStr}
+                            </div>
                         </div>
                     </div>
 
