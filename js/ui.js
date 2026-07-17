@@ -187,12 +187,18 @@ async function performDeleteAction() {
 
 function openCard(page, element) {
 
-    navigator.vibrate?.(10);
+    vibrate();
 
     setTimeout(() => {
 
         showPage(page);
 
     }, 180);
+
+}
+
+function vibrate() {
+
+    navigator.vibrate?.(10);
 
 }
