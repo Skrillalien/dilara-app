@@ -1744,6 +1744,44 @@
 
 }
 
+.song-add-card {
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:8px;
+
+    margin-bottom:16px;
+
+    padding:14px;
+
+    border-radius:18px;
+
+    border:1px solid var(--border);
+
+    background:var(--surface);
+
+    color:var(--text);
+
+    font-size:16px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.song-add-card:active {
+
+    transform:scale(.97);
+
+}
+
 .action-overlay{
 
     position:fixed;
