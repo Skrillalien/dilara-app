@@ -228,6 +228,7 @@ window.firebase = {
     addMemory,
     addPhoto,
     getPhotos,
+    getSliderImages,
     getMemories,
     deletePhoto,
     deleteMemory,
