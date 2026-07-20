@@ -77,4 +77,6 @@ window.addEventListener("load", () => {
 
     startMidnightUpdater();
 
+    initSlider();
+
 });

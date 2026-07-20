@@ -1,14 +1,5 @@
 let galleryItems = [];
 
-const demoPhotos = [
-    "couple.jpg",
-    "couple.jpg",
-    "couple.jpg",
-    "couple.jpg",
-    "couple.jpg",
-    "couple.jpg"
-];
-
 async function getGalleryItems() {
 
     const memories = await window.firebase.getMemories();

@@ -97,14 +97,33 @@
 </div>
     
 <div class="app">
-<div class="page active" id="page-home" style="background: var(--bg);">
-  <div class="header">
-    <img class="header-photo" src="couple.jpg" alt="Berk & Dilara">
-    <div class="header-fade"></div>
-    <div class="header-content">
-      <span class="header-emoji">💜</span>
-      <div class="header-title">Berk & Dilara</div>
+  <div class="page active" id="page-home" style="background: var(--bg);">
+    <div class="header">
+      <div class="header-slider">
+
+        <img
+            id="headerPhoto1"
+            class="header-photo active"
+            src="couple.jpg"
+            alt="Berk & Dilara">
+
+        <img
+            id="headerPhoto2"
+            class="header-photo"
+            src="couple.jpg"
+            alt="Berk & Dilara">
+
+      </div>
+
+      <div class="header-fade"></div>
+      
+      <div class="header-content">
+        <span class="header-emoji">💜</span>
+        <div class="header-title">Berk & Dilara</div>
+      </div>
+    
     </div>
+
   </div>
 
   <!-- Main counter -->
@@ -134,7 +153,7 @@
     🔔 Bildirimler için izin ver
   </button>
   
-<div class="dashboard-card" id="waitingCard" style="display:none;">
+  <div class="dashboard-card" id="waitingCard" style="display:none;">
 
     <div class="dashboard-title">
         💌 Seni Bekleyenler
@@ -142,10 +161,10 @@
 
     <div id="waitingList"></div>
 
-</div>
+  </div>
  
   <!-- Dashboard Card -->
-<div class="dashboard-card">
+  <div class="dashboard-card">
 
     <div class="dashboard-title" id="dailyTitle">
         💌 Bugünün Mesajı
@@ -159,9 +178,9 @@
       Birlikte geçen her gün yeni bir anı biriktiriyorsunuz. ❤️
     </div>
 
-</div>
+  </div>
 
-<div class="dashboard-card" id="nextEventCard">
+  <div class="dashboard-card" id="nextEventCard">
 
     <div class="dashboard-title">
         🎉 Yaklaşan Özel Gün
@@ -175,31 +194,31 @@
         --
     </div>
 
-</div>
+  </div>
 
-<div class="dashboard-card" id="lastMemoryCard">
+  <div class="dashboard-card" id="lastMemoryCard">
 
-  <div class="dashboard-header">
+    <div class="dashboard-header">
 
-    <div class="dashboard-title">
-      💌 Son Not
+      <div class="dashboard-title">
+        💌 Son Not
+      </div>
+
+      <div class="dashboard-date" id="lastMemoryDate">
+        --
+      </div>
+
     </div>
 
-    <div class="dashboard-date" id="lastMemoryDate">
+    <div class="memory-author" id="lastMemoryAuthor">
       --
     </div>
 
-  </div>
+    <div class="dashboard-text" id="lastMemoryText">
+      Henüz not yok.
+    </div>
 
-  <div class="memory-author" id="lastMemoryAuthor">
-      --
   </div>
-
-  <div class="dashboard-text" id="lastMemoryText">
-    Henüz not yok.
-  </div>
-
-</div>
 
   <!-- Events -->
   <div class="section">
