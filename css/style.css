@@ -133,10 +133,12 @@ body::before {
 }
 
 .header-slider{
-  position:absolute;
-  inset:0;
-  overflow:hidden;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
 }
+
 
 .swiper{
 
@@ -176,23 +178,30 @@ body::before {
 
 }
 
-.header-fade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.08) 0%,
-    transparent 20%,
-    transparent 40%,
-    var(--bg) 100%
-  );
+.header-fade{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.08) 0%,
+        transparent 20%,
+        transparent 40%,
+        var(--bg) 100%
+    );
+
+    z-index: 2;
+    pointer-events: none;
 }
 
-.header-content {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 0 24px 20px;
-  text-align: center;
+.header-content{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 24px 20px;
+    text-align: center;
+
+    z-index: 3;
 }
 
 .header-emoji {
