@@ -256,13 +256,13 @@ function openSongForm() {
     form.style.display = "block";
 
     document.getElementById("songFormOverlay").style.display = "block";
-    document.getElementById("songFormPopup").classList.add("show");
+    document.getElementById("songFormPopup").classList.add("active");
 
 }
 
 function closeSongForm() {
 
     document.getElementById("songFormOverlay").style.display = "none";
-    document.getElementById("songFormPopup").classList.remove("show");
+    document.getElementById("songFormPopup").classList.remove("active");
 
 }
