@@ -1,16 +1,6 @@
 let currentActionType = null;
 let currentActionId = null;
 
-const sliderPhotos  = [
-    "couple.jpg",
-    "https://picsum.photos/800/600?random=1",
-    "https://picsum.photos/800/600?random=2"
-];
-
-let currentSlide = 0;
-let activePhoto = 1;
-let sliderInterval = null;
-
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -210,69 +200,5 @@ function openCard(page, element) {
 function vibrate() {
 
     navigator.vibrate?.(10);
-
-}
-
-function initSlider(){
-
-    document.getElementById("headerPhoto1").src = sliderPhotos[0];
-
-    document.getElementById("headerPhoto2").src =
-        sliderPhotos.length > 1
-        ? sliderPhotos[1]
-        : sliderPhotos[0];
-
-    startSlider();
-
-}
-
-function startSlider(){
-
-    if(sliderInterval)
-        clearInterval(sliderInterval);
-
-    sliderInterval = setInterval(showNextSlide,10000);
-
-}
-
-function showNextSlide(){
-
-    const current =
-        activePhoto === 1
-            ? document.getElementById("headerPhoto1")
-            : document.getElementById("headerPhoto2");
-
-    const next =
-        activePhoto === 1
-            ? document.getElementById("headerPhoto2")
-            : document.getElementById("headerPhoto1");
-
-    currentSlide++;
-
-    if(currentSlide>=sliderPhotos.length)
-        currentSlide=0;
-
-    next.src=sliderPhotos[currentSlide];
-
-    next.className="header-photo next";
-
-    requestAnimationFrame(()=>{
-
-        current.classList.add("slide-out");
-        next.classList.add("slide-in");
-
-    });
-
-    setTimeout(()=>{
-
-        current.className="header-photo next";
-        next.className="header-photo current";
-
-        activePhoto =
-            activePhoto===1
-            ? 2
-            : 1;
-
-    },450);
 
 }
