@@ -245,3 +245,24 @@ function openSongMenu(event, songId) {
     openActionMenu("song", songId);
 
 }
+
+function openSongForm() {
+
+    const form = document.getElementById("songForm");
+    const container = document.getElementById("songFormContainer");
+
+    container.appendChild(form);
+
+    form.style.display = "block";
+
+    document.getElementById("songFormOverlay").style.display = "block";
+    document.getElementById("songFormPopup").classList.add("show");
+
+}
+
+function closeSongForm() {
+
+    document.getElementById("songFormOverlay").style.display = "none";
+    document.getElementById("songFormPopup").classList.remove("show");
+
+}

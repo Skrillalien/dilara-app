@@ -52,6 +52,20 @@
     🎲
 </button>
 
+<div id="songFormOverlay" class="overlay" onclick="closeSongForm()"></div>
+
+<div id="songFormPopup" class="action-sheet">
+
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-title">
+        🎵 Yeni Şarkı Bırak
+    </div>
+
+    <div id="songFormContainer"></div>
+
+</div>
+
 <body>
 
     <div id="imageViewer" onclick="closeImage()">
@@ -351,7 +365,20 @@
 
         </div>
 
-        <div class="memory-input-card">
+        <div
+            class="song-add-card"
+            onclick="openSongForm()">
+
+            <span>➕</span>
+
+            <span>Yeni Şarkı Bırak</span>
+
+        </div>
+
+        <div
+            id="songForm"
+            class="memory-input-card"
+            style="display:none;">
 
             <input
                 id="songLink"
