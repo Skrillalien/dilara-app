@@ -55,28 +55,28 @@
 
 <body>
 
-    <div id="imageViewer" onclick="closeImage()">
+  <div id="imageViewer" onclick="closeImage()">
 
-        <img
-            id="viewerImage"
-            onclick="event.stopPropagation()">
+    <img
+        id="viewerImage"
+        onclick="event.stopPropagation()">
 
-        <div
-            class="viewer-info"
-            id="viewerInfo"
-            onclick="event.stopPropagation()">
+    <div
+        class="viewer-info"
+        id="viewerInfo"
+        onclick="event.stopPropagation()">
 
-            <div id="viewerAuthor"></div>
+        <div id="viewerAuthor"></div>
 
-            <div id="viewerDate"></div>
+        <div id="viewerDate"></div>
 
-            <div id="viewerText"></div>
-
-        </div>
+        <div id="viewerText"></div>
 
     </div>
+
+  </div>
     
-    <div id="userSelectOverlay" class="overlay">
+  <div id="userSelectOverlay" class="overlay">
 
   <div class="user-card">
 
@@ -97,137 +97,139 @@
 </div>
     
 <div class="app">
+
   <div class="page active" id="page-home" style="background: var(--bg);">
+
     <div class="header">
+
       <div class="header-slider">
 
         <img
             id="headerPhoto1"
-            class="header-photo active"
+            class="header-photo current"
             src="couple.jpg"
             alt="Berk & Dilara">
 
         <img
             id="headerPhoto2"
-            class="header-photo"
+            class="header-photo next"
             src="couple.jpg"
             alt="Berk & Dilara">
 
       </div>
 
       <div class="header-fade"></div>
-      
+
       <div class="header-content">
         <span class="header-emoji">💜</span>
         <div class="header-title">Berk & Dilara</div>
       </div>
-    
+
     </div>
 
-  </div>
-
-  <!-- Main counter -->
-  <div class="counter-card">
-    <div class="counter-label">Birlikte</div>
-    <div class="counter-number" id="dayCount">0</div>
-    <div class="counter-unit">gün</div>
-    <div class="counter-since">
-      <span id="sinceDate">12 Şubat 2026</span>'dan beri
-    </div>
-  </div>
-
-  <!-- Detail row -->
-  <div class="detail-row">
-    <div class="detail-card">
-      <div class="num" id="weekCount">0</div>
-      <div class="lbl">Hafta</div>
-    </div>
-    <div class="detail-card">
-      <div class="num" id="monthCount">0</div>
-      <div class="lbl">Ay</div>
-    </div>
-  </div>
-
-  <!-- Notification button -->
-  <button class="notif-btn" id="notifBtn" onclick="requestNotification()">
-    🔔 Bildirimler için izin ver
-  </button>
-  
-  <div class="dashboard-card" id="waitingCard" style="display:none;">
-
-    <div class="dashboard-title">
-        💌 Seni Bekleyenler
+    <!-- Main counter -->
+    <div class="counter-card">
+      <div class="counter-label">Birlikte</div>
+      <div class="counter-number" id="dayCount">0</div>
+      <div class="counter-unit">gün</div>
+      <div class="counter-since">
+        <span id="sinceDate">12 Şubat 2026</span>'dan beri
+      </div>
     </div>
 
-    <div id="waitingList"></div>
-
-  </div>
- 
-  <!-- Dashboard Card -->
-  <div class="dashboard-card">
-
-    <div class="dashboard-title" id="dailyTitle">
-        💌 Bugünün Mesajı
-    </div>
-    
-    <div class="daily-badge" id="dailyBadge">
-      ❤️ Romantik
-    </div>
-    
-    <div class="dashboard-text" id="dailyMessage">
-      Birlikte geçen her gün yeni bir anı biriktiriyorsunuz. ❤️
+    <!-- Detail row -->
+    <div class="detail-row">
+      <div class="detail-card">
+        <div class="num" id="weekCount">0</div>
+        <div class="lbl">Hafta</div>
+      </div>
+      <div class="detail-card">
+        <div class="num" id="monthCount">0</div>
+        <div class="lbl">Ay</div>
+      </div>
     </div>
 
-  </div>
+    <!-- Notification button -->
+    <button class="notif-btn" id="notifBtn" onclick="requestNotification()">
+      🔔 Bildirimler için izin ver
+    </button>
 
-  <div class="dashboard-card" id="nextEventCard">
-
-    <div class="dashboard-title">
-        🎉 Yaklaşan Özel Gün
-    </div>
-
-    <div class="dashboard-text" id="nextEventName">
-        Yükleniyor...
-    </div>
-
-    <div class="dashboard-subtitle" id="nextEventInfo">
-        --
-    </div>
-
-  </div>
-
-  <div class="dashboard-card" id="lastMemoryCard">
-
-    <div class="dashboard-header">
+    <div class="dashboard-card" id="waitingCard" style="display:none;">
 
       <div class="dashboard-title">
-        💌 Son Not
+          💌 Seni Bekleyenler
       </div>
 
-      <div class="dashboard-date" id="lastMemoryDate">
+      <div id="waitingList"></div>
+
+    </div>
+
+    <!-- Dashboard Card -->
+    <div class="dashboard-card">
+
+      <div class="dashboard-title" id="dailyTitle">
+          💌 Bugünün Mesajı
+      </div>
+
+      <div class="daily-badge" id="dailyBadge">
+        ❤️ Romantik
+      </div>
+
+      <div class="dashboard-text" id="dailyMessage">
+        Birlikte geçen her gün yeni bir anı biriktiriyorsunuz. ❤️
+      </div>
+
+    </div>
+
+    <div class="dashboard-card" id="nextEventCard">
+
+      <div class="dashboard-title">
+          🎉 Yaklaşan Özel Gün
+      </div>
+
+      <div class="dashboard-text" id="nextEventName">
+          Yükleniyor...
+      </div>
+
+      <div class="dashboard-subtitle" id="nextEventInfo">
+          --
+      </div>
+
+    </div>
+
+    <div class="dashboard-card" id="lastMemoryCard">
+
+      <div class="dashboard-header">
+
+        <div class="dashboard-title">
+          💌 Son Not
+        </div>
+
+        <div class="dashboard-date" id="lastMemoryDate">
+          --
+        </div>
+
+      </div>
+
+      <div class="memory-author" id="lastMemoryAuthor">
         --
       </div>
 
+      <div class="dashboard-text" id="lastMemoryText">
+        Henüz not yok.
+      </div>
+
     </div>
 
-    <div class="memory-author" id="lastMemoryAuthor">
-      --
+    <!-- Events -->
+    <div class="section">
+      <div class="section-title">Özel Günler</div>
+      <div id="eventsList"></div>
     </div>
 
-    <div class="dashboard-text" id="lastMemoryText">
-      Henüz not yok.
-    </div>
+  </div><!-- end page-home -->
 
-  </div>
-
-  <!-- Events -->
-  <div class="section">
-    <div class="section-title">Özel Günler</div>
-    <div id="eventsList"></div>
-  </div>
 </div>
-
-</div><!-- end page-home -->
 
 <!-- Memories Page -->
 <div class="page" id="page-our-memories">
