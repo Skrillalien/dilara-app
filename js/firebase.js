@@ -206,6 +206,24 @@ async function addSliderImage(image) {
 
 }
 
+async function getSliderImages() {
+
+    const snap = await getDocs(
+        query(
+            collection(db, "sliderImages"),
+            orderBy("order", "asc")
+        )
+    );
+
+    return snap.docs
+        .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+        .filter(item => item.active);
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
@@ -222,4 +240,3 @@ window.firebase = {
     deleteSong,
     markSongsSeen
 };
-

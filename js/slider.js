@@ -1,26 +1,26 @@
 let headerSwiper = null;
 
-const sliderPhotos = [
-    "couple.jpg",
-    "https://picsum.photos/800/600?random=1",
-    "https://picsum.photos/800/600?random=2"
-];
-
-function initSlider() {
+async function initSlider() {
 
     const wrapper = document.getElementById("headerSlides");
 
     wrapper.innerHTML = "";
 
-    sliderPhotos.forEach(photo => {
+    const photos = await window.firebase.getSliderImages();
+
+    photos.forEach(photo => {
 
         wrapper.innerHTML += `
             <div class="swiper-slide">
-                <img src="${photo}">
+                <img src="${photo.image}">
             </div>
         `;
 
     });
+
+    if (headerSwiper) {
+        headerSwiper.destroy(true, true);
+    }
 
     headerSwiper = new Swiper(".header-slider", {
 
