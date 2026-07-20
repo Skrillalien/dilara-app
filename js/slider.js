@@ -1,85 +1,38 @@
-const Slider = {
+let headerSwiper = null;
 
-    photos: [
-        "couple.jpg",
-        "https://picsum.photos/800/600?random=1",
-        "https://picsum.photos/800/600?random=2"
-    ],
+const sliderPhotos = [
+    "couple.jpg",
+    "https://picsum.photos/800/600?random=1",
+    "https://picsum.photos/800/600?random=2"
+];
 
-    index: 0,
+function initSlider() {
 
-    timer: null,
+    const wrapper = document.getElementById("headerSlides");
 
-    track: null,
+    wrapper.innerHTML = "";
 
-    init() {
+    sliderPhotos.forEach(photo => {
 
-        this.track = document.getElementById("headerTrack");
+        wrapper.innerHTML += `
+            <div class="swiper-slide">
+                <img src="${photo}">
+            </div>
+        `;
 
-        if (!this.track) return;
+    });
 
-        this.render();
+    headerSwiper = new Swiper(".header-slider", {
 
-        this.start();
+        loop: true,
 
-    },
+        speed: 500,
 
-    render() {
-
-        this.track.innerHTML = "";
-
-        this.photos.forEach(photo => {
-
-            const img = document.createElement("img");
-
-            img.src = photo;
-            img.className = "header-photo";
-
-            this.track.appendChild(img);
-
-        });
-
-        this.track.style.transform = "translateX(0%)";
-
-    },
-
-    next() {
-
-        if (this.photos.length <= 1) return;
-
-        this.index++;
-
-        this.track.style.transform =
-            `translateX(-${this.index * 100}%)`;
-
-        if (this.index === this.photos.length - 1) {
-
-            setTimeout(() => {
-
-                const first = this.photos.shift();
-
-                this.photos.push(first);
-
-                this.index = 0;
-
-                this.render();
-
-            }, 450);
-
+        autoplay: {
+            delay: 10000,
+            disableOnInteraction: false
         }
 
-    },
+    });
 
-    start() {
-
-        clearInterval(this.timer);
-
-        this.timer = setInterval(() => {
-
-            this.next();
-
-        }, 10000);
-
-    }
-
-};
+}
