@@ -654,6 +654,22 @@
       👤 Kullanıcıyı Değiştir
   </button>
 
+  <input
+    type="file"
+    id="sliderPhotoInput"
+    accept="image/*"
+    onchange="previewSliderPhoto(event)"
+    hidden>
+
+  <button
+    class="theme-btn"
+    style="width:100%;"
+    onclick="document.getElementById('sliderPhotoInput').click()">
+
+    🖼️ Slider Fotoğrafı Ekle
+
+  </button>
+
 </div>
 
 <div class="action-overlay" id="actionOverlay" onclick="closeActionMenu()"></div>

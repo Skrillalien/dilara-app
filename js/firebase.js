@@ -189,6 +189,20 @@ async function deletePhoto(photoId){
 
 }
 
+async function addSliderImage(image, order) {
+
+    await addDoc(collection(db, "sliderImages"), {
+
+        image,
+        order,
+        active: true,
+
+        createdAt: serverTimestamp()
+
+    });
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
@@ -200,6 +214,7 @@ window.firebase = {
     listenMemories,
 
     addSong,
+    addSliderImage,
     listenSongs,
     deleteSong,
     markSongsSeen
