@@ -138,15 +138,27 @@ body::before {
   overflow:hidden;
 }
 
-.header-track{
-
-    display:flex;
+.swiper{
 
     width:100%;
-
     height:100%;
 
-    transition:transform .45s ease;
+}
+
+.swiper-slide{
+
+    overflow:hidden;
+
+}
+
+.swiper-slide img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    object-position:center 20%;
 
 }
 
