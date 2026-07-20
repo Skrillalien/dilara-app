@@ -86,8 +86,44 @@ async function previewSliderPhoto(event) {
 
         showToast("🎞️ Slider fotoğrafı eklendi");
 
-        document.getElementById("galleryPhotoInput").value = "";
+        document.getElementById("sliderPhotoInput").value = "";
 
     };
+
+}
+
+function loadSliderImagesList() {
+
+    const container = document.getElementById("sliderImagesList");
+
+    if (!container) return;
+
+    window.firebase.listenSliderImages((photos) => {
+
+        if (photos.length === 0) {
+
+            container.innerHTML = `
+                <div class="settings-item">
+                    Henüz slider fotoğrafı yok.
+                </div>
+            `;
+
+            return;
+
+        }
+
+        container.innerHTML = photos.map((photo, index) => `
+
+            <div class="settings-item">
+
+                <span>🖼️ Fotoğraf ${index + 1}</span>
+
+                <span>#${photo.order}</span>
+
+            </div>
+
+        `).join("");
+
+    });
 
 }

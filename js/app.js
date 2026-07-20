@@ -79,4 +79,6 @@ window.addEventListener("load", () => {
 
     initSlider();
 
+    loadSliderImagesList();
+
 });
