@@ -1744,6 +1744,15 @@
 
 }
 
+.song-add-icon{
+
+    width:20px;
+    height:20px;
+
+    flex-shrink:0;
+
+}
+
 .song-add-card {
 
     display:flex;
@@ -1752,7 +1761,7 @@
 
     justify-content:center;
 
-    gap:8px;
+    gap:10px;
 
     margin-bottom:16px;
 
@@ -1987,6 +1996,12 @@
 }
 
 .modal-title{
+
+    display:flex;
+    
+    align-items:center;
+    
+    gap:10px;
 
     font-size:20px;
 

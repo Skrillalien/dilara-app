@@ -356,7 +356,19 @@
             class="song-add-card"
             onclick="openSongForm()">
 
-            <span>➕</span>
+            <svg
+                class="song-add-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+
+            </svg>
 
             <span>Yeni Şarkı Bırak</span>
 
@@ -682,16 +694,37 @@
 
 <div id="modalOverlay" class="modal-overlay" onclick="closeSongForm()"></div>
 
-<div id="songModal" class="modal">
+  <div id="songModal" class="modal">
 
     <div class="modal-header">
 
         <div class="modal-title">
-            🎵 Yeni Şarkı Bırak
+
+            <svg
+                class="song-title-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M9 18V6l10-2v12"/>
+                <circle cx="7" cy="18" r="2"/>
+                <circle cx="17" cy="16" r="2"/>
+
+            </svg>
+
+            <span>Yeni Şarkı Bırak</span>
+
         </div>
 
-        <button class="modal-close" onclick="closeSongForm()">
+        <button
+            class="modal-close"
+            onclick="closeSongForm()">
+
             ✕
+
         </button>
 
     </div>
