@@ -52,19 +52,6 @@
     🎲
 </button>
 
-<div id="songFormOverlay" class="overlay" onclick="closeSongForm()"></div>
-
-<div id="songFormPopup" class="action-sheet">
-
-    <div class="sheet-handle"></div>
-
-    <div class="sheet-title">
-        🎵 Yeni Şarkı Bırak
-    </div>
-
-    <div id="songFormContainer"></div>
-
-</div>
 
 <body>
 
@@ -691,6 +678,30 @@
   <div class="bny-result" id="bnyResult">
     <span class="bny-placeholder">Önce bir kategori seç 👆</span>
   </div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay" onclick="closeSongForm()"></div>
+
+<div id="songModal" class="modal">
+
+    <div class="modal-header">
+
+        <div class="modal-title">
+            🎵 Yeni Şarkı Bırak
+        </div>
+
+        <button class="modal-close" onclick="closeSongForm()">
+            ✕
+        </button>
+
+    </div>
+
+    <div class="modal-body">
+
+        <div id="songFormContainer"></div>
+
+    </div>
+
 </div>
 
   <script src="dailyMessages.js?v=2"></script>

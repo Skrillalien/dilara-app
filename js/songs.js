@@ -255,14 +255,14 @@ function openSongForm() {
 
     form.style.display = "block";
 
-    document.getElementById("songFormOverlay").style.display = "block";
-    document.getElementById("songFormPopup").classList.add("active");
+    document.getElementById("modalOverlay").classList.add("active");
+    document.getElementById("songModal").classList.add("active");
 
 }
 
 function closeSongForm() {
 
-    document.getElementById("songFormOverlay").style.display = "none";
-    document.getElementById("songFormPopup").classList.remove("active");
+    document.getElementById("modalOverlay").classList.remove("active");
+    document.getElementById("songModal").classList.remove("active");
 
 }
