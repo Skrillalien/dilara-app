@@ -205,6 +205,8 @@ async function saveSong() {
             currentUser
         );
 
+        closeSongForm();
+
         document.getElementById("songLink").value = "";
         document.getElementById("songTitle").value = "";
         document.getElementById("songArtist").value = "";
@@ -264,5 +266,16 @@ function closeSongForm() {
 
     document.getElementById("modalOverlay").classList.remove("active");
     document.getElementById("songModal").classList.remove("active");
+
+    resetSongForm();
+
+}
+
+function resetSongForm() {
+
+    document.getElementById("songLink").value = "";
+    document.getElementById("songTitle").value = "";
+    document.getElementById("songArtist").value = "";
+    document.getElementById("songNote").value = "";
 
 }
