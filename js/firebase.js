@@ -189,14 +189,17 @@ async function deletePhoto(photoId){
 
 }
 
-async function addSliderImage(image, order) {
+async function addSliderImage(image) {
+
+    const snap = await getDocs(collection(db, "sliderImages"));
+
+    const nextOrder = snap.size + 1;
 
     await addDoc(collection(db, "sliderImages"), {
 
         image,
-        order,
+        order: nextOrder,
         active: true,
-
         createdAt: serverTimestamp()
 
     });

@@ -82,10 +82,7 @@ async function previewSliderPhoto(event) {
             0.65
         );
 
-        await window.firebase.addSliderImage(
-            image,
-            1
-        );
+        await window.firebase.addSliderImage(image);
 
         showToast("🎞️ Slider fotoğrafı eklendi");
 
