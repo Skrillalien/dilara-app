@@ -244,6 +244,14 @@ function listenSliderImages(callback) {
 
 }
 
+async function deleteSliderImage(id) {
+
+    await deleteDoc(
+        doc(db, "sliderImages", id)
+    );
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
@@ -257,6 +265,7 @@ window.firebase = {
 
     addSong,
     addSliderImage,
+    deleteSliderImage,
     listenSliderImages,
     listenSongs,
     deleteSong,

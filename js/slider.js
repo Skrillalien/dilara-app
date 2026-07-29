@@ -116,14 +116,34 @@ function loadSliderImagesList() {
 
             <div class="settings-item">
 
-                <span>🖼️ Fotoğraf ${index + 1}</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
 
-                <span>#${photo.order}</span>
+                    <span>🖼️ Fotoğraf ${index + 1}</span>
+
+                    <button
+                        class="theme-btn"
+                        style="width:auto;padding:6px 12px;"
+                        onclick="deleteSliderImage('${photo.id}')">
+                        🗑️
+                    </button>
+
+                </div>
 
             </div>
 
         `).join("");
 
     });
+
+}
+
+async function deleteSliderImage(id){
+
+    if(!confirm("Bu slider fotoğrafını silmek istiyor musun?"))
+        return;
+
+    await window.firebase.deleteSliderImage(id);
+
+    showToast("🗑️ Slider fotoğrafı silindi");
 
 }
