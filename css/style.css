@@ -636,10 +636,15 @@ margin-bottom:14px;
 
 .settings-panel {
   position: fixed;
-  bottom: 0; left: 50%;
+  bottom: 0;
+  left: 50%;
   transform: translateX(-50%) translateY(100%);
   width: 100%;
   max-width: 430px;
+
+  max-height: 80vh;      /* EKLE */
+  overflow-y: auto;      /* EKLE */
+
   background: var(--surface);
   border-radius: 24px 24px 0 0;
   border: 1px solid var(--border);
@@ -647,6 +652,8 @@ margin-bottom:14px;
   padding: 20px 24px 48px;
   z-index: 1001;
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+
+  -webkit-overflow-scrolling: touch; /* iOS için daha akıcı scroll */
 }
 
 .settings-panel.open {
