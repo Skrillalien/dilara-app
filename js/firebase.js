@@ -250,6 +250,26 @@ async function deleteSliderImage(id) {
         doc(db, "sliderImages", id)
     );
 
+    const snap = await getDocs(
+        query(
+            collection(db, "sliderImages"),
+            orderBy("order", "asc")
+        )
+    );
+
+    let order = 1;
+
+    for (const item of snap.docs) {
+
+        await updateDoc(
+            doc(db, "sliderImages", item.id),
+            {
+                order: order++
+            }
+        );
+
+    }
+
 }
 
 window.firebase = {

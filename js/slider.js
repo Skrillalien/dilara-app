@@ -114,22 +114,42 @@ function loadSliderImagesList() {
 
         container.innerHTML = photos.map((photo, index) => `
 
-            <div class="settings-item">
+        <div class="settings-item" style="padding:12px;">
 
-                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <div style="display:flex;align-items:center;gap:12px;width:100%;">
 
-                    <span>🖼️ Fotoğraf ${index + 1}</span>
+                <img
+                    src="${photo.image}"
+                    style="
+                        width:70px;
+                        height:70px;
+                        object-fit:cover;
+                        border-radius:12px;
+                        flex-shrink:0;
+                    ">
 
-                    <button
-                        class="theme-btn"
-                        style="width:auto;padding:6px 12px;"
-                        onclick="deleteSliderImage('${photo.id}')">
-                        🗑️
-                    </button>
+                <div style="flex:1;">
+
+                    <div><strong>Fotoğraf ${index + 1}</strong></div>
+
+                    <div style="opacity:.6;font-size:13px;">
+                        Sıra: ${photo.order}
+                    </div>
 
                 </div>
 
+                <button
+                    class="theme-btn"
+                    style="width:auto;padding:8px 14px;"
+                    onclick="deleteSliderImage('${photo.id}')">
+
+                    🗑️
+
+                </button>
+
             </div>
+
+        </div>
 
         `).join("");
 
