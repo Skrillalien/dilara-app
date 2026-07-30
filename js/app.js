@@ -55,17 +55,11 @@ function checkUserSelection() {
 
 window.addEventListener("load", () => {
 
-    updateCounter();
-
-    renderEvents();
-
     scheduleNotifications();
 
     updateDailyMessage();
 
     loadLastMemory();
-
-    loadNextEvent();
 
     checkUserSelection();
 
@@ -80,5 +74,7 @@ window.addEventListener("load", () => {
     initSlider();
 
     loadSliderImagesList();
+
+    initEvents();
 
 });
