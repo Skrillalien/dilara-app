@@ -295,12 +295,30 @@ function openEventForm() {
 
 }
 
-function closeEventForm() {
-
-    document.getElementById("eventForm").style.display = "none";
+function closeEventForm(){
 
     document.getElementById("modalOverlay").classList.remove("active");
     document.getElementById("eventModal").classList.remove("active");
+
+    setTimeout(()=>{
+
+        document.getElementById("eventForm").style.display="none";
+
+    },300);
+
+}
+
+function closeModal(){
+
+    if(document.getElementById("songModal").classList.contains("active")){
+        closeSongForm();
+        return;
+    }
+
+    if(document.getElementById("eventModal").classList.contains("active")){
+        closeEventForm();
+        return;
+    }
 
 }
 
