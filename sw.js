@@ -1,4 +1,4 @@
-const CACHE_NAME = "berk-dilara-v0.6.16";
+const CACHE_NAME = "berk-dilara-v0.6.17";
 
 const FILES_TO_CACHE = [
   "./",

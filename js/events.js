@@ -278,3 +278,12 @@ async function initEvents() {
     });
 
 }
+
+function openEventForm() {
+
+    const form = document.getElementById("eventForm");
+
+    form.style.display =
+        form.style.display === "none" ? "block" : "none";
+
+}

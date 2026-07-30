@@ -438,6 +438,73 @@
 
 </div>
 
+<!-- Calendar Page -->
+<div class="page" id="page-our-calendar">
+
+    <div class="photos-page">
+
+        <div class="photos-header">
+
+            <div class="biz-card-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round">
+
+                    <rect x="3" y="5" width="18" height="16" rx="2"/>
+                    <path d="M16 3v4"/>
+                    <path d="M8 3v4"/>
+                    <path d="M3 10h18"/>
+
+                </svg>
+
+            </div>
+
+            <div class="header-title">
+                Takvimimiz
+            </div>
+
+        </div>
+
+        <div
+            class="song-add-card"
+            onclick="openEventForm()">
+
+            <svg
+                class="song-add-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+
+            </svg>
+
+            <span>Yeni Özel Gün Ekle</span>
+
+        </div>
+
+        <div
+            id="eventForm"
+            class="memory-input-card"
+            style="display:none;">
+
+        </div>
+
+        <div id="calendarEventsList"></div>
+
+    </div>
+
+</div>
+
 <!-- Biz Page -->
 <div class="page" id="page-us">
 
@@ -546,7 +613,7 @@
             <div class="biz-card-subtitle">Birbirimize bıraktığımız şarkılar</div>
         </div>
     
-        <div class="biz-card soon" onclick="showToast('🚧 Yakında eklenecek')">
+        <div class="biz-card" onclick="openCard('our-calendar', this)">
             <div class="biz-card-icon">
 
               <svg
