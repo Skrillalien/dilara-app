@@ -211,3 +211,64 @@ function calculateMonths(start, end){
 
     return months;
 }
+
+async function seedEvents() {
+
+    const events = [
+        {
+            name: "Yıldönümümüz",
+            emoji: "💜",
+            month: 2,
+            day: 12,
+            repeatYearly: true
+        },
+        {
+            name: "Dilara'nın Doğum Günü",
+            emoji: "🎂",
+            month: 8,
+            day: 9,
+            repeatYearly: true
+        },
+        {
+            name: "Berk'in Doğum Günü",
+            emoji: "🎉",
+            month: 3,
+            day: 15,
+            repeatYearly: true
+        },
+        {
+            name: "Cengiz'in Sahiplenme Günü",
+            emoji: "🐹",
+            month: 6,
+            day: 25,
+            repeatYearly: true
+        },
+        {
+            name: "Cengiz'i Anma Günü",
+            emoji: "🕯️",
+            month: 11,
+            day: 10,
+            repeatYearly: true
+        },
+        {
+            name: "Sevgililer Günü",
+            emoji: "💝",
+            month: 2,
+            day: 14,
+            repeatYearly: true
+        },
+        {
+            name: "Kadınlar Günü",
+            emoji: "🌸",
+            month: 3,
+            day: 8,
+            repeatYearly: true
+        }
+    ];
+
+    for (const event of events) {
+        await window.firebase.addEvent(event);
+    }
+
+    console.log("Events eklendi.");
+}

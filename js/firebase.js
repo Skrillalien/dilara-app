@@ -272,6 +272,70 @@ async function deleteSliderImage(id) {
 
 }
 
+async function addEvent(event) {
+
+    await addDoc(
+        collection(db, "events"),
+        event
+    );
+
+}
+
+async function getEvents() {
+
+    const q = query(
+        collection(db, "events"),
+        orderBy("month"),
+        orderBy("day")
+    );
+
+    const snap = await getDocs(q);
+
+    return snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+}
+
+function listenEvents(callback) {
+
+    const q = query(
+        collection(db, "events"),
+        orderBy("month"),
+        orderBy("day")
+    );
+
+    return onSnapshot(q, snapshot => {
+
+        callback(
+            snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        );
+
+    });
+
+}
+
+async function updateEvent(id, data) {
+
+    await updateDoc(
+        doc(db, "events", id),
+        data
+    );
+
+}
+
+async function deleteEvent(id) {
+
+    await deleteDoc(
+        doc(db, "events", id)
+    );
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
@@ -287,6 +351,11 @@ window.firebase = {
     addSliderImage,
     deleteSliderImage,
     listenSliderImages,
+    addEvent,
+    getEvents,
+    listenEvents,
+    updateEvent,
+    deleteEvent,
     listenSongs,
     deleteSong,
     markSongsSeen
