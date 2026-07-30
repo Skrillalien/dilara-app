@@ -107,10 +107,7 @@
     const result = document.getElementById('bnyResult');
 
     // Havuzdan adil şekilde seç
-    const pick = {
-        emoji: "🍵",
-        text: "Birlikte ıhlamur için"
-    };
+    const pick = getNextActivity(selectedCategory);
 
     // Slot machine animasyonu
     btn.disabled = true;

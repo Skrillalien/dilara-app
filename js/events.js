@@ -1,6 +1,7 @@
 const START_DATE = new Date('2026-02-12T00:00:00');
 
 let EVENTS = [];
+let selectedEventId = null;
 
 function updateDailyMessage() {
   
@@ -274,6 +275,7 @@ async function initEvents() {
         updateCounter();
         renderEvents();
         loadNextEvent();
+        renderCalendarEvents();
 
     });
 
@@ -356,5 +358,135 @@ function prepareEventForm(){
         });
 
     }
+
+}
+
+async function saveEvent(){
+
+    const emoji = document.getElementById("eventEmoji").value.trim();
+    const name = document.getElementById("eventName").value.trim();
+    const day = Number(document.getElementById("eventDay").value);
+    const month = Number(document.getElementById("eventMonth").value);
+    const repeatYearly = document.getElementById("eventRepeat").checked;
+
+    if(!emoji || !name || !day || !month){
+
+        showToast("Lütfen tüm alanları doldur ❤️");
+        return;
+
+    }
+
+    try{
+
+        await window.firebase.addEvent({
+
+            emoji,
+            name,
+            day,
+            month,
+            repeatYearly
+
+        });
+
+        closeEventForm();
+
+        document.getElementById("eventEmoji").value="";
+        document.getElementById("eventName").value="";
+        document.getElementById("eventDay").value="";
+        document.getElementById("eventMonth").value="";
+        document.getElementById("eventRepeat").checked=true;
+
+
+
+        showToast("Özel gün eklendi 🎉");
+
+    }catch(error){
+
+        console.error(error);
+        showToast("Bir hata oluştu");
+
+    }
+
+}
+
+function renderCalendarEvents(){
+
+    const container=document.getElementById("calendarEventsList");
+
+    if(!container) return;
+
+    if(EVENTS.length===0){
+
+        container.innerHTML=`
+            <div class="empty-state">
+                Henüz özel gün eklenmedi 💜
+            </div>
+        `;
+
+        return;
+
+    }
+
+    const monthNames=[
+        "Ocak","Şubat","Mart","Nisan",
+        "Mayıs","Haziran","Temmuz","Ağustos",
+        "Eylül","Ekim","Kasım","Aralık"
+    ];
+
+    container.innerHTML=EVENTS.map(event=>`
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-header">
+
+                <div class="dashboard-title">
+                    ${event.emoji} ${event.name}
+                </div>
+
+                <button
+                    class="memory-menu-btn"
+                    onclick="openEventMenu('${event.id}')">
+
+                    ⋮
+
+                </button>
+
+            </div>
+
+            <div class="dashboard-subtitle">
+                ${event.day} ${monthNames[event.month-1]}
+            </div>
+
+            <div class="memory-author">
+                ${event.repeatYearly ? "🔁 Her yıl tekrar eder" : "📅 Tek seferlik"}
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+function openEventMenu(id){
+
+    currentActionType = "event";
+    currentActionId = id;
+
+    document.getElementById("actionOverlay").classList.add("active");
+    document.getElementById("actionSheet").classList.add("active");
+
+}
+
+async function deleteSelectedEvent(){
+
+    if(!selectedEventId) return;
+
+    await window.firebase.deleteEvent(selectedEventId);
+
+    selectedEventId = null;
+
+    closeActionMenu();
+
+    showToast("Özel gün silindi 🗑️");
 
 }

@@ -171,6 +171,12 @@ async function performDeleteAction() {
 
             await window.firebase.deleteSong(currentActionId);
 
+        } else if (currentActionType === "event") {
+
+            await window.firebase.deleteEvent(currentActionId);
+
+            showToast("Özel gün silindi 🎉");
+
         }
 
         console.log("Silme başarılı");

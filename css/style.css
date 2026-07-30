@@ -2149,3 +2149,9 @@ margin-bottom:14px;
     color:var(--text);
     font-size:14px;
 }
+
+.empty-state{
+    text-align:center;
+    color:var(--muted);
+    padding:40px 20px;
+}
