@@ -281,9 +281,62 @@ async function initEvents() {
 
 function openEventForm() {
 
-    const form = document.getElementById("eventForm");
+    prepareEventForm();
 
-    form.style.display =
-        form.style.display === "none" ? "block" : "none";
+    const form = document.getElementById("eventForm");
+    const container = document.getElementById("eventFormContainer");
+
+    container.appendChild(form);
+
+    form.style.display = "block";
+
+    document.getElementById("modalOverlay").classList.add("active");
+    document.getElementById("eventModal").classList.add("active");
+
+}
+
+function closeEventForm() {
+
+    document.getElementById("eventForm").style.display = "none";
+
+    document.getElementById("modalOverlay").classList.remove("active");
+    document.getElementById("eventModal").classList.remove("active");
+
+}
+
+function prepareEventForm(){
+
+    const daySelect=document.getElementById("eventDay");
+    const monthSelect=document.getElementById("eventMonth");
+
+    if(daySelect.options.length===1){
+
+        for(let i=1;i<=31;i++){
+
+            daySelect.innerHTML+=`<option value="${i}">${i}</option>`;
+
+        }
+
+    }
+
+    if(monthSelect.options.length===1){
+
+        const months=[
+            "Ocak","Şubat","Mart","Nisan",
+            "Mayıs","Haziran","Temmuz","Ağustos",
+            "Eylül","Ekim","Kasım","Aralık"
+        ];
+
+        months.forEach((month,index)=>{
+
+            monthSelect.innerHTML+=`
+                <option value="${index+1}">
+                    ${month}
+                </option>
+            `;
+
+        });
+
+    }
 
 }

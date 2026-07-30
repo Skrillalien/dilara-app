@@ -497,6 +497,62 @@
             class="memory-input-card"
             style="display:none;">
 
+            <input
+                id="eventEmoji"
+                type="text"
+                class="song-input"
+                placeholder="Emoji (🎂 ❤️ ✈️)"
+                maxlength="2">
+
+            <input
+                id="eventName"
+                type="text"
+                class="song-input"
+                placeholder="Özel gün adı">
+
+            <div class="event-date-row">
+
+                <select
+                    id="eventDay"
+                    class="song-input">
+
+                    <option value="">Gün</option>
+
+                </select>
+
+                <select
+                    id="eventMonth"
+                    class="song-input">
+
+                    <option value="">Ay</option>
+
+                </select>
+
+            </div>
+
+            <label class="event-checkbox">
+
+                <input
+                    id="eventRepeat"
+                    type="checkbox"
+                    checked>
+
+                <span>Her yıl tekrarla</span>
+
+            </label>
+
+            <div class="memory-input-footer">
+
+                <button
+                    class="send-btn"
+                    onclick="saveEvent()">
+
+                    Kaydet
+
+                </button>
+
+            </div>
+
         </div>
 
         <div id="calendarEventsList"></div>
@@ -530,117 +586,122 @@
     
     </div>
 
-    <div class="biz-menu">
-    
-        <div class="biz-card" onclick="openCard('our-memories', this)">
-        
-            <div class="biz-card-icon">
+<div class="biz-menu">
 
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round">
+  <div class="biz-card" onclick="openCard('our-memories', this)">
+  
+      <div class="biz-card-icon">
 
-                  <path d="M4 6h16v12H4z"/>
-                  <path d="M4 7l8 6 8-6"/>
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
 
-              </svg>
+            <path d="M4 6h16v12H4z"/>
+            <path d="M4 7l8 6 8-6"/>
 
+        </svg>
+
+    </div>
+  
+      <div>
+          <div class="biz-card-title">Anılarımız</div>
+  
+          <div class="biz-card-subtitle">
+              Birlikte yaşadığımız anılar
           </div>
-        
-            <div>
-                <div class="biz-card-title">Anılarımız</div>
-        
-                <div class="biz-card-subtitle">
-                    Birlikte yaşadığımız anılar
-                </div>
-            </div>
-        
+      </div>
+  
+  </div>
+
+  <div class="biz-card" onclick="openCard('our-photos', this)">
+      <div class="biz-card-icon">
+
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <path d="M4 7a2 2 0 0 1 2-2h2l1.2-2h5.6L16 5h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>
+
+            <circle cx="12" cy="13" r="3.5"/>
+
+        </svg>
+
+    </div>
+
+      <div class="biz-card-title">Fotoğraflarımız</div>
+
+      <div class="biz-card-subtitle">
+        Birlikte çektiğimiz kareler
+      </div>
+  </div>
+
+    <div class="biz-card" onclick="openCard('our-songs', this)">
+        <div class="biz-card-icon">
+
+          <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <path d="M9 18V6l10-2v12"/>
+
+              <circle cx="7" cy="18" r="2"/>
+
+              <circle cx="17" cy="16" r="2"/>
+
+          </svg>
+
+      </div>
+
+        <div class="biz-card-title">Şarkılarımız</div>
+
+        <div class="biz-card-subtitle">Birbirimize bıraktığımız şarkılar</div>
+    </div>
+
+    <div class="biz-card" onclick="openCard('our-calendar', this)">
+
+        <div class="biz-card-icon">
+
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M16 3v4"/>
+                <path d="M8 3v4"/>
+                <path d="M3 10h18"/>
+
+            </svg>
+
         </div>
-    
-        <div class="biz-card" onclick="openCard('our-photos', this)">
-            <div class="biz-card-icon">
 
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round">
+        <div>
 
-                  <path d="M4 7a2 2 0 0 1 2-2h2l1.2-2h5.6L16 5h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>
+            <div class="biz-card-title">
+                Takvimimiz
+            </div>
 
-                  <circle cx="12" cy="13" r="3.5"/>
-
-              </svg>
-
-          </div>
-    
-            <div class="biz-card-title">Fotoğraflarımız</div>
-    
             <div class="biz-card-subtitle">
-              Birlikte çektiğimiz kareler
+                Özel günlerimiz ve önemli tarihler
             </div>
+
         </div>
-    
-        <div class="biz-card" onclick="openCard('our-songs', this)">
-            <div class="biz-card-icon">
 
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round">
-
-                  <path d="M9 18V6l10-2v12"/>
-
-                  <circle cx="7" cy="18" r="2"/>
-
-                  <circle cx="17" cy="16" r="2"/>
-
-              </svg>
-
-          </div>
-    
-            <div class="biz-card-title">Şarkılarımız</div>
-    
-            <div class="biz-card-subtitle">Birbirimize bıraktığımız şarkılar</div>
-        </div>
-    
-        <div class="biz-card" onclick="openCard('our-calendar', this)">
-            <div class="biz-card-icon">
-
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round">
-
-                  <rect x="3" y="5" width="18" height="16" rx="2"/>
-
-                  <path d="M16 3v4"/>
-
-                  <path d="M8 3v4"/>
-
-                  <path d="M3 10h18"/>
-
-              </svg>
-
-          </div>
-    
-            <div class="biz-card-title">Takvimimiz</div>
-    
-            <div class="biz-card-soon">Yakında...</div>
-        </div>
-    
     </div>
 
 </div>
@@ -806,7 +867,50 @@
 
 <div id="modalOverlay" class="modal-overlay" onclick="closeSongForm()"></div>
 
-  <div id="songModal" class="modal">
+<div id="songModal" class="modal">
+
+  <div class="modal-header">
+
+      <div class="modal-title">
+
+          <svg
+              class="song-title-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <path d="M9 18V6l10-2v12"/>
+              <circle cx="7" cy="18" r="2"/>
+              <circle cx="17" cy="16" r="2"/>
+
+          </svg>
+
+          <span>Yeni Şarkı Bırak</span>
+
+      </div>
+
+      <button
+          class="modal-close"
+          onclick="closeSongForm()">
+
+          ✕
+
+      </button>
+
+  </div>
+
+  <div class="modal-body">
+
+      <div id="songFormContainer"></div>
+
+  </div>
+
+</div>
+
+<div id="eventModal" class="modal">
 
     <div class="modal-header">
 
@@ -821,19 +925,20 @@
                 stroke-linecap="round"
                 stroke-linejoin="round">
 
-                <path d="M9 18V6l10-2v12"/>
-                <circle cx="7" cy="18" r="2"/>
-                <circle cx="17" cy="16" r="2"/>
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M16 3v4"/>
+                <path d="M8 3v4"/>
+                <path d="M3 10h18"/>
 
             </svg>
 
-            <span>Yeni Şarkı Bırak</span>
+            <span>Yeni Özel Gün</span>
 
         </div>
 
         <button
             class="modal-close"
-            onclick="closeSongForm()">
+            onclick="closeEventForm()">
 
             ✕
 
@@ -843,7 +948,7 @@
 
     <div class="modal-body">
 
-        <div id="songFormContainer"></div>
+        <div id="eventFormContainer"></div>
 
     </div>
 
