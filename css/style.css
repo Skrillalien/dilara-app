@@ -450,6 +450,12 @@ margin-bottom:14px;
 
 }
 
+.event-card .photo-menu-btn{
+    position:absolute;
+    top:14px;
+    right:14px;
+}
+
 .event-card.soon {
   border-color: rgba(244, 114, 182, 0.4);
   background: linear-gradient(135deg, var(--surface), rgba(244,114,182,0.05));
@@ -496,6 +502,7 @@ margin-bottom:14px;
 .event-countdown {
   text-align: right;
   flex-shrink: 0;
+  padding-right:28px;
 }
 
 .event-days {

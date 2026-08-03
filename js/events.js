@@ -478,7 +478,7 @@ function renderCalendarEvents(){
                     </div>
 
                     <div class="event-date">
-                        ${event.day} ${monthNames[event.month-1]}
+                        ${formatDate(event.month, event.day)}
                     </div>
 
                 </div>
@@ -490,19 +490,18 @@ function renderCalendarEvents(){
                 </div>
 
                 <button
-                    class="song-menu-btn"
-                    onclick="event.stopPropagation();openEventMenu('${event.id}')">
+                    class="photo-menu-btn"
+                    onclick="event.stopPropagation(); openEventMenu('${event.id}')">
 
                     <svg
+                        width="16"
+                        height="16"
                         viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round">
+                        fill="currentColor">
 
-                        <circle cx="12" cy="5" r="1"/>
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="12" cy="19" r="1"/>
+                        <circle cx="12" cy="5" r="1.8"/>
+                        <circle cx="12" cy="12" r="1.8"/>
+                        <circle cx="12" cy="19" r="1.8"/>
 
                     </svg>
 
