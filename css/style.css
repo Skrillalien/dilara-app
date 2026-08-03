@@ -441,6 +441,15 @@ margin-bottom:14px;
   transition: border-color 0.2s;
 }
 
+.event-card .song-menu-btn{
+
+    position:absolute;
+
+    top:18px;
+    right:18px;
+
+}
+
 .event-card.soon {
   border-color: rgba(244, 114, 182, 0.4);
   background: linear-gradient(135deg, var(--surface), rgba(244,114,182,0.05));

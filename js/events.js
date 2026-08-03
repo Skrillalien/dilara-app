@@ -445,37 +445,74 @@ function renderCalendarEvents(){
 
     }).sort((a, b) => a.days - b.days);
 
-    container.innerHTML=sortedEvents.map(event => `
+    container.innerHTML = sortedEvents.map(event => {
 
-        <div class="dashboard-card">
+        const isToday = event.days === 0;
+        const isSoon = event.days > 0 && event.days <= 7;
 
-            <div class="dashboard-header">
+        const cls = isToday
+            ? "today"
+            : isSoon
+            ? "soon"
+            : "";
 
-                <div class="dashboard-title">
-                    ${event.emoji} ${event.name}
+        const countdown = isToday
+            ? `<span class="badge-today">Bugün! 🎉</span>`
+            : `
+                <div class="event-days">${event.days}</div>
+                <div class="event-days-label">gün kaldı</div>
+            `;
+
+        return `
+
+            <div class="event-card ${cls}">
+
+                <div class="event-icon">
+                    ${event.emoji}
+                </div>
+
+                <div class="event-info">
+
+                    <div class="event-name">
+                        ${event.name}
+                    </div>
+
+                    <div class="event-date">
+                        ${event.day} ${monthNames[event.month-1]}
+                    </div>
+
+                </div>
+
+                <div class="event-countdown">
+
+                    ${countdown}
+
                 </div>
 
                 <button
-                    class="memory-menu-btn"
-                    onclick="openEventMenu('${event.id}')">
+                    class="song-menu-btn"
+                    onclick="event.stopPropagation();openEventMenu('${event.id}')">
 
-                    ⋮
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round">
+
+                        <circle cx="12" cy="5" r="1"/>
+                        <circle cx="12" cy="12" r="1"/>
+                        <circle cx="12" cy="19" r="1"/>
+
+                    </svg>
 
                 </button>
 
             </div>
 
-            <div class="dashboard-subtitle">
-                ${event.day} ${monthNames[event.month-1]}
-            </div>
+        `;
 
-            <div class="memory-author">
-                ${event.repeatYearly ? "🔁 Her yıl tekrar eder" : "📅 Tek seferlik"}
-            </div>
-
-        </div>
-
-    `).join("");
+    }).join("");
 
 }
 
