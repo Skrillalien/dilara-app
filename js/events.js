@@ -433,7 +433,19 @@ function renderCalendarEvents(){
         "Eylül","Ekim","Kasım","Aralık"
     ];
 
-    container.innerHTML=EVENTS.map(event=>`
+    const sortedEvents = EVENTS.map(e => {
+
+        const next = nextOccurrence(e.month, e.day);
+        const days = daysUntil(next);
+
+        return {
+            ...e,
+            days
+        };
+
+    }).sort((a, b) => a.days - b.days);
+
+    container.innerHTML=sortedEvents.map(event => `
 
         <div class="dashboard-card">
 
