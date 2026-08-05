@@ -68,12 +68,13 @@ function selectAuthor(name) {
     
     }
 
-  async function saveMemory() {
+async function saveMemory() {
     const text = document.getElementById('memoryText').value.trim();
     if (!text) return;
     const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.textContent = 'Kaydediliyor...';
+
     try {
         const currentUser = localStorage.getItem("currentUser");
 
@@ -82,6 +83,7 @@ function selectAuthor(name) {
             currentUser,
             selectedPhoto
         );
+
         loadWaitingItems();
         document.getElementById('memoryText').value = '';
         selectedPhoto = null;
@@ -89,12 +91,15 @@ function selectAuthor(name) {
         document.getElementById("photoPreviewContainer").style.display = "none";
         showToast('Anı kaydedildi 💜');
         loadMemories();
-    }   catch (e) {
+    }   
+
+    catch (e) {
         showToast('Hata: ' + e.message);
     }
+
     btn.disabled = false;
     btn.textContent = 'Kaydet';
-  }
+}
 
 function loadMemories() {
     const list = document.getElementById('memoriesList');
@@ -472,17 +477,17 @@ function openMemoryImage(memoryId) {
 
 function formatMemoryText(text) {
 
-    return text.replace(
-        /#[a-zA-Z0-9ğüşöçıİĞÜŞÖÇ]+/g,
-        match => {
+    return text
 
-            return `
+        .replace(
+            /#[a-zA-Z0-9ğüşöçıİĞÜŞÖÇ]+/g,
+            match => `
                 <span class="memory-tag">
                     ${match}
                 </span>
-            `;
+            `
+        )
 
-        }
-    );
+        .replace(/\n/g, "<br>");
 
 }

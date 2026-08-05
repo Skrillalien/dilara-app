@@ -980,6 +980,7 @@ margin-bottom:14px;
       font-size: 14px;
       color: var(--text);
       line-height: 1.6;
+      white-space: pre-wrap;
     }
 
     .memory-image {
@@ -1185,6 +1186,8 @@ margin-bottom:14px;
     align-items: center;
     padding: 20px;
     z-index: 9999;
+
+    overflow: hidden;
 }
 
 #viewerImage {
@@ -1204,6 +1207,10 @@ margin-bottom:14px;
     background: rgba(255,255,255,.08);
     backdrop-filter: blur(15px);
     color: var(--text);
+
+    max-height:35vh;
+
+    overflow:hidden;
 }
 
 #viewerAuthor {
@@ -1221,6 +1228,13 @@ margin-bottom:14px;
 #viewerText {
     font-size: 15px;
     line-height: 1.5;
+    overflow-y:auto;
+
+    max-height:22vh;
+
+    white-space:pre-wrap;
+
+    padding-right:6px;
 }
 
 .memory-actions {
@@ -1453,18 +1467,12 @@ margin-bottom:14px;
 .photo-item{
     width:100%;
     aspect-ratio:1/1;
-
     object-fit:cover;
-
     border-radius:18px;
-
     border:1px solid var(--border);
-
     box-shadow:
         0 6px 20px rgba(0,0,0,.18);
-
     cursor:pointer;
-
     transition:.25s;
 }
 
@@ -1487,664 +1495,398 @@ margin-bottom:14px;
 }
 
 .photo-menu-btn{
-
     position:absolute;
-
     top:8px;
     right:8px;
-
     width:28px;
     height:28px;
-
     display:flex;
     justify-content:center;
     align-items:center;
-
     border:none;
     border-radius:50%;
-
     background:rgba(0,0,0,.45);
     backdrop-filter:blur(8px);
-
     color:white;
-
     cursor:pointer;
-
     z-index:5;
-
     transition:.2s;
 }
 
 .photo-menu-btn svg{
-
     width:16px;
     height:16px;
-
 }
 
 .photo-menu-btn:active{
-
     transform:scale(.9);
-
 }
 
 .memory-badge{
-
     position:absolute;
-
     right:8px;
     bottom:8px;
-
     width:26px;
     height:26px;
-
     display:flex;
     justify-content:center;
     align-items:center;
-
     border-radius:50%;
-
     background:rgba(0,0,0,.45);
     backdrop-filter:blur(8px);
-
     color:white;
-
     z-index:5;
-
 }
 
 .memory-badge svg{
-
     width:14px;
     height:14px;
-
 }
 
 .memory-tag {
-
     color: var(--accent);
     text-decoration: underline;
     text-underline-offset: 3px;
     font-weight:600;
-
 }
 
 .photos-month-title{
-
     grid-column:1 / -1;
-
     margin-top:22px;
     margin-bottom:10px;
-
     padding:12px 16px;
-
     border-radius:16px;
-
     background:rgba(255,255,255,.04);
-
     backdrop-filter:blur(12px);
-
     border:1px solid var(--border);
-
 }
 
 .photos-month-name{
-
     color:var(--muted);
-
     font-size:15px;
-
     font-weight:600;
-
 }
 
 .photos-month-count{
-
     margin-top:2px;
-
     color:rgba(255,255,255,.45);
-
     font-size:12px;
-
 }
 
 .song-card{
-
     margin-bottom:12px;
-
     padding:14px 16px;
-
     border-radius:18px;
-
     background:var(--surface);
-
     border:1px solid var(--border);
-
     cursor:pointer;
-
     transition:.25s;
-
     position:relative;
-
     box-shadow:
         0 6px 18px rgba(0,0,0,.16);
-
 }
 
 .song-card:hover{
-
     transform:translateY(-2px);
-
 }
 
 .song-card:active{
-
     transform:scale(.98);
-
 }
 
 .song-header-right{
-
     display:flex;
-
     flex-direction:column;
-
     align-items:flex-end;
-
     gap:8px;
-
 }
 
 .song-link-icon{
-
     width:18px;
-
     height:18px;
-
     color:var(--muted);
-
     opacity:.7;
-
     transition:.2s;
-
 }
 
 .song-card:hover .song-link-icon{
-
     color:var(--accent);
-
     opacity:1;
-
 }
 
 .song-header{
-
     display:flex;
-
     justify-content:space-between;
-
     align-items:flex-start;
-
     gap:16px;
-
 }
 
 .song-title{
-
     display:flex;
-
     align-items:center;
-
     gap:8px;
-
     font-size:18px;
-
     font-weight:700;
-
     color:var(--text);
-
 }
 
 .song-title-icon{
-
     width:22px;
-
     height:22px;
-
     color:var(--accent);
-
     flex-shrink:0;
-
 }
 
 .song-artist{
-
     margin-top:2px;
-
     font-size:14px;
-
     color:var(--muted);
-
 }
 
 .song-date{
-
     margin-left:auto;
-
     font-size:14px;
-
     color:var(--muted);
-
     white-space:nowrap;
-
 }
 
 .song-author{
-
     margin-top:6px;
-
     font-size:14px;
-
     font-weight:600;
-
 }
 
 .song-note{
-
     margin-top:10px;
-
     padding:12px;
-
     border-radius:14px;
-
     background:rgba(255,255,255,.04);
-
     color:var(--text);
-
     line-height:1.45;
-
     font-size:15px;
-
+    white-space: pre-wrap;
 }
 
 .song-info-row{
-
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:12px;
-
     margin-top:8px;
-
     width:100%;
-
 }
 
 
 .song-open-btn{
-
     width:100%;
-
     margin-top:18px;
-
     padding:14px;
-
     border:none;
-
     border-radius:16px;
-
     background:linear-gradient(
         135deg,
         var(--accent),
         var(--accent2)
     );
-
     color:white;
-
     font-size:15px;
-
     font-weight:600;
-
     cursor:pointer;
-
     transition:.2s;
-
 }
 
 .song-open-btn:hover{
-
     transform:translateY(-1px);
-
 }
 
 .song-open-btn:active{
-
     transform:scale(.97);
-
 }
 
 .song-input{
-
     width:100%;
-
     margin-bottom:12px;
-
     padding:14px 16px;
-
     border-radius:16px;
-
     border:1px solid var(--border);
-
     background:var(--surface);
-
     color:var(--text);
-
     font-size:15px;
-
     outline:none;
-
     box-sizing:border-box;
-
 }
 
 .song-input::placeholder{
-
     color:var(--muted);
-
 }
 
 .song-add-icon{
-
     width:20px;
     height:20px;
-
     flex-shrink:0;
-
 }
 
 .song-add-card {
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     gap:10px;
-
     margin-bottom:16px;
-
     padding:14px;
-
     border-radius:18px;
-
     border:1px solid var(--border);
-
     background:var(--surface);
-
     color:var(--text);
-
     font-size:16px;
-
     font-weight:600;
-
     cursor:pointer;
-
     transition:.25s;
-
 }
 
 .song-add-card:active {
-
     transform:scale(.97);
-
 }
 
 .action-overlay{
-
     position:fixed;
-
     inset:0;
-
     background:rgba(0,0,0,.45);
-
     backdrop-filter:blur(4px);
-
     opacity:0;
-
     visibility:hidden;
-
     transition:.25s;
-
     z-index:9998;
-
 }
 
 .action-overlay.active{
-
     opacity:1;
-
     visibility:visible;
-
 }
 
 .action-sheet{
-
     position:fixed;
-
     left:16px;
     right:16px;
     bottom:16px;
-
     padding:10px;
-
     border-radius:24px;
-
     background:rgba(30,30,35,.92);
-
     backdrop-filter:blur(20px);
-
     border:1px solid var(--border);
-
     box-shadow:
         0 20px 40px rgba(0,0,0,.35);
-
     transform:translateY(120%);
-
     transition:transform .25s ease;
-
     z-index:10001;
-
 }
 
 .action-sheet.active{
-
     transform:translateY(0);
-
 }
 
 .action-btn{
-
     width:100%;
-
     padding:16px;
-
     margin:4px 0;
-
     border:none;
-
     border-radius:16px;
-
     background:transparent;
-
     color:var(--text);
-
     font-size:16px;
-
     font-weight:600;
-
     cursor:pointer;
-
     transition:.2s;
-
 }
 
 .action-btn:hover{
-
     background:rgba(255,255,255,.05);
-
 }
 
 .action-btn:active{
-
     transform:scale(.98);
-
 }
 
 .action-danger{
-
     color:#ff5b5b;
-
 }
 
 .song-meta{
-
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
-
     margin-top:6px;
-
     width:100%;
-
 }
 
 .modal-overlay{
-
     position:fixed;
     inset:0;
-
     background:rgba(0,0,0,.65);
-
     backdrop-filter:blur(8px);
-
     opacity:0;
     visibility:hidden;
-
     transition:.25s;
-
     z-index:10000;
-
 }
 
 .modal{
-
     position:fixed;
-
     top:50%;
     left:50%;
-
     transform:translate(-50%,-50%) scale(.92);
-
     width:min(92%,460px);
-
     max-height:85vh;
-
     overflow:auto;
-
     background:var(--surface);
-
     border:1px solid var(--border);
-
     border-radius:24px;
-
     box-shadow:0 20px 60px rgba(0,0,0,.45);
-
     opacity:0;
-
     visibility:hidden;
-
     transition:.25s;
-
     z-index:10001;
-
 }
 
 .modal.active{
-
     opacity:1;
-
     visibility:visible;
-
     transform:translate(-50%,-50%) scale(1);
-
 }
 
 .modal-overlay.active{
-
     opacity:1;
-
     visibility:visible;
-
 }
 
 .modal-header{
-
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
-
     padding:18px 20px;
-
     border-bottom:1px solid var(--border);
-
 }
 
 .modal-title{
-
     display:flex;
-    
     align-items:center;
-    
     gap:10px;
-
     font-size:20px;
-
     font-weight:700;
-
 }
 
 .modal-close{
-
     background:rgba(255,255,255,.06);
-
     width:38px;
-
     height:38px;
-
     border:none;
-
     border-radius:50%;
-
     color:var(--text);
-
     font-size:22px;
-
     cursor:pointer;
-
 }
 
 .modal-body{
-
     padding:20px;
-
 }
 
 .event-date-row{
