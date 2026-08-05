@@ -561,6 +561,89 @@
 
 </div>
 
+
+<!-- Dreams Page -->
+<div class="page" id="page-our-dreams">
+
+    <div class="photos-page">
+
+        <div class="photos-header">
+
+            <div class="biz-card-icon">
+
+                <!-- Aynı SVG -->
+
+            </div>
+
+            <div class="header-title">
+                Hayallerimiz
+            </div>
+
+        </div>
+
+        <div
+            class="song-add-card"
+            onclick="openDreamForm()">
+
+            <svg
+                class="song-add-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M12 5v14"/>
+                <path d="M5 12h14"/>
+
+            </svg>
+
+            <span>Yeni Hayal Ekle</span>
+
+        </div>
+
+        <div
+            id="dreamForm"
+            class="memory-input-card"
+            style="display:none;">
+
+            <input
+                id="dreamEmoji"
+                class="song-input"
+                type="text"
+                placeholder="Emoji (İsteğe bağlı)">
+
+            <input
+                id="dreamTitle"
+                class="song-input"
+                type="text"
+                placeholder="Hayalin nedir?">
+
+            <textarea
+                id="dreamNote"
+                placeholder="Küçük bir not ekleyebilirsin..."></textarea>
+
+            <div class="memory-input-footer">
+
+                <button
+                    class="send-btn"
+                    onclick="saveDream()">
+
+                    Kaydet
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div id="dreamsList"></div>
+
+    </div>
+
+</div>
+
 <!-- Biz Page -->
 <div class="page" id="page-us">
 
@@ -703,6 +786,38 @@
         </div>
 
     </div>
+
+    <div class="biz-card" onclick="openCard('our-dreams', this)">
+
+      <div class="biz-card-icon">
+
+          <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+
+              <path d="M12 21s-7-4.35-9.5-8.2C.5 9.7 2.3 6 6 6c2.1 0 3.4 1.2 4 2.2C10.6 7.2 11.9 6 14 6c3.7 0 5.5 3.7 3.5 6.8C19 16.65 12 21 12 21z"/>
+
+          </svg>
+
+      </div>
+
+      <div>
+
+          <div class="biz-card-title">
+              Hayallerimiz
+          </div>
+
+          <div class="biz-card-subtitle">
+              Birlikte yapmak istediğimiz şeyler
+          </div>
+
+      </div>
+
+  </div>
 
   </div>
   
@@ -955,6 +1070,32 @@
 
 </div>
 
+<div id="dreamModal" class="modal">
+
+    <div class="modal-header">
+
+        <div class="modal-title">
+            ✨ Yeni Hayal Ekle
+        </div>
+
+        <button
+            class="modal-close"
+            onclick="closeDreamForm()">
+
+            ✕
+
+        </button>
+
+    </div>
+
+    <div class="modal-body">
+
+        <div id="dreamFormContainer"></div>
+
+    </div>
+
+</div>
+
   <script src="dailyMessages.js?v=2"></script>
   <script type="module" src="js/firebase.js?v=2"></script>
   
@@ -965,7 +1106,7 @@
   <script src="js/memories.js?v=2"></script>
   <script src="js/photos.js?v=1"></script>
   <script src="js/songs.js?v=1"></script>
-
+  <script src="js/dreams.js?v=1"></script>
   <script src="js/ui.js?v=2"></script>
 
   <script src="js/slider.js?v=1"></script>
