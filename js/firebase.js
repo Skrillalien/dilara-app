@@ -336,6 +336,14 @@ async function deleteEvent(id) {
 
 }
 
+async function deleteDream(id) {
+
+    await deleteDoc(
+        doc(db, "dreams", id)
+    );
+
+}
+
 async function addDream(dream) {
 
     await addDoc(
@@ -421,6 +429,7 @@ window.firebase = {
     listenEvents,
     updateEvent,
     deleteEvent,
+    deleteDream,
     listenSongs,
     deleteSong,
     markSongsSeen,

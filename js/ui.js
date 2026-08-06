@@ -177,6 +177,10 @@ async function performDeleteAction() {
 
             showToast("Özel gün silindi 🎉");
 
+        } else if (currentActionType === "dream") {
+
+            await window.firebase.deleteDream(currentActionId);
+
         }
 
         console.log("Silme başarılı");
