@@ -20,53 +20,79 @@ function loadDreams() {
 
     list.innerHTML = "Yükleniyor...";
 
-    list.innerHTML = dreams.map(dream => {
+    window.firebase.listenDreams((dreams) => {
 
-        return `
+        currentDreams = dreams;
 
-            <div class="event-card">
+        if (dreams.length === 0) {
 
-                <div class="event-icon">
+            list.innerHTML = `
+                <div class="memories-empty">
 
-                    ${dream.emoji || "✨"}
+                    ✨
+                    <br><br>
+
+                    Henüz hiç hayal eklenmedi.
+                    <br>
+
+                    İlk hayali sen ekle 💜
 
                 </div>
+            `;
 
-                <div class="event-info">
+            return;
 
-                    <div class="event-name">
+        }
 
-                        ${dream.title}
+        list.innerHTML = dreams.map(dream => {
+
+            return `
+
+                <div class="event-card">
+
+                    <div class="event-icon">
+
+                        ${dream.emoji || "✨"}
 
                     </div>
 
-                    <div class="event-date">
+                    <div class="event-info">
+
+                        <div class="event-name">
+
+                            ${dream.title}
+
+                        </div>
+
+                        <div class="event-date">
+
+                            ${
+                                dream.author === "Berk"
+                                    ? "💙 Berk"
+                                    : "💗 Dilara"
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="event-countdown">
 
                         ${
-                            dream.author === "Berk"
-                                ? "💙 Berk"
-                                : "💗 Dilara"
+                            dream.completed
+                                ? `<span class="badge-today">Tamamlandı ✅</span>`
+                                : `<span class="event-days-label">Bekliyor</span>`
                         }
 
                     </div>
 
                 </div>
 
-                <div class="event-countdown">
+            `;
 
-                    ${
-                        dream.completed
-                            ? `<span class="badge-today">Tamamlandı ✅</span>`
-                            : `<span class="event-days-label">Bekliyor</span>`
-                    }
+        }).join("");
 
-                </div>
-
-            </div>
-
-        `;
-
-    }).join("");
+    });
 
 }
 
