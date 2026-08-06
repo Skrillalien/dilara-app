@@ -112,6 +112,8 @@ function loadDreams() {
 
                 </div>
 
+                </div>
+
             `;
 
         }).join("");
