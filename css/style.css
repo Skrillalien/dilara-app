@@ -438,7 +438,16 @@ margin-bottom:14px;
   gap: 14px;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.2s;
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.event-card:hover{
+
+    transform:translateY(-2px);
+
 }
 
 .event-card .song-menu-btn{
@@ -1918,31 +1927,52 @@ margin-bottom:14px;
     padding:40px 20px;
 }
 
-.dream-footer{
+.dream-status{
 
     margin-top:14px;
 
-}
+    font-size:12px;
 
-.dream-check{
+    color:rgba(255,255,255,.65);
 
-    display:flex;
+    text-align:center;
 
-    align-items:center;
+    letter-spacing:.5px;
 
-    gap:10px;
+    opacity:.75;
 
-    font-size:14px;
-
-    cursor:pointer;
+    font-style:italic;
 
 }
 
-.dream-check input{
+.dream-completed{
 
-    width:18px;
-    height:18px;
+    border:1px solid rgba(74, 222, 128, .45);
 
-    accent-color:#2ecc71;
+    background:linear-gradient(
+        135deg,
+        rgba(34,197,94,.12),
+        rgba(255,255,255,.02)
+    );
+
+    box-shadow:
+        0 0 12px rgba(34,197,94,.10),
+        0 0 22px rgba(34,197,94,.05);
+
+    transition:
+        background .3s ease,
+        border-color .3s ease,
+        box-shadow .3s ease,
+        transform .2s ease;
+
+}
+
+.dream-completed:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 8px 24px rgba(34,197,94,.14),
+        0 0 18px rgba(34,197,94,.08);
 
 }

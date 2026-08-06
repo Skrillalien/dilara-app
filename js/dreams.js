@@ -1,3 +1,9 @@
+const COMPLETED_MESSAGES = [
+    "✨ Birlikte Yaptık",
+    "🌿 Bir Hayal Daha Gerçek Oldu",
+    "💚 Anılarımıza Eklendi"
+];
+
 let currentDreams = [];
 
 function loadDreams() {
@@ -48,7 +54,9 @@ function loadDreams() {
 
             return `
 
-                <div class="event-card">
+                <div
+                    class="event-card ${dream.completed ? 'dream-completed' : ''}"
+                    onclick="toggleDreamCompleted('${dream.id}', ${!dream.completed})">
 
                     <div class="event-icon">
 
@@ -74,26 +82,13 @@ function loadDreams() {
 
                         </div>
 
-                    <div class="dream-footer">
+                    <div class="dream-status">
 
-                        <label class="dream-check">
-
-                            <input
-                                type="checkbox"
-                                ${dream.completed ? "checked" : ""}
-                                onchange="toggleDreamCompleted('${dream.id}', this.checked)">
-
-                            <span>
-
-                                ${
-                                    dream.completed
-                                        ? "💚 Gerçekleşti"
-                                        : "💭 Hayalini Kuruyoruz"
-                                }
-
-                            </span>
-
-                        </label>
+                        ${
+                            dream.completed
+                                ? dream.completedMessage
+                                : "💭 Hayalini Kuruyoruz"
+                        }
 
                     </div>
 
@@ -192,18 +187,27 @@ async function saveDream() {
 
 async function toggleDreamCompleted(id, completed) {
 
-    try {
+    let data = {
+        completed
+    };
 
-        await window.firebase.updateDream(id, {
-            completed
-        });
+    if (completed) {
 
-    } catch (e) {
+        const message =
+            COMPLETED_MESSAGES[
+                Math.floor(
+                    Math.random() * COMPLETED_MESSAGES.length
+                )
+            ];
 
-        console.error(e);
+        data.completedMessage = message;
 
-        showToast("Bir hata oluştu.");
+    } else {
+
+        data.completedMessage = "";
 
     }
+
+    await window.firebase.updateDream(id, data);
 
 }
