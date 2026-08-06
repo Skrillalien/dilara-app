@@ -336,6 +336,71 @@ async function deleteEvent(id) {
 
 }
 
+async function addDream(dream) {
+
+    await addDoc(
+        collection(db, "dreams"),
+        {
+            ...dream,
+            createdAt: serverTimestamp()
+        }
+    );
+
+}
+
+async function getDreams() {
+
+    const q = query(
+        collection(db, "dreams"),
+        orderBy("createdAt", "desc")
+    );
+
+    const snap = await getDocs(q);
+
+    return snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+}
+
+function listenDreams(callback) {
+
+    const q = query(
+        collection(db, "dreams"),
+        orderBy("createdAt", "desc")
+    );
+
+    return onSnapshot(q, snapshot => {
+
+        callback(
+            snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        );
+
+    });
+
+}
+
+async function updateDream(id, data) {
+
+    await updateDoc(
+        doc(db, "dreams", id),
+        data
+    );
+
+}
+
+async function deleteDream(id) {
+
+    await deleteDoc(
+        doc(db, "dreams", id)
+    );
+
+}
+
 window.firebase = {
     addMemory,
     addPhoto,
@@ -358,5 +423,10 @@ window.firebase = {
     deleteEvent,
     listenSongs,
     deleteSong,
-    markSongsSeen
+    markSongsSeen,
+    addDream,
+    getDreams,
+    listenDreams,
+    updateDream,
+    deleteDream
 };

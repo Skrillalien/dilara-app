@@ -1,3 +1,5 @@
+import { serverTimestamp } from "firebase/firestore";
+
 function openDreamForm() {
 
     const form = document.getElementById("dreamForm");
@@ -29,7 +31,7 @@ function resetDreamForm() {
 
 }
 
-function saveDream() {
+async function saveDream() {
 
     const emoji =
         document.getElementById("dreamEmoji").value.trim();
@@ -47,14 +49,36 @@ function saveDream() {
 
     }
 
-    console.log({
-        emoji,
-        title,
-        note
-    });
+    const currentUser =
+        localStorage.getItem("currentUser");
 
-    showToast("Şimdilik test amaçlı çalışıyor 🎉");
+    try {
 
-    closeDreamForm();
+        await window.firebase.addDream({
+
+            emoji: emoji || "✨",
+
+            title,
+
+            note,
+
+            author: currentUser,
+
+            completed: false,
+
+
+        });
+
+        closeDreamForm();
+
+        showToast("✨ Yeni hayal eklendi");
+
+    } catch (e) {
+
+        console.error(e);
+
+        showToast("Bir hata oluştu");
+
+    }
 
 }
