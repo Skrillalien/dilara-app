@@ -35,8 +35,6 @@ dilara-app/
     └── ui.js           — Sayfa geçişleri ve UI yardımcıları
 ```
 
-
-
 ## Özellikler
 
 - 💜 Birliktelik gün sayacı (gün / hafta / ay)
