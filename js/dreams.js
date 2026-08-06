@@ -74,15 +74,26 @@ function loadDreams() {
 
                         </div>
 
-                    </div>
+                    <div class="dream-footer">
 
-                    <div class="event-countdown">
+                        <label class="dream-check">
 
-                        ${
-                            dream.completed
-                                ? `<span class="badge-today">Tamamlandı ✅</span>`
-                                : `<span class="event-days-label">Bekliyor</span>`
-                        }
+                            <input
+                                type="checkbox"
+                                ${dream.completed ? "checked" : ""}
+                                onchange="toggleDreamCompleted('${dream.id}', this.checked)">
+
+                            <span>
+
+                                ${
+                                    dream.completed
+                                        ? "💚 Gerçekleşti"
+                                        : "💭 Hayalini Kuruyoruz"
+                                }
+
+                            </span>
+
+                        </label>
 
                     </div>
 
@@ -174,6 +185,24 @@ async function saveDream() {
         console.error(e);
 
         showToast("Bir hata oluştu");
+
+    }
+
+}
+
+async function toggleDreamCompleted(id, completed) {
+
+    try {
+
+        await window.firebase.updateDream(id, {
+            completed
+        });
+
+    } catch (e) {
+
+        console.error(e);
+
+        showToast("Bir hata oluştu.");
 
     }
 
