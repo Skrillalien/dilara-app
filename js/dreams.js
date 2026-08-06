@@ -1,5 +1,3 @@
-import { serverTimestamp } from "firebase/firestore";
-
 function openDreamForm() {
 
     const form = document.getElementById("dreamForm");
