@@ -20,13 +20,53 @@ function loadDreams() {
 
     list.innerHTML = "Yükleniyor...";
 
-    window.firebase.listenDreams((dreams) => {
+    list.innerHTML = dreams.map(dream => {
 
-        currentDreams = dreams;
+        return `
 
-        console.log(dreams);
+            <div class="event-card">
 
-    });
+                <div class="event-icon">
+
+                    ${dream.emoji || "✨"}
+
+                </div>
+
+                <div class="event-info">
+
+                    <div class="event-name">
+
+                        ${dream.title}
+
+                    </div>
+
+                    <div class="event-date">
+
+                        ${
+                            dream.author === "Berk"
+                                ? "💙 Berk"
+                                : "💗 Dilara"
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="event-countdown">
+
+                    ${
+                        dream.completed
+                            ? `<span class="badge-today">Tamamlandı ✅</span>`
+                            : `<span class="event-days-label">Bekliyor</span>`
+                    }
+
+                </div>
+
+            </div>
+
+        `;
+
+    }).join("");
 
 }
 
