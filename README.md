@@ -1,23 +1,49 @@
 # Berk & Dilara 💜
 
-Birliktelik sayacı ve özel günler uygulaması.
-
-## GitHub Pages'e Yükleme
-
-1. GitHub'da yeni bir repo aç: `dilara-app` (private yapabilirsin)
-2. Bu klasördeki tüm dosyaları yükle
-3. Repo ayarlarından: **Settings → Pages → Branch: main → Save**
-4. 1-2 dakika sonra `https://KULLANICIADUN.github.io/dilara-app` adresinde yayında
+Birliktelik sayacı, özel günler, anılar ve daha fazlası.
 
 ## Telefona Yükleme
 
-**Android:** Tarayıcıda aç → menü → "Ana ekrana ekle"
+**Android:** Tarayıcıda aç → menü → "Ana ekrana ekle"  
 **iPhone:** Safari'de aç → paylaş → "Ana Ekrana Ekle"
 
-## Dosyalar
+## Dosya Yapısı
 
-- `index.html` — Uygulamanın kendisi
-- `sw.js` — Service Worker (bildirimler + offline)
-- `manifest.json` — PWA ayarları
-- `icon-192.png` / `icon-512.png` — Uygulama ikonları
-  
+```
+dilara-app/
+├── index.html          — Ana sayfa (HTML yapısı)
+├── sw.js               — Service Worker (bildirimler)
+├── manifest.json       — PWA ayarları
+├── dailyMessages.js    — Günlük mesaj listesi
+├── couple.jpg          — Ana ekran fotoğrafı
+├── icon-192.png        — Uygulama ikonu (küçük)
+├── icon-512.png        — Uygulama ikonu (büyük)
+├── css/
+│   └── style.css       — Tüm stiller ve temalar
+└── js/
+    ├── app.js          — Uygulama başlatma ve init
+    ├── bny.js          — Bugün Ne Yapsak özelliği
+    ├── dreams.js       — Hayaller / dilekler
+    ├── events.js       — Özel günler ve sayaç
+    ├── firebase.js     — Firebase / Firestore bağlantısı
+    ├── memories.js     — Anılar (not + fotoğraf)
+    ├── notifications.js — Bildirim yönetimi
+    ├── photos.js       — Fotoğraf işlemleri
+    ├── slider.js       — Slider / kaydırma bileşeni
+    ├── songs.js        — Şarkılar özelliği
+    ├── theme.js        — Tema yönetimi
+    └── ui.js           — Sayfa geçişleri ve UI yardımcıları
+```
+
+## Özellikler
+
+- 💜 Birliktelik gün sayacı (gün / hafta / ay)
+- 🎉 Özel günler ve geri sayım
+- 💌 Anılar — not ve fotoğraf ekle, Firebase'de senkronize
+- 📎 Fotoğraf ekleme (otomatik sıkıştırma)
+- 🎲 Bugün Ne Yapsak — evde / dışarıda rastgele aktivite
+- 💌 Günlük mesaj kartı
+- 🔔 Özel gün bildirimleri
+- 🎨 5 farklı tema (Mor, Bordo, Gri, Galatasaray, Beşiktaş)
+- 👤 Berk / Dilara kullanıcı seçimi
+- 🔴 Okunmamış not bildirimi
