@@ -1,3 +1,35 @@
+let currentDreams = [];
+
+function loadDreams() {
+
+    const list = document.getElementById("dreamsList");
+
+    if (!window.firebaseReady) {
+
+        list.innerHTML = "Bağlanıyor...";
+
+        window.addEventListener(
+            "firebaseReady",
+            loadDreams,
+            { once: true }
+        );
+
+        return;
+
+    }
+
+    list.innerHTML = "Yükleniyor...";
+
+    window.firebase.listenDreams((dreams) => {
+
+        currentDreams = dreams;
+
+        console.log(dreams);
+
+    });
+
+}
+
 function openDreamForm() {
 
     const form = document.getElementById("dreamForm");
