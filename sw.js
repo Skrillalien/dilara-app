@@ -1,4 +1,4 @@
-const CACHE_NAME = "berk-dilara-v0.7.3.12";
+const CACHE_NAME = "berk-dilara-v0.7.4";
 
 const FILES_TO_CACHE = [
   "./",
@@ -6,7 +6,6 @@ const FILES_TO_CACHE = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
-  "./couple.jpg"
 ];
 
 // Kurulum
