@@ -401,14 +401,6 @@ async function updateDream(id, data) {
 
 }
 
-async function deleteDream(id) {
-
-    await deleteDoc(
-        doc(db, "dreams", id)
-    );
-
-}
-
 window.firebase = {
     addMemory,
     addPhoto,
@@ -429,7 +421,6 @@ window.firebase = {
     listenEvents,
     updateEvent,
     deleteEvent,
-    deleteDream,
     listenSongs,
     deleteSong,
     markSongsSeen,
