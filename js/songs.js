@@ -2,7 +2,6 @@ let currentSongs = [];
 
 function loadSongs() {
 
-    console.log("loadSongs çalıştı");
     
     const list = document.getElementById("songsList");
 
@@ -43,7 +42,7 @@ function loadSongs() {
             `;
 
             return;
-
+ 
         }
 
         list.innerHTML = songs.map(song => {
@@ -57,6 +56,8 @@ function loadSongs() {
                     year: "numeric"
                 })
                 : "";
+
+                const cleanNote = (song.note || "").trim();
 
             return `
 
@@ -138,16 +139,9 @@ function loadSongs() {
                         </div>
                     </div>
 
-                    ${
-                        song.note
-                            ? `
-                                <div class="song-note">
-
-                                    ${song.note}
-
-                                </div>
-                            `
-                            : ""
+                    ${cleanNote
+                        ? `<div class="song-note">${formatMemoryText(cleanNote)}</div>`
+                        : ""
                     }
 
                         <button

@@ -10,8 +10,6 @@ function showToast(msg) {
 
 function showPage(page) {
 
-    console.log("showPage:", page);
-
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
@@ -156,10 +154,6 @@ function closeActionMenu() {
 
 async function performDeleteAction() {
 
-    console.log("Silme başladı");
-
-    console.log(currentActionType, currentActionId);
-
     try {
 
         if (currentActionType === "photo") {
@@ -182,8 +176,6 @@ async function performDeleteAction() {
             await window.firebase.deleteDream(currentActionId);
 
         }
-
-        console.log("Silme başarılı");
 
     } catch (e) {
 

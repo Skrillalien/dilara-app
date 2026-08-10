@@ -263,7 +263,6 @@ async function seedEvents() {
         await window.firebase.addEvent(event);
     }
 
-    console.log("Events eklendi.");
 }
 
 async function initEvents() {

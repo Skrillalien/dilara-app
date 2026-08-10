@@ -174,9 +174,6 @@ function loadLastMemory() {
 
 function updateWaitingCard() {
 
-    console.log("Memories:", currentWaitingMemories);
-    console.log("Songs:", currentWaitingSongs);
-
     const card = document.getElementById("waitingCard");
     const list = document.getElementById("waitingList");
 
@@ -478,16 +475,10 @@ function openMemoryImage(memoryId) {
 function formatMemoryText(text) {
 
     return text
-
         .replace(
             /#[a-zA-Z0-9ğüşöçıİĞÜŞÖÇ]+/g,
-            match => `
-                <span class="memory-tag">
-                    ${match}
-                </span>
-            `
+            match => `<span class="memory-tag">${match}</span>`
         )
-
         .replace(/\n/g, "<br>");
 
 }
