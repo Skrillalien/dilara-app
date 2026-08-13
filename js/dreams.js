@@ -100,6 +100,11 @@ function loadDreams() {
 
                         </div>
 
+                        ${dream.note
+                        ? `<div class="dream-note">${formatMemoryText(dream.note)}</div>`
+                        : ""
+                    }
+
                     <div class="dream-status">
 
                         ${
