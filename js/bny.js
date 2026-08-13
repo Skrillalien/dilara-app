@@ -238,9 +238,16 @@ function handleSecretDiceTap() {
 
     secretDiceTapCount++;
 
+    console.log(
+        "🎲 Gizli zar dokunuşu:",
+        secretDiceTapCount
+    );
+
     clearTimeout(secretDiceResetTimer);
 
     secretDiceResetTimer = setTimeout(() => {
+
+        console.log("⏱️ Sayaç sıfırlandı");
 
         secretDiceTapCount = 0;
 
