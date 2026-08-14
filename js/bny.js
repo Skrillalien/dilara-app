@@ -228,6 +228,8 @@ function spinActivity() {
       secretBNYMode = false;
 
       btn.disabled = false;
+
+      btn.classList.remove("secret-mode");
     }
   }
 
@@ -267,6 +269,10 @@ function activateSecretBNY() {
 
     secretBNYMode = true;
 
-    console.log("💜 Gizli BNY modu aktif");
+    const btn = document.getElementById("bnySpinBtn");
+
+    btn.classList.add("secret-mode");
+
+    console.log("💜💜💜 GİZLİ BNY MODU AKTİF!");
 
 }
