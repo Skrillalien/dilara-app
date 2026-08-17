@@ -1,4 +1,4 @@
-const CACHE_NAME = "berk-dilara-v0.7.11";
+const CACHE_NAME = "berk-dilara-v0.7.12";
 
 const FILES_TO_CACHE = [
   "./",
@@ -61,7 +61,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // JS ve CSS her zaman internetten gelsin
+// JS ve CSS: network-first, cache fallback
   if (
     url.pathname.endsWith(".js") ||
     url.pathname.endsWith(".css")
