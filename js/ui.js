@@ -201,6 +201,14 @@ function openCard(page, element) {
 
 function vibrate() {
 
-    navigator.vibrate?.(10);
+    if (window.appHaptics) {
+
+        window.appHaptics.light();
+
+    } else {
+
+        navigator.vibrate?.(10);
+
+    }
 
 }
