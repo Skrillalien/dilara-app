@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Berk &amp; Dilara 💜</string>
+    <string name="title_activity_main">Berk &amp; Dilara 💜</string>
+    <string name="package_name">com.berkanddilara.app</string>
+    <string name="custom_url_scheme">com.berkanddilara.app</string>
+</resources>
