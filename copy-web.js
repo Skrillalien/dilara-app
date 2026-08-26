@@ -1,3 +1,5 @@
+const { execSync } = require("child_process");
+
 const fs = require("fs");
 const path = require("path");
 
@@ -34,5 +36,12 @@ items.forEach(item => {
 
     console.log(`✓ ${item}`);
 });
+
+execSync(
+    "npx esbuild js/capacitor.js --bundle --format=esm --outfile=www/js/capacitor.js",
+    { stdio: "inherit" }
+);
+
+console.log("✓ capacitor.js bundle edildi.");
 
 console.log("\nWeb dosyaları www/ klasörüne kopyalandı.");
