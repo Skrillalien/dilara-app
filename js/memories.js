@@ -76,11 +76,9 @@ async function saveMemory() {
     btn.textContent = 'Kaydediliyor...';
 
     try {
-        const currentUser = localStorage.getItem("currentUser");
 
         await window.firebase.addMemory(
             text,
-            currentUser,
             selectedPhoto
         );
 
@@ -91,7 +89,8 @@ async function saveMemory() {
         document.getElementById("photoPreviewContainer").style.display = "none";
         showToast('Anı kaydedildi 💜');
         loadMemories();
-    }   
+
+    }
 
     catch (e) {
         showToast('Hata: ' + e.message);
@@ -310,7 +309,7 @@ function updateWaitingCard() {
 
 }
 
-function loadWaitingItems() {
+async function loadWaitingItems() {
 
     if (!window.firebaseReady) {
 
@@ -324,15 +323,18 @@ function loadWaitingItems() {
 
     }
 
-    const currentUser = localStorage.getItem("currentUser");
+    const profile =
+        await window.firebase.getUserProfile();
 
-    if (!currentUser) return;
+    if (!profile) return;
+
+    const currentUserName = profile.name;
 
     window.firebase.listenMemories((memories) => {
 
         currentWaitingMemories = memories.filter(m =>
-            m.author !== currentUser &&
-            (!m.seenBy || !m.seenBy.includes(currentUser))
+            m.author !== currentUserName &&
+            (!m.seenBy || !m.seenBy.includes(profile.uid))
         );
 
         updateWaitingCard();
@@ -342,8 +344,8 @@ function loadWaitingItems() {
     window.firebase.listenSongs((songs) => {
 
         currentWaitingSongs = songs.filter(s =>
-            s.author !== currentUser &&
-            (!s.seenBy || !s.seenBy.includes(currentUser))
+            s.author !== currentUserName &&
+            (!s.seenBy || !s.seenBy.includes(profile.uid))
         );
 
         updateWaitingCard();
@@ -415,22 +417,29 @@ function openWaitingItem() {
 
 }
 
-function updateMemoryAuthorInfo(){
+async function updateMemoryAuthorInfo() {
 
-    const user = localStorage.getItem("currentUser");
-    const info = document.getElementById("memoryAuthorInfo");
+    const info =
+        document.getElementById("memoryAuthorInfo");
 
     if (!info) return;
 
-    if (!user){
+    const profile =
+        await window.firebase.getUserProfile();
+
+    if (!profile) {
+
         info.textContent = "";
+
         return;
+
     }
 
     info.textContent =
-        user === "Berk"
+        profile.name === "Berk"
             ? "💙 Bu anı Berk adına kaydedilecek"
             : "💗 Bu anı Dilara adına kaydedilecek";
+
 }
 
 function openMemoryImage(memoryId) {

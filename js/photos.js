@@ -218,12 +218,7 @@ async function previewGalleryPhoto(event) {
             0.65
         );
 
-        const currentUser = localStorage.getItem("currentUser");
-
-        await window.firebase.addPhoto(
-            image,
-            currentUser
-        );
+        await window.firebase.addPhoto(image);
 
         showToast("📷 Fotoğraf eklendi");
 

@@ -176,9 +176,6 @@ async function saveDream() {
 
     }
 
-    const currentUser =
-        localStorage.getItem("currentUser");
-
     try {
 
         await window.firebase.addDream({
@@ -189,10 +186,7 @@ async function saveDream() {
 
             note,
 
-            author: currentUser,
-
-            completed: false,
-
+            completed: false
 
         });
 

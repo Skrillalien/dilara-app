@@ -187,16 +187,13 @@ async function saveSong() {
 
     }
 
-    const currentUser = localStorage.getItem("currentUser");
-
     try {
 
         await window.firebase.addSong(
             link,
             title,
             artist,
-            note,
-            currentUser
+            note
         );
 
         closeSongForm();

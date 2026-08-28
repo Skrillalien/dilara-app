@@ -138,6 +138,18 @@ async function getUserProfile() {
 
 }
 
+async function getCurrentUserName() {
+
+    const profile = await getUserProfile();
+
+    if (!profile || !profile.name) {
+        throw new Error("USER_PROFILE_NOT_FOUND");
+    }
+
+    return profile.name;
+
+}
+
 async function createUserProfile(uid, name, email) {
 
     await setDoc(
@@ -193,13 +205,15 @@ function listenAuth(callback) {
 
 }
 
-async function addMemory(text, author, image = null) {
+async function addMemory(text, image = null) {
 
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
+
+    const author = await getCurrentUserName();
 
     await addDoc(collection(db, 'memories'), {
 
@@ -216,13 +230,15 @@ async function addMemory(text, author, image = null) {
     });
 }
 
-async function addSong(link, title, artist, note, author) {
+async function addSong(link, title, artist, note) {
 
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
+
+    const author = await getCurrentUserName();
 
     await addDoc(collection(db, "songs"), {
 
@@ -325,13 +341,15 @@ async function deleteSong(id) {
 
 }
 
-async function addPhoto(image, author) {
+async function addPhoto(image) {
 
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
+
+    const author = await getCurrentUserName();
 
     await addDoc(collection(db, "photos"), {
 
@@ -641,10 +659,13 @@ async function addEvent(event) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
+    const author = await getCurrentUserName();
+
     await addDoc(
         collection(db, "events"),
         {
             ...event,
+            author,
             coupleId
         }
     );
@@ -775,10 +796,13 @@ async function addDream(dream) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
+    const author = await getCurrentUserName();
+
     await addDoc(
         collection(db, "dreams"),
         {
             ...dream,
+            author,
             coupleId,
             createdAt: serverTimestamp()
         }
@@ -893,6 +917,8 @@ window.firebase = {
     logoutUser,
     listenAuth,
     getCurrentAuthUser,
+    getUserProfile,
+    getCurrentUserName,
 
     createUserProfile,
 
