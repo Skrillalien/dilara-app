@@ -90,6 +90,23 @@ function checkUserSelection() {
 
         try {
 
+            const profile =
+                await window.firebase.getUserProfile();
+
+            if (profile) {
+
+                localStorage.setItem(
+                    "currentUserName",
+                    profile.name || ""
+                );
+
+                console.log(
+                    "Giriş yapan kullanıcı:",
+                    profile.name
+                );
+
+            }
+
             const coupleId =
                 await window.firebase.getMyCouple();
 

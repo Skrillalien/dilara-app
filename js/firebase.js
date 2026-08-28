@@ -119,6 +119,25 @@ async function getMyCouple() {
 
 }
 
+async function getUserProfile() {
+
+    const user = auth.currentUser;
+
+    if (!user) return null;
+
+    const userDoc = await getDoc(
+        doc(db, "users", user.uid)
+    );
+
+    if (!userDoc.exists()) return null;
+
+    return {
+        uid: user.uid,
+        ...userDoc.data()
+    };
+
+}
+
 async function createUserProfile(uid, name, email) {
 
     await setDoc(
@@ -908,4 +927,5 @@ window.firebase = {
     createCouple,
     joinCouple,
     getMyCouple,
+    getUserProfile,
 };
