@@ -25,9 +25,9 @@ async function requestNotification() {
         document.getElementById("notifBtn")
             .classList.add("enabled");
 
-        await window.appNotifications.scheduleTest();
+        await scheduleNotifications();
 
-        showToast("Test bildirimi 5 saniye içinde gelecek! 🔔");
+        showToast("Bildirimler aktif! 🔔");
 
     } catch (error) {
 
@@ -44,92 +44,104 @@ async function requestNotification() {
 
 async function scheduleNotifications() {
 
-    const today = new Date();
+    if (!window.appNotifications) return;
 
-    const todayKey = today.toDateString();
+    const now = new Date();
 
-    if (localStorage.getItem('notifiedDate') === todayKey) {
-        return;
-    }
+    const upcomingEvents = EVENTS.filter(event => {
 
-    const todayEvent = EVENTS.find(e =>
-        e.month === (today.getMonth() + 1) &&
-        e.day === today.getDate()
-    );
+        const eventDate = new Date(
+            now.getFullYear(),
+            event.month - 1,
+            event.day,
+            9,
+            0,
+            0,
+            0
+        );
 
-    if (!todayEvent) return;
+        const dayBefore = new Date(eventDate);
+        dayBefore.setDate(dayBefore.getDate() - 1);
 
+        return eventDate > now || dayBefore > now;
 
-    // Android
-    if (window.appNotifications) {
+    });
 
-        await window.appNotifications.schedule({
+    for (const event of upcomingEvents) {
 
-            id: 1001,
+        const eventDate = new Date(
+            now.getFullYear(),
+            event.month - 1,
+            event.day,
+            9,
+            0,
+            0,
+            0
+        );
 
-            title: `${todayEvent.name} ${todayEvent.emoji}`,
-
-            body: `Bugün ${todayEvent.name}! 💜`,
-
-            smallIcon: 'ic_launcher',
-
-            schedule: {
-                at: new Date(Date.now() + 3000)
-            },
-
-            sound: undefined,
-
-            extra: {
-                type: 'event'
-            }
-
-        });
-
-        localStorage.setItem('notifiedDate', todayKey);
-
-        return;
-    }
+        const dayBefore = new Date(eventDate);
+        dayBefore.setDate(dayBefore.getDate() - 1);
 
 
-    // Web / PWA
-    if (!('serviceWorker' in navigator)) return;
+        // 1 gün önce
+        if (dayBefore > now) {
 
-    if (Notification.permission !== 'granted') return;
+            await window.appNotifications.schedule({
 
-    let reg;
+                id: event.month * 1000 + event.day * 2,
 
-    try {
+                title: `Yarın ${event.name} ${event.emoji}`,
 
-        reg = await Promise.race([
+                body: `Yarın ${event.name}! 💜`,
 
-            navigator.serviceWorker.ready,
+                smallIcon: "ic_launcher",
 
-            new Promise((_, reject) =>
-                setTimeout(
-                    () => reject(new Error('timeout')),
-                    3000
-                )
-            )
+                schedule: {
+                    at: dayBefore
+                },
 
-        ]);
+                extra: {
+                    type: "event",
+                    reminder: "day-before",
+                    month: event.month,
+                    day: event.day
+                }
 
-    } catch {
+            });
 
-        return;
-
-    }
-
-    await reg.showNotification(
-        `${todayEvent.name} ${todayEvent.emoji}`,
-        {
-            body: `Bugün ${todayEvent.name}! 💜`,
-            icon: 'icon-192.png',
-            badge: 'icon-192.png',
-            tag: 'today-event'
         }
-    );
 
-    localStorage.setItem('notifiedDate', todayKey);
+
+        // Etkinlik günü
+        if (eventDate > now) {
+
+            await window.appNotifications.schedule({
+
+                id: event.month * 1000 + event.day * 2 + 1,
+
+                title: `${event.name} ${event.emoji}`,
+
+                body: `Bugün ${event.name}! 💜`,
+
+                smallIcon: "ic_launcher",
+
+                schedule: {
+                    at: eventDate
+                },
+
+                extra: {
+                    type: "event",
+                    reminder: "today",
+                    month: event.month,
+                    day: event.day
+                }
+
+            });
+
+        }
+
+    }
+
 }
 
 

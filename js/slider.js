@@ -2,7 +2,20 @@ let headerSwiper = null;
 
 async function initSlider() {
 
+    if (!window.firebaseReady) {
+
+        window.addEventListener(
+            "firebaseReady",
+            initSlider,
+            { once: true }
+        );
+
+        return;
+    }
+
     const wrapper = document.getElementById("headerSlides");
+
+    if (!wrapper) return;
 
     wrapper.innerHTML = "";
 

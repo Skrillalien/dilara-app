@@ -21,6 +21,24 @@
 
 <body>
 
+<button
+    onclick="logoutAppUser()"
+    style="
+        position:fixed;
+        top:20px;
+        right:20px;
+        z-index:99999;
+        padding:12px 20px;
+        background:red;
+        color:white;
+        border:none;
+        border-radius:10px;
+        font-size:16px;
+    "
+>
+    Çıkış Yap
+</button>
+
 <div id="waitingPopup" class="overlay">
 
     <div class="user-card">
@@ -80,23 +98,46 @@
 
   </div>
     
-  <div id="userSelectOverlay" class="overlay">
+<div id="userSelectOverlay" class="overlay">
 
-  <div class="user-card">
+    <div class="user-card">
 
-    <div class="user-title">
-      💜 Sen kimsin?
+        <div class="user-title">
+            💜 Berk & Dilara
+        </div>
+
+        <div style="color:var(--muted); margin:10px 0 24px;">
+            Hesabına giriş yap
+        </div>
+
+        <input
+            id="loginEmail"
+            type="email"
+            placeholder="E-posta"
+            autocomplete="email"
+        >
+
+        <input
+            id="loginPassword"
+            type="password"
+            placeholder="Şifre"
+            autocomplete="current-password"
+        >
+
+        <button class="user-btn" onclick="loginUser()">
+            💜 Giriş Yap
+        </button>
+
+        <button
+            class="user-btn"
+            style="margin-top:10px;background:var(--surface);"
+            onclick="showRegister()">
+
+            Hesap Oluştur
+
+        </button>
+
     </div>
-
-    <button class="user-btn" onclick="selectUser('Berk')">
-      💙 Berk
-    </button>
-
-    <button class="user-btn" onclick="selectUser('Dilara')">
-      💗 Dilara
-    </button>
-
-  </div>
 
 </div>
     
