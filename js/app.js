@@ -41,7 +41,9 @@ async function loginUser() {
 
         document.getElementById("userSelectOverlay").style.display = "none";
 
-        showToast("Hoş geldin! 💜");
+        const profile = await window.firebase.getUserProfile();
+
+        showToast(`Hoş geldin ${profile?.name || ""}! 💜`);
 
         loadWaitingItems();
         loadLastMemory();
@@ -59,13 +61,6 @@ async function loginUser() {
         }
 
     }
-
-}
-
-
-function showRegister() {
-
-    showToast("Kayıt ekranı birazdan eklenecek.");
 
 }
 
@@ -94,11 +89,6 @@ function checkUserSelection() {
                 await window.firebase.getUserProfile();
 
             if (profile) {
-
-                localStorage.setItem(
-                    "currentUserName",
-                    profile.name || ""
-                );
 
                 console.log(
                     "Giriş yapan kullanıcı:",
@@ -160,6 +150,7 @@ function showRegister() {
         <input
             type="text"
             id="registerName"
+            class="song-input"
             placeholder="Adın"
             autocomplete="name"
         >
@@ -167,6 +158,7 @@ function showRegister() {
         <input
             id="registerEmail"
             type="email"
+            class="song-input"
             placeholder="E-posta"
             autocomplete="email"
         >
@@ -174,7 +166,16 @@ function showRegister() {
         <input
             id="registerPassword"
             type="password"
+            class="song-input"
             placeholder="Şifre"
+            autocomplete="new-password"
+        >
+
+        <input
+            id="registerPasswordConfirm"
+            class="song-input"
+            type="password"
+            placeholder="Şifreyi tekrar gir"
             autocomplete="new-password"
         >
 
@@ -206,7 +207,10 @@ async function registerUser() {
     const password =
         document.getElementById("registerPassword").value;
 
-    if (!name || !email || !password) {
+    const passwordConfirm =
+        document.getElementById("registerPasswordConfirm").value;
+
+    if (!name || !email || !password || !passwordConfirm) {
 
         showToast("Ad, e-posta ve şifre gerekli.");
 
@@ -217,6 +221,14 @@ async function registerUser() {
     if (password.length < 6) {
 
         showToast("Şifre en az 6 karakter olmalı.");
+
+        return;
+
+    }
+
+    if (password !== passwordConfirm) {
+
+        showToast("Şifreler aynı değil.");
 
         return;
 
@@ -328,11 +340,14 @@ async function createMyCouple() {
         const result =
             await window.firebase.createCouple(user);
 
-        showToast(`Davet kodun: ${result.inviteCode}`);
+        document.getElementById("inviteCodeDisplay").textContent =
+            result.inviteCode;
 
-        alert(
-            `Partnerinin kullanması için davet kodun:\n\n${result.inviteCode}`
-        );
+        document.getElementById("inviteOverlay")
+            .classList.add("active");
+
+        document.getElementById("invitePopup")
+            .classList.add("active");
 
         document.getElementById("userSelectOverlay").style.display = "none";
 
@@ -404,6 +419,166 @@ async function joinMyCouple() {
 
 }
 
+function initSettingsDrag() {
+
+    const panel = document.getElementById("settingsPanel");
+    const header = panel?.querySelector(".settings-header");
+
+    if (!panel || !header) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let dragging = false;
+
+    header.addEventListener("touchstart", (e) => {
+
+        if (e.touches.length !== 1) return;
+
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        dragging = true;
+
+        panel.classList.add("dragging");
+
+    }, { passive: true });
+
+
+    header.addEventListener("touchmove", (e) => {
+
+        if (!dragging) return;
+
+        currentY = e.touches[0].clientY;
+
+        let delta = currentY - startY;
+
+        if (delta < 0) {
+            delta = 0;
+        }
+
+        panel.style.transform =
+            `translateX(-50%) translateY(${delta}px)`;
+
+    }, { passive: true });
+
+
+    header.addEventListener("touchend", () => {
+
+        if (!dragging) return;
+
+        dragging = false;
+
+        const delta = currentY - startY;
+
+        panel.classList.remove("dragging");
+
+        // Aşağı yeterince çekildiyse kapat
+        if (delta > 120) {
+
+            toggleSettings();
+
+            // Inline transform'u kaldır.
+            // Böylece CSS'teki translateY(100%) devreye girer.
+            requestAnimationFrame(() => {
+                panel.style.transform = "";
+            });
+
+            return;
+        }
+
+        // Yeterince çekilmediyse eski yerine dön
+        panel.style.transform = "";
+
+    });
+
+
+    header.addEventListener("touchcancel", () => {
+
+        dragging = false;
+
+        panel.classList.remove("dragging");
+
+        panel.style.transform = "";
+
+    });
+
+}
+
+function closeInvitePopup() {
+
+    document.getElementById("inviteOverlay")
+        .classList.remove("active");
+
+    document.getElementById("invitePopup")
+        .classList.remove("active");
+
+}
+
+async function copyInviteCode() {
+
+    const code =
+        document.getElementById("inviteCodeDisplay").textContent;
+
+    try {
+
+        await navigator.clipboard.writeText(code);
+
+        showToast("Davet kodu kopyalandı ✓");
+
+    } catch (e) {
+
+        console.error("Kopyalama hatası:", e);
+
+        showToast("Kod kopyalanamadı.");
+
+    }
+
+}
+
+async function checkMyInviteCode() {
+
+    console.log("🔵 checkMyInviteCode BAŞLADI");
+
+    const user = window.firebase.getCurrentAuthUser();
+
+    console.log("👤 Kullanıcı:", user);
+
+    if (!user) {
+        console.log("❌ Kullanıcı bulunamadı");
+        return;
+    }
+
+    try {
+
+        console.log("🔎 getMyInviteCode çağrılıyor...");
+
+        const inviteCode =
+            await window.firebase.getMyInviteCode(user);
+
+        console.log("🔑 Gelen inviteCode:", inviteCode);
+
+        if (!inviteCode) {
+            console.log("❌ Invite code yok");
+            return;
+        }
+
+        console.log("✅ Popup açılıyor...");
+
+        document.getElementById("inviteCodeDisplay").textContent =
+            inviteCode;
+
+        document.getElementById("inviteOverlay")
+            .classList.add("active");
+
+        document.getElementById("invitePopup")
+            .classList.add("active");
+
+    } catch (error) {
+
+        console.error("❌ DAVET KODU HATASI:", error);
+
+    }
+
+}
 
 window.addEventListener("load", () => {
 
@@ -422,5 +597,7 @@ window.addEventListener("load", () => {
     registerServiceWorker();
 
     startMidnightUpdater();
+
+    initSettingsDrag();
 
 });

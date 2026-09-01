@@ -21,24 +21,6 @@
 
 <body>
 
-<button
-    onclick="logoutAppUser()"
-    style="
-        position:fixed;
-        top:20px;
-        right:20px;
-        z-index:99999;
-        padding:12px 20px;
-        background:red;
-        color:white;
-        border:none;
-        border-radius:10px;
-        font-size:16px;
-    "
->
-    Çıkış Yap
-</button>
-
 <div id="waitingPopup" class="overlay">
 
     <div class="user-card">
@@ -112,6 +94,7 @@
 
         <input
             id="loginEmail"
+            class="song-input"
             type="email"
             placeholder="E-posta"
             autocomplete="email"
@@ -119,6 +102,7 @@
 
         <input
             id="loginPassword"
+            class="song-input"
             type="password"
             placeholder="Şifre"
             autocomplete="current-password"
@@ -932,21 +916,6 @@
       </button>
     </div>
 
-    <div class="settings-label" style="margin-top:24px;">
-        Aktif Kullanıcı
-    </div>
-    
-    <div id="currentUserText" style="margin-bottom:12px;">
-        -
-    </div>
-    
-    <button
-        class="theme-btn"
-        style="width:100%; color: var(--text);"
-        onclick="changeUser()">
-        👤 Kullanıcıyı Değiştir
-    </button>
-
     <input
       type="file"
       id="sliderPhotoInput"
@@ -968,6 +937,19 @@
     </div>
 
     <div id="sliderImagesList"></div>
+
+    <div class="settings-label" style="margin-top:24px;">
+        Hesap
+    </div>
+
+    <button
+        class="theme-btn"
+        style="width:100%; color:var(--text);"
+        onclick="logoutAppUser()">
+
+        🚪 Çıkış Yap
+
+    </button>
 
   </div>
 
@@ -991,6 +973,57 @@
         onclick="closeActionMenu()">
 
         İptal
+
+    </button>
+
+</div>
+
+<!-- Invite Code Popup -->
+<div class="invite-overlay" id="inviteOverlay" onclick="closeInvitePopup()"></div>
+
+<div class="invite-popup" id="invitePopup">
+
+    <div class="invite-handle"></div>
+
+    <div class="invite-title">
+        💜 Partnerini Davet Et
+    </div>
+
+    <div class="invite-text">
+        Partnerinin sana katılması için bu kodu kullanabilirsin.
+    </div>
+
+    <div class="invite-code" id="inviteCodeDisplay">
+        ABC123
+    </div>
+
+    <button
+        class="invite-copy-btn"
+        onclick="copyInviteCode()">
+
+        <svg
+            class="invite-copy-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <rect x="9" y="9" width="11" height="11" rx="2"/>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+
+        </svg>
+
+        <span>Kodu Kopyala</span>
+
+    </button>
+
+    <button
+        class="invite-close-btn"
+        onclick="closeInvitePopup()">
+
+        Tamam
 
     </button>
 

@@ -164,6 +164,7 @@ async function performDeleteAction() {
         } else if (currentActionType === "song") {
 
             await window.firebase.deleteSong(currentActionId);
+            loadSongs();
 
         } else if (currentActionType === "event") {
 
@@ -175,11 +176,22 @@ async function performDeleteAction() {
 
             await window.firebase.deleteDream(currentActionId);
 
+            loadDreams();
+
+        } else if (currentActionType === "memory") {
+
+            await window.firebase.deleteMemory(currentActionId);
+
+            loadMemories();
+
+            showToast("Anı silindi 💜");
+
         }
 
     } catch (e) {
 
         console.error(e);
+        showToast("Silinemedi: " + e.message);
 
     }
 

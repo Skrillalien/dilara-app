@@ -681,7 +681,7 @@ margin-bottom:14px;
   opacity: 0;
   transition: opacity 0.3s;
   white-space: nowrap;
-  z-index: 200;
+  z-index: 999999;
   pointer-events: none;
 }
 .toast.show { opacity: 1; }
@@ -769,6 +769,21 @@ margin-bottom:14px;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 12px;
+}
+
+/* Ayarlar paneli sürükleme */
+.settings-header {
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.settings-header:active {
+    cursor: grabbing;
+}
+
+.settings-panel.dragging {
+    transition: none !important;
 }
 
 .theme-grid {
@@ -985,6 +1000,7 @@ margin-bottom:14px;
 }
 
 .memory-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -1028,6 +1044,7 @@ margin-bottom:14px;
   margin-top: 12px;
   display: block;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .memory-delete {
@@ -1055,6 +1072,40 @@ margin-bottom:14px;
   color: var(--muted);
   font-size: 13px;
   padding: 20px 0;
+}
+
+.memory-menu-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(8px);
+
+    color: white;
+    cursor: pointer;
+
+    flex-shrink: 0;
+
+    -webkit-tap-highlight-color: transparent;
+
+    transition: .2s;
+}
+
+.memory-menu-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.memory-menu-btn:active {
+    transform: scale(.9);
 }
 
 
@@ -1561,6 +1612,7 @@ margin-bottom:14px;
         0 6px 20px rgba(0,0,0,.18);
     cursor:pointer;
     transition:.25s;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .photo-item:hover{
@@ -1903,6 +1955,9 @@ margin-bottom:14px;
     font-weight:600;
     cursor:pointer;
     transition:.2s;
+
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .action-btn:hover{
@@ -1910,11 +1965,13 @@ margin-bottom:14px;
 }
 
 .action-btn:active{
-    transform:scale(.98);
+    background: var(--surface2);
+    transform: scale(0.97);
 }
 
-.action-danger{
-    color:#ff5b5b;
+.action-danger:active {
+    background: rgba(220, 70, 70, 0.15);
+    color: #e05555;
 }
 
 .song-meta{
@@ -2069,4 +2126,145 @@ margin-bottom:14px;
         0 8px 24px rgba(34,197,94,.14),
         0 0 18px rgba(34,197,94,.08);
 
+}
+
+/* Invite Code Popup */
+
+.invite-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+    z-index: 1100;
+}
+
+.invite-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.invite-popup {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+
+    width: 100%;
+    max-width: 430px;
+
+    transform: translateX(-50%) translateY(100%);
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+
+    border-radius: 24px 24px 0 0;
+
+    padding: 14px 20px 24px;
+    box-sizing: border-box;
+
+    z-index: 1101;
+
+    transition: transform .35s cubic-bezier(.32,.72,0,1);
+}
+
+.invite-popup.active {
+    transform: translateX(-50%) translateY(0);
+}
+
+.invite-handle {
+    width: 42px;
+    height: 4px;
+    border-radius: 10px;
+    background: var(--border);
+    margin: 0 auto 20px;
+}
+
+.invite-title {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.invite-text {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.invite-code {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 18px;
+
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+
+    color: var(--text);
+
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-align: center;
+
+    margin-bottom: 12px;
+}
+
+.invite-copy-btn,
+.invite-close-btn {
+    width: 100%;
+    min-height: 50px;
+
+    border: none;
+    border-radius: 15px;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    -webkit-tap-highlight-color: transparent;
+
+    transition:
+        transform .1s ease,
+        background .15s ease;
+}
+
+.invite-copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    background: var(--accent);
+    color: white;
+
+    margin-bottom: 10px;
+}
+
+.invite-copy-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.invite-close-btn {
+    background: var(--surface2);
+    color: var(--text);
+}
+
+.invite-copy-btn:active,
+.invite-close-btn:active {
+    transform: scale(.97);
+}
+
+.invite-copy-btn:active {
+    background: var(--accent2);
 }

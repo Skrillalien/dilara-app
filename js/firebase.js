@@ -66,6 +66,36 @@ async function createCouple(user) {
 
 }
 
+async function getMyInviteCode(user) {
+
+    if (!user) return null;
+
+    const userSnap = await getDoc(
+        doc(db, "users", user.uid)
+    );
+
+    if (!userSnap.exists()) return null;
+
+    const userData = userSnap.data();
+
+    if (!userData.coupleId) return null;
+
+    const coupleSnap = await getDoc(
+        doc(db, "couples", userData.coupleId)
+    );
+
+    if (!coupleSnap.exists()) return null;
+
+    const coupleData = coupleSnap.data();
+
+    // Zaten partneri varsa kodu tekrar göstermeyelim
+    if (coupleData.members?.length >= 2) {
+        return null;
+    }
+
+    return coupleData.inviteCode || null;
+
+}
 
 async function joinCouple(user, inviteCode) {
 
@@ -951,6 +981,7 @@ window.firebase = {
     deleteDream,
 
     createCouple,
+    getMyInviteCode,
     joinCouple,
     getMyCouple,
     getUserProfile,

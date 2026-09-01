@@ -120,11 +120,28 @@ function loadMemories() {
             return `
               <div class="memory-card">
                 <div class="memory-header">
-                  <span class="memory-author">${m.author === 'Berk' ? '💙 Berk' : '💗 Dilara'}</span>
-                  <div style="display:flex;align-items:center;gap:8px;">
+                <span class="memory-author">${m.author === 'Berk' ? '💙 Berk' : '💗 Dilara'}</span>
+                <div style="display:flex;align-items:center;gap:8px;">
                     <span class="memory-date">${dateStr}</span>
-                    <button class="memory-delete" onclick="deleteMemory('${m.id}')" title="Sil">🗑️</button>
-                  </div>
+
+                    <button
+                        class="memory-menu-btn"
+                        onclick="openMemoryMenu(event, '${m.id}')">
+
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="currentColor">
+
+                            <circle cx="12" cy="5" r="1.8"/>
+                            <circle cx="12" cy="12" r="1.8"/>
+                            <circle cx="12" cy="19" r="1.8"/>
+
+                        </svg>
+
+                    </button>
+                </div>
                 </div>
                 <div class="memory-text">${formatMemoryText(m.text)}</div>
                 ${m.image ? `
@@ -160,16 +177,13 @@ function loadLastMemory() {
     });
 }
 
- async function deleteMemory(id) {
-    if (!confirm('Bu anıyı silmek istediğine emin misin?')) return;
-    try {
-      await window.firebase.deleteMemory(id);
-      showToast('Anı silindi.');
-      loadMemories();
-    } catch (e) {
-      showToast('Silinemedi: ' + e.message);
-    }
-  }
+function openMemoryMenu(event, memoryId) {
+
+    event.stopPropagation();
+
+    openActionMenu("memory", memoryId);
+
+}
 
 function updateWaitingCard() {
 
