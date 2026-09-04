@@ -1,4 +1,4 @@
-const START_DATE = new Date('2026-02-12T00:00:00');
+let START_DATE = null;
 
 let EVENTS = [];
 let selectedEventId = null;
@@ -53,12 +53,36 @@ function formatDate(month, day) {
 }
 
 function updateCounter() {
+
+  if (!START_DATE) return;
+
   const now = today();
-  const diff = Math.floor((now - START_DATE) / 86400000);
-  document.getElementById('dayCount').textContent = diff;
-  document.getElementById('weekCount').textContent = Math.floor(diff / 7);
+
+  const diff =
+    Math.floor((now - START_DATE) / 86400000);
+
+  document.getElementById('dayCount').textContent =
+    diff;
+
+  document.getElementById('weekCount').textContent =
+    Math.floor(diff / 7);
+
   document.getElementById('monthCount').textContent =
-  calculateMonths(START_DATE, now);
+    calculateMonths(START_DATE, now);
+
+  // Başlangıç tarihini ekranda göster
+  const months = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan',
+    'Mayıs', 'Haziran', 'Temmuz', 'Ağustos',
+    'Eylül', 'Ekim', 'Kasım', 'Aralık'
+  ];
+
+  const day = START_DATE.getDate();
+  const month = months[START_DATE.getMonth()];
+  const year = START_DATE.getFullYear();
+
+  document.getElementById('sinceDate').textContent =
+    `${day} ${month} ${year}`;
 }
 
 function renderEvents() {

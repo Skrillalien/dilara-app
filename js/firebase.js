@@ -41,7 +41,7 @@ const db = getFirestore(app);
 
 const auth = getAuth(app);
 
-async function createCouple(user) {
+async function createCouple(user, startDate) {
 
     const inviteCode =
         Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -51,6 +51,7 @@ async function createCouple(user) {
     await setDoc(coupleRef, {
         members: [user.uid],
         inviteCode: inviteCode,
+        startDate: startDate,
         createdAt: serverTimestamp()
     });
 

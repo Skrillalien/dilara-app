@@ -100,6 +100,15 @@ function checkUserSelection() {
             const couple =
                 await window.firebase.getMyCoupleData();
 
+            if (couple && couple.startDate) {
+
+                START_DATE =
+                    new Date(couple.startDate + "T00:00:00");
+
+                updateCounter();
+
+            }
+
             if (!couple) {
 
                 showCoupleSetup();
@@ -323,7 +332,7 @@ function showCoupleSetup() {
             Bir çift oluştur veya partnerinin davet kodunu kullan.
         </div>
 
-        <button class="user-btn" onclick="createMyCouple()">
+        <button class="user-btn" onclick="showStartDateSetup()">
             💕 Yeni Çift Oluştur
         </button>
 
@@ -352,6 +361,53 @@ function showCoupleSetup() {
 
 }
 
+function showStartDateSetup() {
+
+    const card =
+        document.querySelector("#userSelectOverlay .user-card");
+
+    card.innerHTML = `
+
+        <div class="user-title">
+            💜 Birlikte Olduğunuz Tarih
+        </div>
+
+        <div style="color:var(--muted); margin:10px 0 24px;">
+            Birlikte olduğunuz tarihi seçin.
+            Bu tarih, kaç gündür birlikte olduğunuzu hesaplamak için kullanılacak.
+        </div>
+
+        <input
+            id="startDateInput"
+            type="date"
+            style="
+                width:100%;
+                box-sizing:border-box;
+                padding:14px 16px;
+                border-radius:14px;
+                border:1px solid var(--border);
+                background:var(--card);
+                color:var(--text);
+                font-size:16px;
+                margin-bottom:14px;
+            "
+        >
+
+        <button class="user-btn" onclick="createMyCouple()">
+            💕 Devam Et
+        </button>
+
+        <button
+            class="invite-change-btn"
+            onclick="showCoupleSetup()">
+
+            ← Geri
+
+        </button>
+
+    `;
+
+}
 
 async function createMyCouple() {
 
@@ -359,28 +415,56 @@ async function createMyCouple() {
 
     if (!user) return;
 
-    try {
+    const startDateInput =
+        document.getElementById("startDateInput");
 
-        const result =
-            await window.firebase.createCouple(user);
+    // Tarih seçme ekranındaysak tarihi kontrol et
+    if (startDateInput) {
 
-        document.getElementById("inviteCodeDisplay").textContent =
-            result.inviteCode;
+        const startDate = startDateInput.value;
 
-        document.getElementById("inviteOverlay")
-            .classList.add("active");
+        if (!startDate) {
 
-        document.getElementById("invitePopup")
-            .classList.add("active");
+            showToast("Lütfen birlikte olduğunuz tarihi seçin.");
 
-        document.getElementById("userSelectOverlay").style.display = "none";
+            return;
 
-    } catch (error) {
+        }
 
-        console.error(error);
+        try {
 
-        showToast("Çift oluşturulamadı.");
+            const result =
+                await window.firebase.createCouple(
+                    user,
+                    startDate
+                );
 
+            START_DATE =
+                new Date(startDate + "T00:00:00");
+
+            updateCounter();
+
+            document.getElementById("inviteCodeDisplay").textContent =
+                result.inviteCode;
+
+            document.getElementById("inviteOverlay")
+                .classList.add("active");
+
+            document.getElementById("invitePopup")
+                .classList.add("active");
+
+            document.getElementById("userSelectOverlay")
+                .style.display = "none";
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast("Çift oluşturulamadı.");
+
+        }
+
+        return;
     }
 
 }
