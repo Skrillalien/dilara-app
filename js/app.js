@@ -540,11 +540,13 @@ function closeInvitePopup() {
 async function copyInviteCode() {
 
     const code =
-        document.getElementById("inviteCodeDisplay").textContent;
+        document.getElementById("inviteCodeDisplay").textContent.trim();
 
     try {
 
-        await navigator.clipboard.writeText(code);
+        await window.Capacitor.Plugins.Clipboard.write({
+            string: code
+        });
 
         showToast("Davet kodu kopyalandı ✓");
 

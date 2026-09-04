@@ -2311,11 +2311,21 @@ margin-bottom:14px;
     padding: 13px 16px;
     margin: 10px 0 14px;
 
-    border: 1px solid rgba(124, 58, 237, 0.22);
+    border: 1px solid color-mix(
+        in srgb,
+        var(--accent) 25%,
+        transparent
+    );
+
     border-radius: 14px;
 
-    background: rgba(124, 58, 237, 0.08);
-    color: #7c3aed;
+    background: color-mix(
+        in srgb,
+        var(--accent) 8%,
+        transparent
+    );
+
+    color: var(--accent);
 
     font-size: 14px;
     font-weight: 600;
@@ -2326,5 +2336,10 @@ margin-bottom:14px;
 
 .invite-change-btn:active {
     transform: scale(0.98);
-    background: rgba(124, 58, 237, 0.14);
+
+    background: color-mix(
+        in srgb,
+        var(--accent) 14%,
+        transparent
+    );
 }
