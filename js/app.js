@@ -97,16 +97,37 @@ function checkUserSelection() {
 
             }
 
-            const coupleId =
-                await window.firebase.getMyCouple();
+            const couple =
+                await window.firebase.getMyCoupleData();
 
-            if (!coupleId) {
+            if (!couple) {
 
                 showCoupleSetup();
 
                 return;
             }
 
+            // Couple var ama partner henüz katılmamış
+            if (
+                Array.isArray(couple.members) &&
+                couple.members.length === 1
+            ) {
+
+                overlay.style.display = "none";
+
+                document.getElementById("inviteCodeDisplay").textContent =
+                    couple.inviteCode;
+
+                document.getElementById("inviteOverlay")
+                    .classList.add("active");
+
+                document.getElementById("invitePopup")
+                    .classList.add("active");
+
+                return;
+            }
+
+            // Couple tamamlanmış
             overlay.style.display = "none";
 
             loadWaitingItems();
@@ -312,9 +333,12 @@ function showCoupleSetup() {
 
         <input
             id="inviteCode"
+            class="invite-code-input"
             type="text"
-            placeholder="Davet kodu"
+            placeholder="Davet Kodu"
             maxlength="6"
+            autocomplete="off"
+            autocapitalize="characters"
             style="text-transform:uppercase;"
         >
 
@@ -529,6 +553,41 @@ async function copyInviteCode() {
         console.error("Kopyalama hatası:", e);
 
         showToast("Kod kopyalanamadı.");
+
+    }
+
+}
+
+async function switchToInviteCodeEntry() {
+
+    console.log("🟣 PARTNERİMİN KODUNU GİRECEĞİM BASILDI");
+
+    try {
+
+        console.log("🟣 cancelMyCouple çağrılıyor...");
+
+        await window.firebase.cancelMyCouple();
+
+        console.log("🟢 cancelMyCouple tamamlandı");
+
+        // Davet popup'ını kapat
+        document.getElementById("inviteOverlay")
+            .classList.remove("active");
+
+        document.getElementById("invitePopup")
+            .classList.remove("active");
+
+        // Partner bağlantı ekranını tekrar göster
+        showCoupleSetup();
+
+    } catch (error) {
+
+        console.error(
+            "❌ Couple iptal edilemedi:",
+            error
+        );
+
+        showToast("İşlem gerçekleştirilemedi.");
 
     }
 

@@ -54,10 +54,15 @@ async function createCouple(user) {
         createdAt: serverTimestamp()
     });
 
-    await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        coupleId: coupleRef.id
-    });
+    await setDoc(
+        doc(db, "users", user.uid),
+        {
+            coupleId: coupleRef.id
+        },
+        {
+            merge: true
+        }
+    );
 
     return {
         coupleId: coupleRef.id,
@@ -126,12 +131,48 @@ async function joinCouple(user, inviteCode) {
     await setDoc(doc(db, "users", user.uid), {
         email: user.email,
         coupleId: coupleDoc.id
+    }, {
+        merge: true
     });
 
     return coupleDoc.id;
 
 }
 
+async function cancelMyCouple() {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    // Kullanıcının profilini bul
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) return;
+
+    const userData = userDoc.data();
+    const coupleId = userData.coupleId;
+
+    if (!coupleId) return;
+
+    // Couple kaydını sil
+    await deleteDoc(
+        doc(db, "couples", coupleId)
+    );
+
+    // Kullanıcının coupleId bilgisini temizle
+    await setDoc(
+        userRef,
+        {
+            coupleId: null
+        },
+        {
+            merge: true
+        }
+    );
+
+}
 
 async function getMyCouple() {
 
@@ -146,6 +187,35 @@ async function getMyCouple() {
     if (!userDoc.exists()) return null;
 
     return userDoc.data().coupleId || null;
+
+}
+
+async function getMyCoupleData() {
+
+    const user = auth.currentUser;
+
+    if (!user) return null;
+
+    const userDoc = await getDoc(
+        doc(db, "users", user.uid)
+    );
+
+    if (!userDoc.exists()) return null;
+
+    const coupleId = userDoc.data().coupleId;
+
+    if (!coupleId) return null;
+
+    const coupleDoc = await getDoc(
+        doc(db, "couples", coupleId)
+    );
+
+    if (!coupleDoc.exists()) return null;
+
+    return {
+        id: coupleDoc.id,
+        ...coupleDoc.data()
+    };
 
 }
 
@@ -984,5 +1054,7 @@ window.firebase = {
     getMyInviteCode,
     joinCouple,
     getMyCouple,
+    getMyCoupleData,
     getUserProfile,
+    cancelMyCouple
 };
