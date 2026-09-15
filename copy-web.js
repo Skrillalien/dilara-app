@@ -33,15 +33,9 @@ items.forEach(item => {
     fs.cpSync(source, destination, {
         recursive: true
     });
-
-    console.log(`✓ ${item}`);
 });
 
 execSync(
     "npx esbuild js/capacitor.js --bundle --format=esm --outfile=www/js/capacitor.js",
     { stdio: "inherit" }
 );
-
-console.log("✓ capacitor.js bundle edildi.");
-
-console.log("\nWeb dosyaları www/ klasörüne kopyalandı.");

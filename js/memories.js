@@ -13,6 +13,46 @@ let waitingPopupType = "none";
 
 let waitingPopupClosed = false;
 
+let coupleMemberProfiles = {};
+
+async function loadCoupleMemberProfiles() {
+
+    try {
+
+        const couple =
+            await window.firebase.getMyCoupleData();
+
+        if (!couple) return;
+
+        if (!Array.isArray(couple.members)) return;
+
+        coupleMemberProfiles = {};
+
+        for (const uid of couple.members) {
+
+            const profile =
+                await window.firebase.getUserProfileByUid(uid);
+
+            if (profile) {
+
+                coupleMemberProfiles[uid] =
+                    profile.name || null;
+
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Çift üyeleri alınamadı:",
+            error
+        );
+
+    }
+
+}
+
 function selectAuthor(name) {
   selectedAuthor = name;
   document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
@@ -100,8 +140,12 @@ async function saveMemory() {
     btn.textContent = 'Kaydet';
 }
 
-function loadMemories() {
+async function loadMemories() {
+
+     await loadCoupleMemberProfiles();
+
     const list = document.getElementById('memoriesList');
+
     if (!window.firebaseReady) {
         list.innerHTML = '<div class="memories-loading">Bağlanıyor...</div>';
         window.addEventListener('firebaseReady', loadMemories, { once: true });
@@ -120,7 +164,21 @@ function loadMemories() {
             return `
               <div class="memory-card">
                 <div class="memory-header">
-                <span class="memory-author">${m.author === 'Berk' ? '💙 Berk' : '💗 Dilara'}</span>
+                <span class="memory-author">
+                    ${
+                        m.authorId
+                            ? (
+                                m.authorId === window.firebase.getCurrentAuthUser()?.uid
+                                    ? `💙 ${coupleMemberProfiles[m.authorId] || "Sen"}`
+                                    : `💗 ${coupleMemberProfiles[m.authorId] || "Ben"}`
+                            )
+                            : (
+                                m.author === 'Berk'
+                                    ? '💙 Berk'
+                                    : '💗 Dilara'
+                            )
+                    }
+                </span>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span class="memory-date">${dateStr}</span>
 
@@ -157,16 +215,30 @@ function loadMemories() {
     });
 }
 
-function loadLastMemory() {
+async function loadLastMemory() {
     if (!window.firebaseReady) {
         window.addEventListener('firebaseReady', loadLastMemory, { once: true });
         return;
     }
+
+    await loadCoupleMemberProfiles();
+
     window.firebase.listenMemories((memories) => {
         if (memories.length === 0) return;
         const last = memories[0];
+
         document.getElementById('lastMemoryAuthor').textContent =
-            last.author === 'Berk' ? '💙 Berk' : '💗 Dilara';
+            last.authorId
+                ? (
+                    last.authorId === window.firebase.getCurrentAuthUser()?.uid
+                        ? `💙 ${coupleMemberProfiles[last.authorId] || "Sen"}`
+                        : `💗 ${coupleMemberProfiles[last.authorId] || "Ben"}`
+                )
+                : (
+                    last.author === 'Berk'
+                        ? '💙 Berk'
+                        : '💗 Dilara'
+                )
         document.getElementById('lastMemoryText').innerHTML =
             formatMemoryText(last.text);
         const date = last.createdAt?.toDate?.();
@@ -450,9 +522,7 @@ async function updateMemoryAuthorInfo() {
     }
 
     info.textContent =
-        profile.name === "Berk"
-            ? "💙 Bu anı Berk adına kaydedilecek"
-            : "💗 Bu anı Dilara adına kaydedilecek";
+        `💜 Bu anı ${profile.name} adına kaydedilecek`;
 
 }
 

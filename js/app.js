@@ -1,3 +1,8 @@
+let coupleNames = {
+    me: "Sen",
+    partner: "Ben"
+};
+
 const savedTheme = localStorage.getItem('theme') || 'mor';
 setTheme(savedTheme);
 
@@ -64,6 +69,69 @@ async function loginUser() {
 
 }
 
+async function loadCoupleNames() {
+
+    const user = window.firebase.getCurrentAuthUser();
+
+    if (!user) return;
+
+    try {
+
+        const couple =
+            await window.firebase.getMyCoupleData();
+
+        if (!couple) return;
+
+        const members = couple.members;
+
+        if (!Array.isArray(members) || members.length === 0) {
+            return;
+        }
+
+        // Kendi profilimizi al
+        const myProfile =
+            await window.firebase.getUserProfile();
+
+        if (myProfile?.name) {
+
+            coupleNames.me =
+                myProfile.name;
+
+        }
+
+        // Partner henüz yoksa "Ben" olarak kalır
+        if (members.length < 2) {
+            return;
+        }
+
+        const partnerUid =
+            members.find(uid => uid !== user.uid);
+
+        if (!partnerUid) return;
+
+        // Partnerin users dokümanını al
+        const partnerProfile =
+            await window.firebase.getUserProfileByUid(
+                partnerUid
+            );
+
+        if (partnerProfile?.name) {
+
+            coupleNames.partner =
+                partnerProfile.name;
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Çift isimleri alınamadı:",
+            error
+        );
+
+    }
+
+}
 
 function checkUserSelection() {
 
@@ -90,11 +158,6 @@ function checkUserSelection() {
 
             if (profile) {
 
-                console.log(
-                    "Giriş yapan kullanıcı:",
-                    profile.name
-                );
-
             }
 
             const couple =
@@ -108,6 +171,10 @@ function checkUserSelection() {
                 updateCounter();
 
             }
+
+            await loadCoupleNames();
+
+            updateCoupleNameDisplay();
 
             if (!couple) {
 
@@ -165,6 +232,51 @@ function checkUserSelection() {
 
 }
 
+function updateCoupleNameDisplay() {
+
+    const element =
+        document.getElementById("coupleNameDisplay");
+
+    if (!element) return;
+
+    const myName =
+        coupleNames.me;
+
+    const partnerName =
+        coupleNames.partner;
+
+    // İki tarafın da adı yoksa
+    if (myName === "Sen" && partnerName === "Ben") {
+
+        element.textContent = "Sen & Ben";
+
+        return;
+    }
+
+    // Kendi adı varsa ama partnerin adı yoksa
+    if (myName !== "Sen" && partnerName === "Ben") {
+
+        element.textContent =
+            `${myName} & Sen`;
+
+        return;
+    }
+
+    // Partnerin adı varsa ama kendi adı yoksa
+    if (myName === "Sen" && partnerName !== "Ben") {
+
+        element.textContent =
+            `Sen & ${partnerName}`;
+
+        return;
+    }
+
+    // İki isim de varsa
+    element.textContent =
+        `${myName} & ${partnerName}`;
+
+}
+
 function showRegister() {
 
     document.querySelector("#userSelectOverlay .user-card").innerHTML = `
@@ -174,7 +286,7 @@ function showRegister() {
         </div>
 
         <div style="color:var(--muted); margin:10px 0 24px;">
-            Berk & Dilara hesabını oluştur
+            Hesabını oluştur
         </div>
 
         <input
@@ -646,15 +758,9 @@ async function copyInviteCode() {
 
 async function switchToInviteCodeEntry() {
 
-    console.log("🟣 PARTNERİMİN KODUNU GİRECEĞİM BASILDI");
-
     try {
 
-        console.log("🟣 cancelMyCouple çağrılıyor...");
-
         await window.firebase.cancelMyCouple();
-
-        console.log("🟢 cancelMyCouple tamamlandı");
 
         // Davet popup'ını kapat
         document.getElementById("inviteOverlay")
@@ -681,32 +787,22 @@ async function switchToInviteCodeEntry() {
 
 async function checkMyInviteCode() {
 
-    console.log("🔵 checkMyInviteCode BAŞLADI");
-
     const user = window.firebase.getCurrentAuthUser();
 
-    console.log("👤 Kullanıcı:", user);
-
     if (!user) {
-        console.log("❌ Kullanıcı bulunamadı");
+        
         return;
     }
 
     try {
 
-        console.log("🔎 getMyInviteCode çağrılıyor...");
-
         const inviteCode =
             await window.firebase.getMyInviteCode(user);
 
-        console.log("🔑 Gelen inviteCode:", inviteCode);
-
         if (!inviteCode) {
-            console.log("❌ Invite code yok");
+
             return;
         }
-
-        console.log("✅ Popup açılıyor...");
 
         document.getElementById("inviteCodeDisplay").textContent =
             inviteCode;
@@ -731,7 +827,7 @@ window.addEventListener("load", () => {
 
     updateDailyMessage();
 
-    loadLastMemory();
+    //loadLastMemory();
 
     checkUserSelection();
 

@@ -1,13 +1,9 @@
 async function requestNotification() {
 
-    console.log("Bildirim butonuna basıldı.");
-
     try {
 
         const granted =
             await window.appNotifications.requestPermission();
-
-        console.log("Granted:", granted);
 
         if (!granted) {
 

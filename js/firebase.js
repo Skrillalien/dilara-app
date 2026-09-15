@@ -239,6 +239,24 @@ async function getUserProfile() {
 
 }
 
+async function getUserProfileByUid(uid) {
+
+    if (!uid) return null;
+
+    const userDoc =
+        await getDoc(
+            doc(db, "users", uid)
+        );
+
+    if (!userDoc.exists()) return null;
+
+    return {
+        uid: uid,
+        ...userDoc.data()
+    };
+
+}
+
 async function getCurrentUserName() {
 
     const profile = await getUserProfile();
@@ -314,17 +332,22 @@ async function addMemory(text, image = null) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
-    const author = await getCurrentUserName();
+    const profile = await getUserProfile();
+
+    if (!profile) {
+        throw new Error("USER_PROFILE_NOT_FOUND");
+    }
 
     await addDoc(collection(db, 'memories'), {
 
         text,
-        author,
         image,
 
         coupleId,
 
-        seenBy: [author],
+        authorId: profile.uid,
+
+        seenBy: [profile.uid],
 
         createdAt: serverTimestamp()
 
@@ -890,25 +913,27 @@ async function deleteDream(id) {
 }
 
 async function addDream(dream) {
-
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
-    const author = await getCurrentUserName();
+    const profile = await getUserProfile();
+
+    if (!profile) {
+        throw new Error("USER_PROFILE_NOT_FOUND");
+    }
 
     await addDoc(
         collection(db, "dreams"),
         {
             ...dream,
-            author,
+            authorId: profile.uid,
             coupleId,
             createdAt: serverTimestamp()
         }
     );
-
 }
 
 async function getDreams() {
@@ -1057,5 +1082,6 @@ window.firebase = {
     getMyCouple,
     getMyCoupleData,
     getUserProfile,
+    getUserProfileByUid,
     cancelMyCouple
 };

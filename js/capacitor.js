@@ -28,11 +28,6 @@ window.appNotifications = {
         const result =
             await LocalNotifications.requestPermissions();
 
-        console.log(
-            "Notification permission:",
-            result
-        );
-
         return result.display === "granted";
 
     },
@@ -47,11 +42,6 @@ window.appNotifications = {
             ]
 
         });
-
-        console.log(
-            "Bildirim planlandı:",
-            notification
-        );
 
     },
 
@@ -76,19 +66,11 @@ window.appNotifications = {
 
 };
 
-
-console.log(
-    "CAPACITOR.JS ÇALIŞTI",
-    window.appNotifications
-);
-
 const App = window.Capacitor?.Plugins?.App;
 
 if (App) {
 
     App.addListener("backButton", ({ canGoBack }) => {
-
-        console.log("ANDROID GERİ TUŞU");
 
         // 1. Ayarlar açıksa önce ayarları kapat
         const settingsPanel =
@@ -114,8 +96,6 @@ if (App) {
         }
 
         const pageId = activePage.id;
-
-        console.log("Aktif sayfa:", pageId);
 
 
         // 3. Alt sayfalardan BİZ'e dön

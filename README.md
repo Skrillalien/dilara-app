@@ -1,4 +1,4 @@
-# Berk & Dilara 💜
+# Sen & Ben 💜
 
 Birliktelik sayacı, özel günler, anılar ve daha fazlası.
 
@@ -45,5 +45,5 @@ dilara-app/
 - 💌 Günlük mesaj kartı
 - 🔔 Özel gün bildirimleri
 - 🎨 5 farklı tema (Mor, Bordo, Gri, Galatasaray, Beşiktaş)
-- 👤 Berk / Dilara kullanıcı seçimi
+- 👤 kullanıcı seçimi
 - 🔴 Okunmamış not bildirimi

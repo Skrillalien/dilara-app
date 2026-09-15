@@ -240,16 +240,9 @@ function handleSecretDiceTap() {
 
     secretDiceTapCount++;
 
-    console.log(
-        "🎲 Gizli zar dokunuşu:",
-        secretDiceTapCount
-    );
-
     clearTimeout(secretDiceResetTimer);
 
     secretDiceResetTimer = setTimeout(() => {
-
-        console.log("⏱️ Sayaç sıfırlandı");
 
         secretDiceTapCount = 0;
 
@@ -272,7 +265,5 @@ function activateSecretBNY() {
     const btn = document.getElementById("bnySpinBtn");
 
     btn.classList.add("secret-mode");
-
-    console.log("💜💜💜 GİZLİ BNY MODU AKTİF!");
 
 }
