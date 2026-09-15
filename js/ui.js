@@ -79,15 +79,38 @@ function openImage(index) {
 
     document.getElementById("viewerImage").src = photo.image;
 
-        if (photo.author === "Berk") {
+        if (photo.authorId) {
+
+            const currentUid =
+                window.firebase.getCurrentAuthUser()?.uid;
+
+            if (photo.authorId === currentUid) {
+
+                document.getElementById("viewerAuthor").textContent =
+                    `💙 ${coupleNames.me || "Sen"}`;
+
+            } else {
+
+                document.getElementById("viewerAuthor").textContent =
+                    `💗 ${coupleNames.partner || "Ben"}`;
+
+            }
+
+        } else if (photo.author === "Berk") {
+
             document.getElementById("viewerAuthor").textContent =
                 "💙 Berk";
+
         } else if (photo.author === "Dilara") {
+
             document.getElementById("viewerAuthor").textContent =
                 "💗 Dilara";
+
         } else {
+
             document.getElementById("viewerAuthor").textContent =
                 "";
+
         }
 
     if (photo.createdAt?.seconds) {

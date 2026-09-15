@@ -534,8 +534,39 @@ function openMemoryImage(memoryId) {
 
     document.getElementById("viewerImage").src = memory.image;
 
-    document.getElementById("viewerAuthor").textContent =
-        memory.author === "Berk" ? "💙 Berk" : "💗 Dilara";
+    if (memory.authorId) {
+
+        const currentUid =
+            window.firebase.getCurrentAuthUser()?.uid;
+
+        if (memory.authorId === currentUid) {
+
+            document.getElementById("viewerAuthor").textContent =
+                `💙 ${coupleNames.me || "Sen"}`;
+
+        } else {
+
+            document.getElementById("viewerAuthor").textContent =
+                `💗 ${coupleNames.partner || "Ben"}`;
+
+        }
+
+    } else if (memory.author === "Berk") {
+
+        document.getElementById("viewerAuthor").textContent =
+            "💙 Berk";
+
+    } else if (memory.author === "Dilara") {
+
+        document.getElementById("viewerAuthor").textContent =
+            "💗 Dilara";
+
+    } else {
+
+        document.getElementById("viewerAuthor").textContent =
+            "";
+
+    }
 
     if (memory.createdAt?.toDate) {
 

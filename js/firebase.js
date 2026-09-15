@@ -469,25 +469,27 @@ async function deleteSong(id) {
 }
 
 async function addPhoto(image) {
-
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
-    const author = await getCurrentUserName();
+    const profile = await getUserProfile();
+
+    if (!profile) {
+        throw new Error("USER_PROFILE_NOT_FOUND");
+    }
 
     await addDoc(collection(db, "photos"), {
 
         image,
-        author,
+        authorId: profile.uid,
         coupleId,
 
         createdAt: serverTimestamp()
 
     });
-
 }
 
 async function getMemories() {

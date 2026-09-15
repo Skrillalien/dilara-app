@@ -17,7 +17,8 @@ async function getGalleryItems() {
             createdAt: m.createdAt,
             type: "memory",
             text: m.text,
-            author: m.author
+            author: m.author,
+            authorId: m.authorId
         }));
 
     return [...memoryPhotos, ...photos]
