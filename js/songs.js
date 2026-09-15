@@ -128,9 +128,19 @@ function loadSongs() {
                     <div class="song-meta">
                         <div class="song-info-row">
                             <div class="song-author">
-                                ${song.author === "Berk"
-                                    ? "💙 Berk"
-                                    : "💗 Dilara"}
+                                ${
+                                    song.authorId
+                                        ? (
+                                            song.authorId === window.firebase.getCurrentAuthUser()?.uid
+                                                ? `💙 ${coupleNames.me || "Sen"}`
+                                                : `💗 ${coupleNames.partner || "Ben"}`
+                                        )
+                                        : (
+                                            song.author === "Berk"
+                                                ? "💙 Berk"
+                                                : "💗 Dilara"
+                                        )
+                                }
                             </div>
 
                             <div class="song-date">

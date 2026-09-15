@@ -355,14 +355,17 @@ async function addMemory(text, image = null) {
 }
 
 async function addSong(link, title, artist, note) {
-
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
         throw new Error("COUPLE_NOT_FOUND");
     }
 
-    const author = await getCurrentUserName();
+    const profile = await getUserProfile();
+
+    if (!profile) {
+        throw new Error("USER_PROFILE_NOT_FOUND");
+    }
 
     await addDoc(collection(db, "songs"), {
 
@@ -370,16 +373,16 @@ async function addSong(link, title, artist, note) {
         title,
         artist,
         note,
-        author,
+
+        authorId: profile.uid,
 
         coupleId,
 
-        seenBy: [author],
+        seenBy: [profile.uid],
 
         createdAt: serverTimestamp()
 
     });
-
 }
 
 async function markSongsSeen(currentUser) {
