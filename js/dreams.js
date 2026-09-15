@@ -93,9 +93,17 @@ function loadDreams() {
                         <div class="event-date">
 
                             ${
-                                dream.author === "Berk"
-                                    ? "💙 Berk"
-                                    : "💗 Dilara"
+                                dream.authorId
+                                    ? (
+                                        dream.authorId === window.firebase.getCurrentAuthUser()?.uid
+                                            ? `💙 ${coupleNames.me || "Sen"}`
+                                            : `💗 ${coupleNames.partner || "Ben"}`
+                                    )
+                                    : (
+                                        dream.author === "Berk"
+                                            ? "💙 Berk"
+                                            : "💗 Dilara"
+                                    )
                             }
 
                         </div>
