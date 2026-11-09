@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1047372766813",
+    "project_id": "dilara-app-6c7ab",
+    "storage_bucket": "dilara-app-6c7ab.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1047372766813:android:19e088048f6bf5517937b4",
+        "android_client_info": {
+          "package_name": "com.berkanddilara.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqm9nRVGAgSR9mRgIEuU6WWoS0B2XWSfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
