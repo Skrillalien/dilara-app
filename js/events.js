@@ -94,7 +94,8 @@ function renderEvents() {
     return { ...e, next, days };
   }).sort((a, b) => a.days - b.days);
 
-  list.innerHTML = sorted.map(e => {
+  // Ana sayfada sadece en yakın 3 gün; tamamı Takvim sayfasında
+  list.innerHTML = sorted.slice(0, 3).map(e => {
     const isToday = e.days === 0;
     const isSoon = e.days > 0 && e.days <= 7;
     const cls = isToday ? 'today' : isSoon ? 'soon' : '';
@@ -117,6 +118,10 @@ function renderEvents() {
 }
 
 function loadNextEvent() {
+
+    // "Yaklaşan Özel Gün" kartı ana sayfadan kaldırıldı;
+    // eski çağrılar hata vermesin diye kart yoksa çık.
+    if (!document.getElementById("nextEventName")) return;
 
     const today = new Date();
 

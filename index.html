@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Berk & Dilara 💜</title>
 
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=5">
   
   <link
     rel="stylesheet"
@@ -150,23 +150,15 @@
 
     <!-- Main counter -->
     <div class="counter-card">
-      <div class="counter-label">Birlikte</div>
       <div class="counter-number" id="dayCount">0</div>
-      <div class="counter-unit">gün</div>
-      <div class="counter-since">
-        <span id="sinceDate">12 Şubat 2026</span>'dan beri
-      </div>
-    </div>
-
-    <!-- Detail row -->
-    <div class="detail-row">
-      <div class="detail-card">
-        <div class="num" id="weekCount">0</div>
-        <div class="lbl">Hafta</div>
-      </div>
-      <div class="detail-card">
-        <div class="num" id="monthCount">0</div>
-        <div class="lbl">Ay</div>
+      <div class="counter-side">
+        <div class="counter-label">gündür birlikte</div>
+        <div class="counter-meta">
+          <span id="weekCount">0</span> hafta · <span id="monthCount">0</span> ay
+        </div>
+        <div class="counter-since">
+          <span id="sinceDate">12 Şubat 2026</span>'dan beri
+        </div>
       </div>
     </div>
 
@@ -200,11 +192,6 @@
 
     </div>
 
-    <!-- Notification button -->
-    <button class="notif-btn" id="notifBtn" onclick="requestNotification()">
-      🔔 Bildirimler için izin ver
-    </button>
-
     <div class="dashboard-card" id="waitingCard" style="display:none;">
 
       <div class="dashboard-title">
@@ -218,32 +205,13 @@
     <!-- Dashboard Card -->
     <div class="dashboard-card">
 
-      <div class="dashboard-title" id="dailyTitle">
-          💌 Bugünün Mesajı
-      </div>
-
-      <div class="daily-badge" id="dailyBadge">
-        ❤️ Romantik
+      <div class="dashboard-header">
+        <div class="dashboard-title" id="dailyTitle">💌 Bugünün Mesajı</div>
+        <div class="daily-badge" id="dailyBadge">❤️ Romantik</div>
       </div>
 
       <div class="dashboard-text" id="dailyMessage">
         Birlikte geçen her gün yeni bir anı biriktiriyorsunuz. ❤️
-      </div>
-
-    </div>
-
-    <div class="dashboard-card" id="nextEventCard">
-
-      <div class="dashboard-title">
-          🎉 Yaklaşan Özel Gün
-      </div>
-
-      <div class="dashboard-text" id="nextEventName">
-          Yükleniyor...
-      </div>
-
-      <div class="dashboard-subtitle" id="nextEventInfo">
-          --
       </div>
 
     </div>
@@ -274,7 +242,10 @@
 
     <!-- Events -->
     <div class="section">
-      <div class="section-title">Özel Günler</div>
+      <div class="section-head">
+        <div class="section-title">Özel Günler</div>
+        <button class="section-link" onclick="openCard('our-calendar')">Tümü →</button>
+      </div>
       <div id="eventsList"></div>
     </div>
 
@@ -974,6 +945,14 @@
     <div id="sliderImagesList"></div>
 
     <div class="settings-label" style="margin-top:24px;">
+        Bildirimler
+    </div>
+
+    <button class="theme-btn notif-btn" id="notifBtn" onclick="requestNotification()">
+      🔔 Bildirimler için izin ver
+    </button>
+
+    <div class="settings-label" style="margin-top:24px;">
         Hesap
     </div>
 
@@ -1251,7 +1230,7 @@
     
     <script src="js/theme.js?v=2"></script>
     <script src="js/bny.js?v=2"></script>
-    <script src="js/events.js?v=2"></script>
+    <script src="js/events.js?v=3"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
