@@ -15,7 +15,8 @@ import {
     serverTimestamp,
     arrayUnion,
     getDoc,
-    setDoc
+    setDoc,
+    runTransaction
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 import {
@@ -239,17 +240,57 @@ async function getUserProfile() {
 
 }
 
-async function saveStreak(streak) {
+// Çift serisi: couples/{coupleId}.streak
+// mutator(streak, members) saf bir fonksiyon olmalı; transaction
+// çakışmada tekrar çalıştırılabilir. { streak } dönerse yazılır.
+async function updateCoupleStreak(mutator) {
 
-    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
 
-    if (!user) return;
+    if (!coupleId) return null;
 
-    await setDoc(
-        doc(db, "users", user.uid),
-        { streak },
-        { merge: true }
-    );
+    const ref = doc(db, "couples", coupleId);
+
+    return runTransaction(db, async (tx) => {
+
+        const snap = await tx.get(ref);
+
+        if (!snap.exists()) return null;
+
+        const data = snap.data();
+
+        const result = mutator(data.streak || null, data.members || []);
+
+        if (result && result.streak) {
+            tx.update(ref, { streak: result.streak });
+        }
+
+        return result;
+
+    });
+
+}
+
+function listenCoupleStreak(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        unsubscribe = onSnapshot(
+            doc(db, "couples", coupleId),
+            snap => {
+                const data = snap.data() || {};
+                callback(data.streak || null, data.members || []);
+            },
+            error => console.error("Seri dinleme hatası:", error)
+        );
+
+    });
+
+    return () => unsubscribe && unsubscribe();
 
 }
 
@@ -1087,7 +1128,8 @@ window.firebase = {
 
     addSong,
     updateSong,
-    saveStreak,
+    updateCoupleStreak,
+    listenCoupleStreak,
     addSliderImage,
     deleteSliderImage,
     listenSliderImages,

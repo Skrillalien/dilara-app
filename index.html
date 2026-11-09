@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Berk & Dilara 💜</title>
 
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
   
   <link
     rel="stylesheet"
@@ -195,6 +195,8 @@
         <span>🧊</span>
         <span id="streakFreezes">5</span>
       </button>
+
+      <div class="streak-status" id="streakStatus"></div>
 
     </div>
 
@@ -1112,11 +1114,11 @@
 
     <div class="streak-rescue-emoji" id="streakRescueEmoji">🔥</div>
 
-    <div class="streak-rescue-title">Serin tehlikede!</div>
+    <div class="streak-rescue-title">Seriniz tehlikede!</div>
 
     <div class="streak-rescue-text" id="streakRescueText"></div>
 
-    <button class="user-btn streak-rescue-save" id="streakRescueBtn">
+    <button class="user-btn streak-rescue-save" onclick="rescueStreak()">
       🧊 Hak kullan, seriyi kurtar
     </button>
 
@@ -1267,7 +1269,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    <script src="js/streak.js?v=1"></script>
+    <script src="js/streak.js?v=2"></script>
 
     <script src="js/app.js?v=3"></script>
   
