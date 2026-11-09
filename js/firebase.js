@@ -605,7 +605,11 @@ async function markSeen(collectionName, ids) {
 }
 
 // ── Push bildirim token'ları ────────────────────────────────
-// Her telefonun FCM token'ı users/{uid}.fcmTokens dizisinde tutulur.
+// Her telefonun FCM token'ı ayrı bir koleksiyonda tutulur:
+//   pushTokens/{token} = { uid, platform, updatedAt }
+// users/{uid} belgesine BİLEREK yazmıyoruz: o belgeye yapılan
+// yerel yazma, bağlantı yavaşken profilin (isim, coupleId)
+// eksik okunmasına yol açıyordu.
 // Cloud Function (functions/index.js) bildirimi bu token'lara gönderir.
 async function savePushToken(token) {
 
@@ -613,21 +617,19 @@ async function savePushToken(token) {
 
     if (!user || !token) return;
 
-    await setDoc(doc(db, 'users', user.uid), {
-        fcmTokens: arrayUnion(token)
-    }, { merge: true });
+    await setDoc(doc(db, 'pushTokens', token), {
+        uid: user.uid,
+        platform: 'android',
+        updatedAt: serverTimestamp()
+    });
 
 }
 
 async function removePushToken(token) {
 
-    const user = auth.currentUser;
+    if (!auth.currentUser || !token) return;
 
-    if (!user || !token) return;
-
-    await updateDoc(doc(db, 'users', user.uid), {
-        fcmTokens: arrayRemove(token)
-    }).catch(() => {});
+    await deleteDoc(doc(db, 'pushTokens', token)).catch(() => {});
 
 }
 

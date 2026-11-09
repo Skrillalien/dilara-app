@@ -211,7 +211,6 @@ function checkUserSelection() {
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git
             window.appReady = true;
-            window.appPush?.syncToken?.();
 
             if (window.pendingPushPage) {
                 showPage(window.pendingPushPage);
@@ -226,6 +225,9 @@ function checkUserSelection() {
             initSlider();
             loadSliderImagesList();
             initEvents();
+
+            // Token kaydını sayfa verileri yüklendikten sonra yap
+            setTimeout(() => window.appPush?.syncToken?.(), 4000);
 
         } catch (error) {
 

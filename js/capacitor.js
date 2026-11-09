@@ -121,7 +121,7 @@ async function setupPush() {
         PushNotifications.addListener("registration", token => {
             pushToken = token.value;
             console.log("PUSH TOKEN ALINDI");
-            if (window.appReady) window.appPush.syncToken();
+            if (window.appReady) setTimeout(() => window.appPush.syncToken(), 4000);
         });
 
         PushNotifications.addListener("registrationError", err => {
