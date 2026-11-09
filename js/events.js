@@ -333,6 +333,16 @@ function closeEventForm(){
 
 }
 
+function limitEventEmoji(input) {
+    const segments = [...new Intl.Segmenter(undefined, {
+        granularity: "grapheme"
+    }).segment(input.value)];
+
+    if (segments.length > 1) {
+        input.value = segments[0].segment;
+    }
+}
+
 function closeModal(){
 
     if(document.getElementById("songModal").classList.contains("active")){

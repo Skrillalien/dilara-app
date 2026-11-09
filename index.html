@@ -527,7 +527,7 @@
                 type="text"
                 class="song-input"
                 placeholder="Emoji (🎂 ❤️ ✈️)"
-                maxlength="2">
+                oninput="limitEventEmoji(this)">
 
             <input
                 id="eventName"
@@ -637,7 +637,8 @@
                 id="dreamEmoji"
                 class="song-input"
                 type="text"
-                placeholder="Emoji (İsteğe bağlı)">
+                placeholder="Emoji (İsteğe bağlı)"
+                oninput="limitEventEmoji(this)">
 
             <input
                 id="dreamTitle"
