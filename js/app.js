@@ -206,6 +206,8 @@ function checkUserSelection() {
             // Couple tamamlanmış
             overlay.style.display = "none";
 
+            checkStreak();
+
             loadWaitingItems();
             loadLastMemory();
             loadNextEvent();

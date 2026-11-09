@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Berk & Dilara 💜</title>
 
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
   
   <link
     rel="stylesheet"
@@ -168,6 +168,34 @@
         <div class="num" id="monthCount">0</div>
         <div class="lbl">Ay</div>
       </div>
+    </div>
+
+    <!-- Seri (streak) -->
+    <div class="streak-card" id="streakCard" style="display:none;">
+
+      <div class="streak-flame" id="streakEmoji">💗</div>
+
+      <div class="streak-body">
+
+        <div class="streak-top">
+          <span class="streak-count" id="streakCount">1</span>
+          <span class="streak-unit">gün seri</span>
+          <span class="streak-title" id="streakTitle">Sevgili</span>
+        </div>
+
+        <div class="streak-bar">
+          <div class="streak-bar-fill" id="streakProgress"></div>
+        </div>
+
+        <div class="streak-next" id="streakNext"></div>
+
+      </div>
+
+      <button class="streak-freeze" onclick="showStreakInfo()" aria-label="Seri hakları">
+        <span>🧊</span>
+        <span id="streakFreezes">5</span>
+      </button>
+
     </div>
 
     <!-- Notification button -->
@@ -425,7 +453,11 @@
                 id="songLink"
                 type="text"
                 class="song-input"
-                placeholder="YouTube Music / Spotify / YouTube linki">
+                placeholder="YouTube Music / Spotify / YouTube linki"
+                oninput="onSongLinkInput()"
+                onpaste="setTimeout(onSongLinkInput, 0)">
+
+            <div id="songLinkPreview" class="song-link-preview" style="display:none;"></div>
 
             <input
                 id="songTitle"
@@ -1073,6 +1105,29 @@
   </div>
 </div>
 
+<!-- Seri kurtarma -->
+<div id="streakRescueOverlay" class="streak-rescue-overlay">
+
+  <div class="streak-rescue-card">
+
+    <div class="streak-rescue-emoji" id="streakRescueEmoji">🔥</div>
+
+    <div class="streak-rescue-title">Serin tehlikede!</div>
+
+    <div class="streak-rescue-text" id="streakRescueText"></div>
+
+    <button class="user-btn streak-rescue-save" id="streakRescueBtn">
+      🧊 Hak kullan, seriyi kurtar
+    </button>
+
+    <button class="streak-rescue-skip" onclick="declineStreakRescue()">
+      Sıfırlansın
+    </button>
+
+  </div>
+
+</div>
+
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
 
 <div id="songModal" class="modal">
@@ -1189,7 +1244,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=2"></script>
+    <script type="module" src="js/firebase.js?v=3"></script>
     
     <script src="js/theme.js?v=2"></script>
     <script src="js/bny.js?v=2"></script>
@@ -1200,7 +1255,7 @@
     <script src="js/notifications.js?v=2"></script>
     <script src="js/memories.js?v=2"></script>
     <script src="js/photos.js?v=1"></script>
-    <script src="js/songs.js?v=1"></script>
+    <script src="js/songs.js?v=2"></script>
     <script src="js/dreams.js?v=1"></script>
 
 
@@ -1212,7 +1267,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    <script src="js/app.js?v=2"></script>
+    <script src="js/streak.js?v=1"></script>
+
+    <script src="js/app.js?v=3"></script>
   
 </body>
 </html>

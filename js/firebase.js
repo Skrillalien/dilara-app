@@ -239,6 +239,20 @@ async function getUserProfile() {
 
 }
 
+async function saveStreak(streak) {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await setDoc(
+        doc(db, "users", user.uid),
+        { streak },
+        { merge: true }
+    );
+
+}
+
 async function getUserProfileByUid(uid) {
 
     if (!uid) return null;
@@ -354,7 +368,7 @@ async function addMemory(text, image = null) {
     });
 }
 
-async function addSong(link, title, artist, note) {
+async function addSong(link, title, artist, note, platform = null, cover = null) {
     const coupleId = await getMyCouple();
 
     if (!coupleId) {
@@ -373,6 +387,8 @@ async function addSong(link, title, artist, note) {
         title,
         artist,
         note,
+        platform,
+        cover,
 
         authorId: profile.uid,
 
@@ -383,6 +399,12 @@ async function addSong(link, title, artist, note) {
         createdAt: serverTimestamp()
 
     });
+}
+
+async function updateSong(id, data) {
+
+    await updateDoc(doc(db, "songs", id), data);
+
 }
 
 async function markSongsSeen(currentUser) {
@@ -1064,6 +1086,8 @@ window.firebase = {
     listenMemories,
 
     addSong,
+    updateSong,
+    saveStreak,
     addSliderImage,
     deleteSliderImage,
     listenSliderImages,
