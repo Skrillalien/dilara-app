@@ -1,5 +1,6 @@
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { PushNotifications } from "@capacitor/push-notifications";
 
 window.appHaptics = {
 
@@ -66,39 +67,154 @@ window.appNotifications = {
 
 };
 
+// ── Push bildirimleri (FCM) ─────────────────────────────────
+// Partner not / şarkı / hayal ekleyince sunucu (Cloud Function)
+// bu telefona bildirim gönderir. Bildirime dokununca data.page
+// sayfası açılır.
+
+let pushToken = null;
+
+function openPushPage(page) {
+
+    if (!page) return;
+
+    if (window.appReady && typeof showPage === "function") {
+        showPage(page);
+    } else {
+        // Uygulama henüz yüklenmedi: giriş tamamlanınca app.js açar
+        window.pendingPushPage = page;
+    }
+
+}
+
+window.appPush = {
+
+    // Token'ı oturum açmış kullanıcıya kaydet
+    async syncToken() {
+
+        if (!pushToken || !window.firebase?.savePushToken) return;
+
+        try {
+            await window.firebase.savePushToken(pushToken);
+        } catch (e) {
+            console.warn("Push token kaydedilemedi:", e);
+        }
+
+    },
+
+    async removeToken() {
+
+        if (pushToken) await window.firebase?.removePushToken?.(pushToken);
+
+    }
+
+};
+
+async function setupPush() {
+
+    const isNative = window.Capacitor?.isNativePlatform?.();
+
+    if (!isNative) return;
+
+    try {
+
+        PushNotifications.addListener("registration", token => {
+            pushToken = token.value;
+            console.log("PUSH TOKEN ALINDI");
+            if (window.appReady) window.appPush.syncToken();
+        });
+
+        PushNotifications.addListener("registrationError", err => {
+            console.warn("Push kaydı başarısız:", err);
+        });
+
+        // Bildirime dokunuldu (uygulama kapalı/arka plandayken)
+        PushNotifications.addListener("pushNotificationActionPerformed", action => {
+            openPushPage(action.notification?.data?.page);
+        });
+
+        // Uygulama açıkken gelen bildirim sistem bildirimi olarak
+        // gösterilmez; uygulama içi şerit (inbox.js) zaten gösteriyor.
+
+        await PushNotifications.createChannel({
+            id: "partner",
+            name: "Sevgilinden gelenler",
+            description: "Not, şarkı ve hayal bildirimleri",
+            importance: 4,
+            visibility: 1,
+            vibration: true
+        });
+
+        let perm = await PushNotifications.checkPermissions();
+
+        if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
+            perm = await PushNotifications.requestPermissions();
+        }
+
+        if (perm.receive !== "granted") {
+            console.log("Push bildirim izni verilmedi.");
+            return;
+        }
+
+        await PushNotifications.register();
+
+    } catch (e) {
+
+        // google-services.json yoksa burada hata verir; uygulama çalışmaya devam eder
+        console.warn("Push bildirimleri başlatılamadı:", e);
+
+    }
+
+}
+
+setupPush();
+
+// Geri tuşu için: açık olan en üstteki katmanı kapatır.
+// Bir şey kapattıysa true döner.
+function closeTopLayer() {
+
+    const isOpen = (id, cls = "open") =>
+        document.getElementById(id)?.classList.contains(cls);
+
+    const visible = id => {
+        const el = document.getElementById(id);
+        return el && getComputedStyle(el).display !== "none";
+    };
+
+    if (visible("imageViewer")) { closeImage(); return true; }
+
+    if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }
+
+    if (isOpen("actionSheet", "active")) { closeActionMenu(); return true; }
+
+    if (isOpen("songModal", "active") || isOpen("eventModal", "active")) {
+        closeModal();
+        return true;
+    }
+
+    if (isOpen("bnyPanel")) { toggleBNY(); return true; }
+
+    if (isOpen("settingsPanel")) { toggleSettings(); return true; }
+
+    if (isOpen("inviteOverlay", "active")) { closeInvitePopup(); return true; }
+
+    return false;
+
+}
+
 const App = window.Capacitor?.Plugins?.App;
 
 if (App) {
 
-    App.addListener("backButton", ({ canGoBack }) => {
+    App.addListener("backButton", () => {
 
-        // 1. Ayarlar açıksa önce ayarları kapat
-        const settingsPanel =
-            document.getElementById("settingsPanel");
+        // 1. Açık bir pencere/panel varsa önce onu kapat
+        if (closeTopLayer()) return;
 
-        if (settingsPanel?.classList.contains("open")) {
+        const pageId =
+            document.querySelector(".page.active")?.id;
 
-            toggleSettings();
-
-            return;
-        }
-
-
-        // 2. Şu anda aktif olan sayfayı bul
-        const activePage =
-            document.querySelector(".page.active");
-
-        if (!activePage) {
-
-            App.exitApp();
-
-            return;
-        }
-
-        const pageId = activePage.id;
-
-
-        // 3. Alt sayfalardan BİZ'e dön
+        // 2. Alt sayfalardan BİZ'e dön
         const ourPages = [
             "page-our-memories",
             "page-our-photos",
@@ -108,34 +224,19 @@ if (App) {
         ];
 
         if (ourPages.includes(pageId)) {
-
             showPage("us");
-
             return;
         }
 
-
-        // 4. BİZ sayfasından ANA SAYFA'ya dön
-        if (pageId === "page-home") {
-
-            const shouldExit = confirm(
-                "Uygulamadan çıkmak istiyor musun? 💜"
-            );
-
-            if (shouldExit) {
-                App.exitApp();
-            }
-
+        // 3. BİZ (veya başka bir sayfa) → ANA SAYFA
+        if (pageId && pageId !== "page-home") {
+            showPage("home");
             return;
         }
 
-
-        // 5. Ana sayfadaysak uygulamadan çık
-        if (pageId === "page-home") {
-
+        // 4. Ana sayfadaysak çıkışı sor
+        if (confirm("Uygulamadan çıkmak istiyor musun? 💜")) {
             App.exitApp();
-
-            return;
         }
 
     });

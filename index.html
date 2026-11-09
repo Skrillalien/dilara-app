@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Berk & Dilara 💜</title>
 
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
   
   <link
     rel="stylesheet"
@@ -21,39 +21,18 @@
 
 <body>
 
-<div id="waitingPopup" class="overlay">
-
-    <div class="user-card">
-
-        <div style="font-size:52px;margin-bottom:12px;">
-            💌
-        </div>
-
-        <div class="user-title" id="waitingPopupTitle">
-            Berk sana bir not bıraktı
-        </div>
-
-        <div style="color:var(--muted);margin:12px 0 26px;">
-            Hemen okumak ister misin?
-        </div>
-
-        <button class="user-btn" onclick="openWaitingItem()">
-            💜 Şimdi Oku
-        </button>
-
-        <button
-            class="user-btn"
-            style="margin-top:10px;background:var(--surface);"
-            onclick="closeWaitingPopup()">
-
-            Daha Sonra
-
-        </button>
-
+<!-- Uygulama içi bildirim şeridi (js/inbox.js) -->
+<div id="inboxBanner" class="inbox-banner" role="button" aria-live="polite">
+  <div class="inbox-banner-icon" id="inboxBannerIcon">💌</div>
+  <div class="inbox-banner-body">
+    <div class="inbox-banner-top">
+      <span class="inbox-banner-name" id="inboxBannerName"></span>
+      <span class="inbox-banner-time">şimdi</span>
     </div>
-
+    <div class="inbox-banner-text" id="inboxBannerText"></div>
+  </div>
 </div>
-  
+
 <button id="randomIdeaBtn" onclick="toggleBNY()">
     🎲
 </button>
@@ -1226,7 +1205,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=3"></script>
+    <script type="module" src="js/firebase.js?v=5"></script>
     
     <script src="js/theme.js?v=2"></script>
     <script src="js/bny.js?v=2"></script>
@@ -1235,15 +1214,14 @@
     <script type="module" src="js/capacitor.js"></script>
 
     <script src="js/notifications.js?v=2"></script>
-    <script src="js/memories.js?v=2"></script>
+    <script src="js/memories.js?v=3"></script>
     <script src="js/photos.js?v=1"></script>
     <script src="js/songs.js?v=2"></script>
     <script src="js/dreams.js?v=1"></script>
 
 
-    <script src="js/ui.js"></script>
 
-    <script src="js/ui.js?v=2"></script>
+    <script src="js/ui.js?v=3"></script>
 
     <script src="js/slider.js?v=1"></script>
 
@@ -1251,7 +1229,9 @@
 
     <script src="js/streak.js?v=2"></script>
 
-    <script src="js/app.js?v=3"></script>
+    <script src="js/inbox.js?v=1"></script>
+
+    <script src="js/app.js?v=4"></script>
   
 </body>
 </html>

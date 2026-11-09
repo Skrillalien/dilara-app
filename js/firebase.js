@@ -14,6 +14,7 @@ import {
     onSnapshot,
     serverTimestamp,
     arrayUnion,
+    arrayRemove,
     getDoc,
     setDoc,
     runTransaction
@@ -587,6 +588,49 @@ async function deleteMemory(id) {
     await deleteDoc(doc(db, 'memories', id));
 }
     
+// Partnerin eklediği ve henüz görülmemiş kayıtları "görüldü" yap.
+// collectionName: "memories" | "songs" | "dreams"
+async function markSeen(collectionName, ids) {
+
+    const user = auth.currentUser;
+
+    if (!user || !ids || ids.length === 0) return;
+
+    await Promise.all(ids.map(id =>
+        updateDoc(doc(db, collectionName, id), {
+            seenBy: arrayUnion(user.uid)
+        }).catch(e => console.warn("Görüldü işaretlenemedi:", collectionName, id, e))
+    ));
+
+}
+
+// ── Push bildirim token'ları ────────────────────────────────
+// Her telefonun FCM token'ı users/{uid}.fcmTokens dizisinde tutulur.
+// Cloud Function (functions/index.js) bildirimi bu token'lara gönderir.
+async function savePushToken(token) {
+
+    const user = auth.currentUser;
+
+    if (!user || !token) return;
+
+    await setDoc(doc(db, 'users', user.uid), {
+        fcmTokens: arrayUnion(token)
+    }, { merge: true });
+
+}
+
+async function removePushToken(token) {
+
+    const user = auth.currentUser;
+
+    if (!user || !token) return;
+
+    await updateDoc(doc(db, 'users', user.uid), {
+        fcmTokens: arrayRemove(token)
+    }).catch(() => {});
+
+}
+
 async function markMemoriesSeen(user) {
 
     const coupleId = await getMyCouple();
@@ -998,6 +1042,7 @@ async function addDream(dream) {
         {
             ...dream,
             authorId: profile.uid,
+            seenBy: [profile.uid],
             coupleId,
             createdAt: serverTimestamp()
         }
@@ -1128,6 +1173,9 @@ window.firebase = {
 
     addSong,
     updateSong,
+    markSeen,
+    savePushToken,
+    removePushToken,
     updateCoupleStreak,
     listenCoupleStreak,
     addSliderImage,

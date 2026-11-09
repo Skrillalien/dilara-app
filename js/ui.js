@@ -25,13 +25,6 @@ function showPage(page) {
     if (page === 'our-memories') {
 
         loadMemories();
-
-        const currentUser = localStorage.getItem("currentUser");
-
-        if (currentUser) {
-            window.firebase.markMemoriesSeen(currentUser)
-                .then(() => loadWaitingItems());
-        }
     }
 
     if (page === "our-photos") {
@@ -42,13 +35,11 @@ function showPage(page) {
 
         loadSongs();
 
-        const currentUser = localStorage.getItem("currentUser");
+    }
 
-        if (currentUser) {
-            window.firebase.markSongsSeen(currentUser)
-                .then(() => loadWaitingItems());
-        }
-
+    // Bu sayfadaki yeni notlar/şarkılar/hayaller artık görüldü
+    if (typeof inboxMarkSeenForPage === "function") {
+        inboxMarkSeenForPage(page);
     }
 
     if (fab) {

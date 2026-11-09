@@ -208,6 +208,16 @@ function checkUserSelection() {
 
             checkStreak();
 
+            // Push bildirimi: token'ı kaydet, bildirime dokunarak
+            // açıldıysa ilgili sayfaya git
+            window.appReady = true;
+            window.appPush?.syncToken?.();
+
+            if (window.pendingPushPage) {
+                showPage(window.pendingPushPage);
+                window.pendingPushPage = null;
+            }
+
             loadWaitingItems();
             loadLastMemory();
             loadNextEvent();
@@ -423,6 +433,11 @@ async function registerUser() {
 }
 
 window.logoutAppUser = async function () {
+
+    // Bu telefon artık bu hesaba bildirim almasın
+    try {
+        await window.appPush?.removeToken?.();
+    } catch {}
 
     await window.firebase.logoutUser();
 
