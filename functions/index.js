@@ -5,8 +5,9 @@
 // eklenince, çiftin DİĞER üyesinin telefonlarına bildirim gönderir.
 // Bildirime dokununca uygulama ilgili sayfayı açar (data.page).
 //
-// Telefonların FCM token'ları users/{uid}.fcmTokens dizisinde durur
-// (uygulama açılınca js/capacitor.js kaydeder).
+// Telefonların FCM token'ları pushTokens/{token} belgelerinde durur
+// ({ uid, platform, updatedAt }; uygulama açılınca js/capacitor.js kaydeder).
+// Eski sürümün users/{uid}.fcmTokens dizisi de okunur.
 // ─────────────────────────────────────────────────────────────
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
@@ -86,7 +87,14 @@ async function notifyPartner(type, event) {
     for (const uid of recipients) {
 
         const userRef = db.doc(`users/${uid}`);
-        const tokens = ((await userRef.get()).get("fcmTokens") || []).filter(Boolean);
+
+        const tokenSnap = await db.collection("pushTokens").where("uid", "==", uid).get();
+        const legacy = (await userRef.get()).get("fcmTokens") || [];
+
+        const tokens = [...new Set([
+            ...tokenSnap.docs.map(d => d.id),
+            ...legacy
+        ])].filter(Boolean);
 
         if (tokens.length === 0) {
             logger.info("Alıcının kayıtlı telefonu yok", { uid });
@@ -120,9 +128,17 @@ async function notifyPartner(type, event) {
         );
 
         if (dead.length) {
-            await userRef.update({
-                fcmTokens: admin.firestore.FieldValue.arrayRemove(...dead)
-            });
+
+            await Promise.all(dead.map(token =>
+                db.doc(`pushTokens/${token}`).delete().catch(() => {})
+            ));
+
+            if (legacy.some(token => dead.includes(token))) {
+                await userRef.update({
+                    fcmTokens: admin.firestore.FieldValue.arrayRemove(...dead)
+                });
+            }
+
         }
 
         logger.info("Bildirim gönderildi", {
