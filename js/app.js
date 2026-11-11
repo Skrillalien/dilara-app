@@ -245,6 +245,14 @@ function checkUserSelection() {
             // açıldıysa ilgili sayfaya git
             window.appReady = true;
 
+            // Web bildirimine dokunarak açıldıysa (?open=sayfa)
+            const openParam = new URLSearchParams(location.search).get("open");
+
+            if (openParam) {
+                window.pendingPushPage = openParam;
+                history.replaceState(null, "", location.pathname);
+            }
+
             if (window.pendingPushPage) {
                 openAppTarget(window.pendingPushPage);
                 window.pendingPushPage = null;
@@ -271,6 +279,13 @@ function checkUserSelection() {
 
             // Token kaydını sayfa verileri yüklendikten sonra yap
             setTimeout(() => window.appPush?.syncToken?.(), 4000);
+
+            // Web'de izin daha önce verildiyse token'ı sessizce yenile
+            if (!window.Capacitor?.isNativePlatform?.() &&
+                typeof Notification !== "undefined" &&
+                Notification.permission === "granted") {
+                setTimeout(() => window.firebase.enableWebPush({ askPermission: false }), 5000);
+            }
 
             // Eski (veritabanına gömülü) fotoğrafları Storage'a taşı
             setTimeout(() => migrateLegacyImages(), 8000);
@@ -511,6 +526,7 @@ window.logoutAppUser = async function () {
     // Bu telefon artık bu hesaba bildirim almasın
     try {
         await window.appPush?.removeToken?.();
+        await window.firebase.disableWebPush?.();
     } catch {}
 
     await window.firebase.logoutUser();
@@ -850,3 +866,18 @@ window.addEventListener("load", () => {
     initSheetDrags();
 
 });
+
+
+// Uygulama açıkken web bildirimine dokunulursa servis çalışanı haber verir
+if ("serviceWorker" in navigator) {
+
+    navigator.serviceWorker.addEventListener("message", event => {
+
+        if (event.data?.type !== "open-page" || !event.data.page) return;
+
+        if (window.appReady) openAppTarget(event.data.page);
+        else window.pendingPushPage = event.data.page;
+
+    });
+
+}

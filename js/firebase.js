@@ -35,6 +35,12 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
 
 import {
+    getMessaging,
+    getToken,
+    isSupported as isMessagingSupported
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+
+import {
     getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -712,7 +718,7 @@ async function markSeen(collectionName, ids) {
 // yerel yazma, bağlantı yavaşken profilin (isim, coupleId)
 // eksik okunmasına yol açıyordu.
 // Cloud Function (functions/index.js) bildirimi bu token'lara gönderir.
-async function savePushToken(token) {
+async function savePushToken(token, platform = 'android') {
 
     const user = auth.currentUser;
 
@@ -720,9 +726,76 @@ async function savePushToken(token) {
 
     await setDoc(doc(db, 'pushTokens', token), {
         uid: user.uid,
-        platform: 'android',
+        platform,
         updatedAt: serverTimestamp()
     });
+
+}
+
+// ── Web bildirimleri (iPhone'da ana ekrana eklenmiş uygulama, tarayıcılar) ──
+// Firebase Console → Proje ayarları → Cloud Messaging →
+// "Web Push certificates" bölümündeki anahtar (herkese açık anahtar, gizli değil)
+const WEB_PUSH_VAPID_KEY = "BURAYA_VAPID_ANAHTARI";
+
+// Döner: "enabled" | "denied" | "unsupported" | "needs-install" | "error"
+async function enableWebPush({ askPermission = true } = {}) {
+
+    try {
+
+        if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+
+            // iPhone'da Safari sekmesinde Notification yok; ana ekrana eklenince gelir
+            const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+            return ios ? "needs-install" : "unsupported";
+
+        }
+
+        if (!(await isMessagingSupported())) return "unsupported";
+
+        let permission = Notification.permission;
+
+        if (permission === "default" && askPermission) {
+            permission = await Notification.requestPermission();
+        }
+
+        if (permission !== "granted") return permission === "denied" ? "denied" : "unsupported";
+
+        const registration =
+            await navigator.serviceWorker.getRegistration("./") ||
+            await navigator.serviceWorker.register("sw.js");
+
+        await navigator.serviceWorker.ready;
+
+        const token = await getToken(getMessaging(app), {
+            vapidKey: WEB_PUSH_VAPID_KEY,
+            serviceWorkerRegistration: registration
+        });
+
+        if (!token) return "error";
+
+        await savePushToken(token, "web");
+
+        try { localStorage.setItem("webPushToken", token); } catch {}
+
+        return "enabled";
+
+    } catch (error) {
+
+        console.error("Web bildirimi açılamadı:", error);
+        return "error";
+
+    }
+
+}
+
+async function disableWebPush() {
+
+    let token = null;
+
+    try { token = localStorage.getItem("webPushToken"); } catch {}
+
+    if (token) await removePushToken(token);
 
 }
 
@@ -1520,6 +1593,8 @@ async function markLetterRead(id) {
 }
 
 window.firebase = {
+    enableWebPush,
+    disableWebPush,
     listenLetters,
     listenMyLetterContents,
     sealLetter,

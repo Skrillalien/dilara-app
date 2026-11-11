@@ -110,6 +110,15 @@ async function sendPushToUser(uid, { title, body, data = {}, tag = null }) {
                 color: "#c084fc",
                 ...(tag ? { tag } : {})
             }
+        },
+        // Web (iPhone ana ekran uygulaması, tarayıcılar)
+        webpush: {
+            headers: { Urgency: "high" },
+            notification: {
+                icon: "./icon-192.png",
+                badge: "./icon-192.png",
+                ...(tag ? { tag, renotify: true } : {})
+            }
         }
     });
 
