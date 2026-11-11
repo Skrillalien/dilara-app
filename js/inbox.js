@@ -22,6 +22,10 @@ const INBOX_BANNER_DURATION_MS = 6000;
 const INBOX_SHOWN_KEY = "inboxBannerShown";
 
 let inboxStarted = false;
+
+// Üç dinleyici de ilk cevabı verince çözülür (açılış ekranı bekler)
+let inboxReadyResolve;
+const inboxReadyPromise = new Promise(resolve => { inboxReadyResolve = resolve; });
 let inboxUnseen = { memories: [], songs: [], dreams: [] };
 let inboxReady = { memories: false, songs: false, dreams: false };
 let inboxBannerTimer = null;
@@ -80,6 +84,8 @@ function onInboxSnapshot(type, items) {
     }
 
     inboxReady[type] = true;
+
+    if (inboxReady.memories && inboxReady.songs && inboxReady.dreams) inboxReadyResolve();
 
     renderInboxCard();
 
@@ -258,6 +264,12 @@ function showInboxBanner(icon, name, text, target) {
     const banner = document.getElementById("inboxBanner");
 
     if (!banner) return;
+
+    // Açılış ekranı kalkınca göster
+    if (window.splashVisible) {
+        setTimeout(() => showInboxBanner(icon, name, text, target), 400);
+        return;
+    }
 
     document.getElementById("inboxBannerIcon").textContent = icon;
     document.getElementById("inboxBannerName").textContent = name;

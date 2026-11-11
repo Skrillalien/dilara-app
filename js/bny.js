@@ -157,9 +157,12 @@ function toggleBNY() {
   const panel = document.getElementById('bnyPanel');
   const overlay = document.getElementById('bnyOverlay');
   const btn = document.getElementById('bnyNavBtn');
-  panel.classList.toggle('open');
-  overlay.classList.toggle('open');
-  btn?.classList.toggle('active');
+  const opening = !panel.classList.contains('open');
+  if (opening && typeof closeSheets === 'function') closeSheets('bnyPanel');
+  panel.classList.toggle('open', opening);
+  overlay.classList.toggle('open', opening);
+  btn?.classList.toggle('active', opening);
+  if (typeof updateMissButton === 'function') updateMissButton();
 }
 
 function selectCategory(cat) {

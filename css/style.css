@@ -3310,3 +3310,101 @@ margin-bottom:14px;
     60% { transform:scale(1.05); }
     100% { transform:scale(1.15); }
 }
+
+/* ── Alttan açılan panellerin sürüklenmesi ─────────────── */
+.bny-panel.dragging{
+    transition:none !important;
+}
+
+.bny-handle,
+.bny-panel .bny-title{
+    touch-action:none;
+}
+
+/* Tutamak daha kolay yakalansın */
+.bny-handle{
+    position:relative;
+}
+
+.bny-handle::after{
+    content:"";
+    position:absolute;
+    left:-40px;
+    right:-40px;
+    top:-14px;
+    bottom:-14px;
+}
+
+/* ── Açılış ekranı ─────────────────────────────────────── */
+.splash{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    background:
+        radial-gradient(circle at 50% 42%, var(--glow), transparent 60%),
+        var(--bg);
+    transition:opacity .4s ease, transform .4s ease;
+}
+
+.splash.hide{
+    opacity:0;
+    transform:scale(1.04);
+    pointer-events:none;
+}
+
+.splash-heart{
+    width:96px;
+    height:96px;
+    animation:splashBeat 1.3s ease-in-out infinite;
+    filter:drop-shadow(0 10px 30px rgba(244,114,182,.35));
+}
+
+.splash-heart svg{
+    width:100%;
+    height:100%;
+}
+
+.splash-names{
+    font-family:'Playfair Display', serif;
+    font-size:26px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    min-height:32px;
+    text-align:center;
+    padding:0 24px;
+}
+
+.splash-dots{
+    display:flex;
+    gap:6px;
+}
+
+.splash-dots span{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--muted);
+    animation:splashDot 1.2s ease-in-out infinite;
+}
+
+.splash-dots span:nth-child(2){ animation-delay:.15s; }
+.splash-dots span:nth-child(3){ animation-delay:.3s; }
+
+@keyframes splashBeat{
+    0%, 60%, 100% { transform:scale(1); }
+    20% { transform:scale(1.12); }
+    35% { transform:scale(.97); }
+    48% { transform:scale(1.06); }
+}
+
+@keyframes splashDot{
+    0%, 100% { opacity:.25; transform:translateY(0); }
+    40% { opacity:1; transform:translateY(-4px); }
+}
