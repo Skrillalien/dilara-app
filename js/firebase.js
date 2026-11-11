@@ -735,7 +735,7 @@ async function savePushToken(token, platform = 'android') {
 // ── Web bildirimleri (iPhone'da ana ekrana eklenmiş uygulama, tarayıcılar) ──
 // Firebase Console → Proje ayarları → Cloud Messaging →
 // "Web Push certificates" bölümündeki anahtar (herkese açık anahtar, gizli değil)
-const WEB_PUSH_VAPID_KEY = "BURAYA_VAPID_ANAHTARI";
+const WEB_PUSH_VAPID_KEY = "BBXZOqUeFqabNENH71W3d2zBKQfbvniwxDARELNiLrmu_v6plOpNRCG2YJDfcHpWTFqbQq5EaKXid2691vVZJCU";
 
 // Döner: "enabled" | "denied" | "unsupported" | "needs-install" | "error"
 async function enableWebPush({ askPermission = true } = {}) {
