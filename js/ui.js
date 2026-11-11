@@ -206,6 +206,11 @@ function showPage(page) {
         inboxMarkSeenForPage(page);
     }
 
+    if (page === "our-letters" && typeof renderLetters === "function") {
+        startLetters();
+        renderLetters();
+    }
+
     if (typeof updateMissButton === "function") updateMissButton();
 
     if (fab) {

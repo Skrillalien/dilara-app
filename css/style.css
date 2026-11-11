@@ -3408,3 +3408,447 @@ margin-bottom:14px;
     0%, 100% { opacity:.25; transform:translateY(0); }
     40% { opacity:1; transform:translateY(-4px); }
 }
+
+/* ── Mühürlü Mektuplar ─────────────────────────────────── */
+.song-add-card.disabled{
+    opacity:.5;
+}
+
+.letters-limit-hint{
+    margin:-2px 2px 12px;
+    font-size:12.5px;
+    line-height:1.45;
+    color:var(--muted);
+}
+
+.letters-section{
+    margin-bottom:18px;
+}
+
+.letters-section-title{
+    margin:4px 4px 8px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+}
+
+.letter-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+    padding:14px;
+    border-radius:18px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
+.letter-card.sealed{
+    background:
+        linear-gradient(135deg, var(--glow), transparent 60%),
+        var(--surface);
+    cursor:default;
+}
+
+.letter-card.mine{
+    padding-right:40px;
+}
+
+.letter-card.unread{
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent), 0 8px 24px var(--glow);
+}
+
+.letter-card:active{
+    transform:scale(.99);
+}
+
+/* Balmumu mühür */
+.letter-seal{
+    flex-shrink:0;
+    width:46px;
+    height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    color:rgba(255,255,255,.92);
+    background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 45%),
+        linear-gradient(135deg, var(--accent2), var(--accent));
+    box-shadow:
+        inset 0 -3px 6px rgba(0,0,0,.25),
+        inset 0 2px 3px rgba(255,255,255,.25),
+        0 4px 12px rgba(0,0,0,.3);
+    transform:rotate(-8deg);
+}
+
+.letter-seal svg{
+    width:20px;
+    height:20px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.25));
+}
+
+.letter-paper-icon{
+    flex-shrink:0;
+    width:46px;
+    height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    border-radius:14px;
+    background:var(--surface2);
+}
+
+.letter-card-body{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.letter-card-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+    font-size:15px;
+    font-weight:500;
+    color:var(--text);
+}
+
+.letter-when{
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--accent2);
+}
+
+.letter-when.secret{
+    color:var(--accent);
+}
+
+.letter-sub{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.letter-preview{
+    margin-top:2px;
+    font-size:13px;
+    color:var(--muted);
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.letter-read{
+    font-size:12px;
+    color:#86efac;
+}
+
+.letter-tag{
+    padding:1px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:500;
+    color:var(--muted);
+    background:var(--surface2);
+    border:1px solid var(--border);
+}
+
+.letter-tag.new{
+    color:#fff;
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+.letter-thumb{
+    flex-shrink:0;
+    width:52px;
+    height:52px;
+    object-fit:cover;
+    border-radius:12px;
+}
+
+.letter-menu-btn{
+    position:absolute;
+    top:10px;
+    right:8px;
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:50%;
+    color:var(--muted);
+    background:transparent;
+    cursor:pointer;
+}
+
+.letters-empty{
+    text-align:center;
+    padding:36px 22px;
+    border-radius:20px;
+    border:1px dashed var(--border);
+}
+
+.letters-empty-seal{
+    font-size:42px;
+    margin-bottom:8px;
+}
+
+.letters-empty-title{
+    font-family:'Playfair Display', serif;
+    font-size:19px;
+    color:var(--text);
+    margin-bottom:6px;
+}
+
+.letters-empty-text{
+    font-size:13.5px;
+    line-height:1.55;
+    color:var(--muted);
+}
+
+/* Yazma penceresi */
+.letter-textarea{
+    width:100%;
+    min-height:170px;
+    padding:14px;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:var(--surface2);
+    color:var(--text);
+    font-family:inherit;
+    font-size:15px;
+    line-height:1.55;
+    resize:vertical;
+    outline:none;
+}
+
+.letter-textarea:focus{
+    border-color:var(--accent);
+}
+
+.letter-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:10px 0 4px;
+}
+
+.letter-counter{
+    font-size:12px;
+    color:var(--muted);
+}
+
+.letter-counter.error,
+.letter-when-hint.error{
+    color:#fca5a5;
+}
+
+.letter-photo-preview{
+    position:relative;
+    margin:8px 0 4px;
+}
+
+.letter-photo-preview img{
+    display:block;
+    width:100%;
+    max-height:200px;
+    object-fit:cover;
+    border-radius:14px;
+}
+
+.letter-photo-remove{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:50%;
+    color:#fff;
+    background:rgba(0,0,0,.6);
+    cursor:pointer;
+}
+
+.letter-label{
+    margin:16px 0 8px;
+    font-size:14px;
+    font-weight:500;
+    color:var(--text);
+}
+
+.letter-quick{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+}
+
+.letter-quick button{
+    padding:7px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--surface2);
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.letter-quick button:active{
+    border-color:var(--accent);
+}
+
+.letter-date-row{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:10px;
+}
+
+.letter-date-row .song-input{
+    margin-bottom:0;
+    color-scheme:dark;
+}
+
+.letter-when-hint{
+    min-height:18px;
+    margin-top:6px;
+    font-size:13px;
+    color:var(--accent2);
+}
+
+.letter-hide{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin:14px 0 4px;
+    padding:12px;
+    border-radius:14px;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    cursor:pointer;
+}
+
+.letter-hide input{
+    margin-top:3px;
+    width:18px;
+    height:18px;
+    accent-color:var(--accent);
+    flex-shrink:0;
+}
+
+.letter-hide b{
+    display:block;
+    font-weight:500;
+    font-size:14px;
+    color:var(--text);
+}
+
+.letter-hide small{
+    display:block;
+    margin-top:2px;
+    font-size:12.5px;
+    line-height:1.4;
+    color:var(--muted);
+}
+
+.letter-save{
+    width:100%;
+    margin-top:16px;
+}
+
+/* Okuma: krem kâğıt */
+.letter-reader .modal-body{
+    position:relative;
+}
+
+.letter-paper{
+    padding:22px 20px 16px;
+    border-radius:6px 18px 6px 18px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.5), transparent 30%),
+        #f8f0e3;
+    color:#3d2c2e;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+
+.letter-paper-head{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+    font-size:12px;
+    color:#8c7568;
+}
+
+.letter-paper-text{
+    font-family:'Playfair Display', Georgia, serif;
+    font-size:17px;
+    line-height:1.7;
+    white-space:normal;
+    word-wrap:break-word;
+}
+
+.letter-paper-photo{
+    display:block;
+    width:100%;
+    margin-top:14px;
+    border-radius:10px;
+    cursor:zoom-in;
+}
+
+.letter-paper-foot{
+    margin-top:16px;
+    padding-top:10px;
+    border-top:1px dashed rgba(61,44,46,.2);
+    font-size:12px;
+    color:#8c7568;
+    text-align:right;
+}
+
+/* İlk okumada mühür kırılır, kâğıt açılır */
+.letter-reader .modal-body > .letter-seal{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:96px;
+    height:96px;
+    margin:-48px 0 0 -48px;
+    opacity:0;
+    pointer-events:none;
+}
+
+.letter-reader .modal-body > .letter-seal svg{
+    width:40px;
+    height:40px;
+}
+
+.letter-reader.breaking.active .modal-body > .letter-seal{
+    animation:letterSealBreak .9s ease-in forwards;
+}
+
+.letter-reader.breaking.active .letter-paper{
+    opacity:0;
+    animation:letterUnfold .6s ease-out .55s forwards;
+}
+
+@keyframes letterSealBreak{
+    0%   { opacity:1; transform:rotate(-8deg) scale(1); }
+    35%  { opacity:1; transform:rotate(6deg) scale(1.08); }
+    55%  { opacity:1; transform:rotate(-4deg) scale(1.12); }
+    100% { opacity:0; transform:rotate(20deg) scale(1.6); filter:blur(4px); }
+}
+
+@keyframes letterUnfold{
+    0%   { opacity:0; transform:translateY(24px) scale(.96); }
+    100% { opacity:1; transform:none; }
+}
