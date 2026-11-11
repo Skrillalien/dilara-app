@@ -245,7 +245,7 @@ function inboxPreview(type, item) {
 
     let preview = "";
 
-    if (type === "memories") preview = item.text || (item.image ? "📷 Fotoğraf" : "");
+    if (type === "memories") preview = item.text || (hasImage(item) ? "📷 Fotoğraf" : "");
     if (type === "songs") preview = [item.title, item.artist].filter(Boolean).join(" · ");
     if (type === "dreams") preview = item.title || "";
 

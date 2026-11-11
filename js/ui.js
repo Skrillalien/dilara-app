@@ -234,7 +234,7 @@ function openImage(index) {
 
     if (!photo) return;
 
-    document.getElementById("viewerImage").src = photo.image;
+    document.getElementById("viewerImage").src = imageSrc(photo, "full");
 
     document.getElementById("viewerAuthor").textContent =
         authorInfo(photo).label;

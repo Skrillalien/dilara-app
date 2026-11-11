@@ -271,6 +271,9 @@ function checkUserSelection() {
             // Token kaydını sayfa verileri yüklendikten sonra yap
             setTimeout(() => window.appPush?.syncToken?.(), 4000);
 
+            // Eski (veritabanına gömülü) fotoğrafları Storage'a taşı
+            setTimeout(() => migrateLegacyImages(), 8000);
+
         } catch (error) {
 
             console.error(
