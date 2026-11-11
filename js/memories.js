@@ -43,54 +43,34 @@ async function loadCoupleMemberProfiles() {
 }
 
 
-    async function previewPhoto(event) {
-    
-        const file = event.target.files[0];
-    
-        if (!file) return;
-    
-        const img = new Image();
-    
-        img.src = URL.createObjectURL(file);
-    
-        img.onload = () => {
-    
-            const canvas = document.createElement("canvas");
-    
-            const MAX_WIDTH = 800;
-    
-            let width = img.width;
-            let height = img.height;
-    
-            if (width > MAX_WIDTH) {
-    
-                height = height * (MAX_WIDTH / width);
-                width = MAX_WIDTH;
-    
-            }
-    
-            canvas.width = width;
-            canvas.height = height;
-    
-            const ctx = canvas.getContext("2d");
-    
-            ctx.drawImage(img,0,0,width,height);
-    
-            selectedPhoto = canvas.toDataURL(
-                "image/jpeg",
-                0.65
-            );
-    
-            document.getElementById("photoPreview").src =
-                selectedPhoto;
-    
-            document.getElementById(
-                "photoPreviewContainer"
-            ).style.display = "block";
-    
-        };
-    
+async function previewPhoto(event) {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    try {
+
+        // Küçültülmüş hali hazırlanır; yükleme "Kaydet"e basınca olur
+        selectedPhoto = await prepareImage(file);
+
+        const preview = document.getElementById("photoPreview");
+
+        if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src);
+
+        preview.src = URL.createObjectURL(selectedPhoto.thumbBlob);
+
+        document.getElementById("photoPreviewContainer").style.display = "block";
+
+    } catch (error) {
+
+        console.error("Fotoğraf hazırlanamadı:", error);
+        selectedPhoto = null;
+        showToast("Bu fotoğraf açılamadı.");
+
     }
+
+}
 
 async function saveMemory() {
     const text = document.getElementById('memoryText').value.trim();
@@ -117,7 +97,8 @@ async function saveMemory() {
     }
 
     catch (e) {
-        showToast('Hata: ' + e.message);
+        console.error("Anı kaydedilemedi:", e);
+        showToast(selectedPhoto ? 'Fotoğraf yüklenemedi, tekrar dene.' : 'Anı kaydedilemedi.');
     }
 
     btn.disabled = false;
@@ -174,10 +155,12 @@ async function loadMemories() {
                 </div>
                 </div>
                 <div class="memory-text">${formatMemoryText(m.text)}</div>
-                ${m.image ? `
+                ${hasImage(m) ? `
                     <img
-                        src="${m.image}"
+                        src="${imageSrc(m, 'thumb')}"
                         class="memory-image"
+                        loading="lazy"
+                        decoding="async"
                         onclick="openMemoryImage('${m.id}')">
                 ` : ''}
               </div>`;
@@ -256,7 +239,7 @@ function openMemoryImage(memoryId) {
 
     if (!memory) return;
 
-    document.getElementById("viewerImage").src = memory.image;
+    document.getElementById("viewerImage").src = imageSrc(memory, "full");
 
     document.getElementById("viewerAuthor").textContent =
         authorInfo(memory).label;

@@ -10,7 +10,8 @@
 // Eski sürümün users/{uid}.fcmTokens dizisi de okunur.
 // ─────────────────────────────────────────────────────────────
 
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentDeleted } = require("firebase-functions/v2/firestore");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
@@ -27,7 +28,7 @@ const TYPES = {
     memories: {
         page: "our-memories",
         icon: "💌",
-        body: (d) => withPreview("Sana yeni bir not bıraktı", d.text || (d.image ? "📷 Fotoğraf" : ""))
+        body: (d) => withPreview("Sana yeni bir not bıraktı", d.text || ((d.imageUrl || d.image) ? "📷 Fotoğraf" : ""))
     },
     songs: {
         page: "our-songs",
@@ -170,3 +171,107 @@ exports.onMemoryCreated = onDocumentCreated("memories/{id}", (event) => notifyPa
 exports.onSongCreated = onDocumentCreated("songs/{id}", (event) => notifyPartner("songs", event));
 exports.onDreamCreated = onDocumentCreated("dreams/{id}", (event) => notifyPartner("dreams", event));
 exports.onMissCreated = onDocumentCreated("misses/{id}", (event) => notifyPartner("misses", event));
+
+
+// ─────────────────────────────────────────────────────────────
+// Davet koduyla çifte katılma
+//
+// İstemci kurallar gereği başka çiftleri okuyamaz; katılma işini
+// sunucu yapar. Kullanıcı daha önce tek başına bir çift kurduysa
+// (partneri hiç katılmadıysa) o boş çift silinir.
+// ─────────────────────────────────────────────────────────────
+
+exports.joinCouple = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "Giriş yapmalısın.");
+
+    const code = String(request.data?.code || "").trim().toUpperCase();
+
+    if (!/^[A-Z0-9]{4,12}$/.test(code)) {
+        throw new HttpsError("invalid-argument", "INVITE_CODE_NOT_FOUND");
+    }
+
+    const found = await db.collection("couples")
+        .where("inviteCode", "==", code)
+        .limit(1)
+        .get();
+
+    if (found.empty) throw new HttpsError("not-found", "INVITE_CODE_NOT_FOUND");
+
+    const coupleRef = found.docs[0].ref;
+    const userRef = db.doc(`users/${uid}`);
+
+    const coupleId = await db.runTransaction(async tx => {
+
+        const couple = await tx.get(coupleRef);
+        const user = await tx.get(userRef);
+
+        const members = couple.get("members") || [];
+
+        if (members.includes(uid)) return coupleRef.id;
+
+        if (members.length >= 2) throw new HttpsError("failed-precondition", "COUPLE_FULL");
+
+        // Kullanıcının mevcut çifti
+        const oldCoupleId = user.get("coupleId");
+
+        if (oldCoupleId && oldCoupleId !== coupleRef.id) {
+
+            const oldRef = db.doc(`couples/${oldCoupleId}`);
+            const old = await tx.get(oldRef);
+            const oldMembers = old.exists ? (old.get("members") || []) : [];
+
+            if (oldMembers.length >= 2) {
+                throw new HttpsError("failed-precondition", "ALREADY_IN_COUPLE");
+            }
+
+            if (old.exists) tx.delete(oldRef);
+
+        }
+
+        tx.update(coupleRef, {
+            members: admin.firestore.FieldValue.arrayUnion(uid)
+        });
+
+        tx.set(userRef, { coupleId: coupleRef.id }, { merge: true });
+
+        return coupleRef.id;
+
+    });
+
+    logger.info("Çifte katıldı", { uid, coupleId });
+
+    return { coupleId };
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// Silinen kaydın fotoğraf dosyalarını Storage'dan da sil
+// (kayıtta imagePath / thumbPath alanları varsa)
+// ─────────────────────────────────────────────────────────────
+
+async function deleteStoredImages(event) {
+
+    const data = event.data?.data();
+
+    if (!data) return;
+
+    const paths = [data.imagePath, data.thumbPath].filter(Boolean);
+
+    if (paths.length === 0) return;
+
+    const bucket = admin.storage().bucket();
+
+    await Promise.all(paths.map(path =>
+        bucket.file(path).delete({ ignoreNotFound: true }).catch(error => {
+            logger.warn("Dosya silinemedi", { path, error: error.message });
+        })
+    ));
+
+}
+
+exports.onPhotoDeleted = onDocumentDeleted("photos/{id}", deleteStoredImages);
+exports.onMemoryDeleted = onDocumentDeleted("memories/{id}", deleteStoredImages);
+exports.onSliderImageDeleted = onDocumentDeleted("sliderImages/{id}", deleteStoredImages);

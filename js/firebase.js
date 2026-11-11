@@ -17,8 +17,22 @@ import {
     arrayRemove,
     getDoc,
     setDoc,
-    runTransaction
+    runTransaction,
+    deleteField,
+    writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+import {
+    getFunctions,
+    httpsCallable
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
 
 import {
     getAuth,
@@ -42,6 +56,95 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const auth = getAuth(app);
+
+const storage = getStorage(app);
+
+// Cloud Function'lar functions/index.js'teki bölgede
+const functions = getFunctions(app, "europe-west1");
+
+// ── Fotoğraf yükleme ────────────────────────────────────────
+// prepared: js/images.js → prepareImage() çıktısı
+// Dosyalar: couples/{coupleId}/{kind}/{docId}.jpg ve {docId}_thumb.jpg
+async function uploadCoupleImage(coupleId, kind, docId, prepared) {
+
+    const imagePath = `couples/${coupleId}/${kind}/${docId}.jpg`;
+    const thumbPath = `couples/${coupleId}/${kind}/${docId}_thumb.jpg`;
+
+    const metadata = {
+        contentType: "image/jpeg",
+        cacheControl: "public, max-age=31536000"
+    };
+
+    const [full, thumb] = await Promise.all([
+        uploadBytes(storageRef(storage, imagePath), prepared.blob, metadata),
+        uploadBytes(storageRef(storage, thumbPath), prepared.thumbBlob, metadata)
+    ]);
+
+    const [imageUrl, thumbUrl] = await Promise.all([
+        getDownloadURL(full.ref),
+        getDownloadURL(thumb.ref)
+    ]);
+
+    return {
+        imageUrl,
+        thumbUrl,
+        imagePath,
+        thumbPath,
+        width: prepared.width || null,
+        height: prepared.height || null
+    };
+
+}
+
+// Eski (metin olarak gömülü) fotoğrafları bul
+async function listLegacyImages() {
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) return [];
+
+    const result = [];
+
+    for (const name of ["photos", "memories", "sliderImages"]) {
+
+        const snap = await getDocs(query(
+            collection(db, name),
+            where("coupleId", "==", coupleId)
+        ));
+
+        snap.docs.forEach(d => {
+
+            const data = d.data();
+
+            if (typeof data.image === "string" && data.image.startsWith("data:")) {
+                result.push({ collection: name, id: d.id, image: data.image });
+            }
+
+        });
+
+    }
+
+    return result;
+
+}
+
+// Eski fotoğrafı Storage'a yükle, kaydı bağlantılarla güncelle
+async function attachLegacyImage(collectionName, id, prepared) {
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const kind = collectionName === "sliderImages" ? "slider" : collectionName;
+
+    const uploaded = await uploadCoupleImage(coupleId, kind, id, prepared);
+
+    await updateDoc(doc(db, collectionName, id), {
+        ...uploaded,
+        image: deleteField()
+    });
+
+}
 
 async function createCouple(user, startDate) {
 
@@ -105,40 +208,26 @@ async function getMyInviteCode(user) {
 
 }
 
+// Davet koduyla katılma sunucuda yapılır (functions/index.js → joinCouple).
+// İstemci güvenlik kuralları gereği başka çiftleri okuyamaz.
 async function joinCouple(user, inviteCode) {
 
-    const q = query(
-        collection(db, "couples")
-    );
+    try {
 
-    const snapshot = await getDocs(q);
+        const result = await httpsCallable(functions, "joinCouple")({
+            code: String(inviteCode || "").trim().toUpperCase()
+        });
 
-    const coupleDoc = snapshot.docs.find(
-        d => d.data().inviteCode === inviteCode.toUpperCase()
-    );
+        return result.data.coupleId;
 
-    if (!coupleDoc) {
-        throw new Error("INVITE_CODE_NOT_FOUND");
+    } catch (error) {
+
+        // Sunucu hata kodunu mesaj olarak gönderir
+        const known = ["INVITE_CODE_NOT_FOUND", "COUPLE_FULL", "ALREADY_IN_COUPLE"];
+
+        throw new Error(known.includes(error.message) ? error.message : "JOIN_FAILED");
+
     }
-
-    const coupleData = coupleDoc.data();
-
-    if (coupleData.members.length >= 2) {
-        throw new Error("COUPLE_FULL");
-    }
-
-    await updateDoc(coupleDoc.ref, {
-        members: arrayUnion(user.uid)
-    });
-
-    await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        coupleId: coupleDoc.id
-    }, {
-        merge: true
-    });
-
-    return coupleDoc.id;
 
 }
 
@@ -380,6 +469,7 @@ function listenAuth(callback) {
 
 }
 
+// image: js/images.js → prepareImage() çıktısı ya da null
 async function addMemory(text, image = null) {
 
     const coupleId = await getMyCouple();
@@ -394,10 +484,16 @@ async function addMemory(text, image = null) {
         throw new Error("USER_PROFILE_NOT_FOUND");
     }
 
-    await addDoc(collection(db, 'memories'), {
+    const memoryRef = doc(collection(db, 'memories'));
+
+    const uploaded = image
+        ? await uploadCoupleImage(coupleId, "memories", memoryRef.id, image)
+        : {};
+
+    await setDoc(memoryRef, {
 
         text,
-        image,
+        ...uploaded,
 
         coupleId,
 
@@ -532,6 +628,7 @@ async function deleteSong(id) {
 
 }
 
+// image: js/images.js → prepareImage() çıktısı
 async function addPhoto(image) {
     const coupleId = await getMyCouple();
 
@@ -545,9 +642,13 @@ async function addPhoto(image) {
         throw new Error("USER_PROFILE_NOT_FOUND");
     }
 
-    await addDoc(collection(db, "photos"), {
+    const photoRef = doc(collection(db, "photos"));
 
-        image,
+    const uploaded = await uploadCoupleImage(coupleId, "photos", photoRef.id, image);
+
+    await setDoc(photoRef, {
+
+        ...uploaded,
         authorId: profile.uid,
         coupleId,
 
@@ -772,10 +873,14 @@ async function addSliderImage(image) {
 
     const nextOrder = snap.size + 1;
 
-    await addDoc(
-        collection(db, "sliderImages"),
+    const sliderRef = doc(collection(db, "sliderImages"));
+
+    const uploaded = await uploadCoupleImage(coupleId, "slider", sliderRef.id, image);
+
+    await setDoc(
+        sliderRef,
         {
-            image,
+            ...uploaded,
             order: nextOrder,
             active: true,
             coupleId,
@@ -867,25 +972,27 @@ async function deleteSliderImage(id) {
         doc(db, "sliderImages", id)
     );
 
+    // Kalanları yeniden sırala (sadece bu çiftin fotoğrafları)
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) return;
+
     const snap = await getDocs(
         query(
             collection(db, "sliderImages"),
-            orderBy("order", "asc")
+            where("coupleId", "==", coupleId)
         )
     );
 
-    let order = 1;
+    const batch = writeBatch(db);
 
-    for (const item of snap.docs) {
+    snap.docs
+        .sort((a, b) => (a.data().order || 0) - (b.data().order || 0))
+        .forEach((item, index) => {
+            batch.update(item.ref, { order: index + 1 });
+        });
 
-        await updateDoc(
-            doc(db, "sliderImages", item.id),
-            {
-                order: order++
-            }
-        );
-
-    }
+    await batch.commit();
 
 }
 
@@ -1229,6 +1336,8 @@ function listenTodayMisses(callback) {
 }
 
 window.firebase = {
+    listLegacyImages,
+    attachLegacyImage,
     addMiss,
     listenTodayMisses,
     registerUser,

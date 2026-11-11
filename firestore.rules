@@ -1,0 +1,144 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────
+// Firestore güvenlik kuralları
+//
+// Temel fikir: her kayıt bir çifte (coupleId) aittir ve sadece
+// o çiftin iki üyesi okuyup yazabilir. Çiftin üyeleri
+// couples/{coupleId}.members dizisinde durur.
+//
+// Davet koduyla çifte katılma istemciden yapılamaz; Cloud Function
+// (functions/index.js → joinCouple) yapar. Böylece kimse davet
+// kodlarını tarayıp başka bir çifte giremez.
+//
+// Yayınlamak: firebase deploy --only firestore:rules
+// ─────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function me() {
+      return request.auth.uid;
+    }
+
+    function couplePath(coupleId) {
+      return /databases/$(database)/documents/couples/$(coupleId);
+    }
+
+    // Giriş yapmış kullanıcı bu çiftin üyesi mi?
+    function isMember(coupleId) {
+      return signedIn()
+        && coupleId is string
+        && exists(couplePath(coupleId))
+        && me() in get(couplePath(coupleId)).data.members;
+    }
+
+    function myCoupleId() {
+      return get(/databases/$(database)/documents/users/$(me())).data.get('coupleId', null);
+    }
+
+    // Kayıt, kullanıcının kendi çiftine mi ait?
+    // Not: Liste sorgularında get() yolu kayıttaki bir alandan üretilemez
+    // (Firestore sorguyu sonuç kümesine göre değerlendirir). Bu yüzden
+    // kullanıcının profilindeki coupleId ile karşılaştırıyoruz; sorgular
+    // where("coupleId", "==", X) ile yapıldığı için kural doğrulanabilir.
+    // users.coupleId'yi sadece gerçekten üyesi olunan bir çifte
+    // ayarlamak mümkün (aşağıdaki users kuralı + joinCouple fonksiyonu).
+    function inMyCouple(coupleId) {
+      return signedIn()
+        && coupleId != null
+        && coupleId == myCoupleId();
+    }
+
+    function changes() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ── Kullanıcı profilleri ─────────────────────────────────
+    // Kendi profilini ve partnerinin profilini (isim) okuyabilirsin.
+    // coupleId'yi sadece üyesi olduğun bir çifte ayarlayabilir ya da
+    // boşaltabilirsin; çifte katılmayı Cloud Function yapar.
+    match /users/{userId} {
+
+      allow read: if signedIn() && (
+        userId == me()
+        || (resource.data.get('coupleId', null) != null
+            && resource.data.coupleId == myCoupleId())
+      );
+
+      allow create: if signedIn()
+        && userId == me()
+        && request.resource.data.get('coupleId', null) == null;
+
+      allow update: if signedIn()
+        && userId == me()
+        && (
+          !('coupleId' in changes())
+          || request.resource.data.coupleId == null
+          || isMember(request.resource.data.coupleId)
+        );
+
+      allow delete: if false;
+    }
+
+    // ── Çiftler ──────────────────────────────────────────────
+    match /couples/{coupleId} {
+
+      allow read: if signedIn() && me() in resource.data.members;
+
+      // Yeni çift: sadece kendini ekleyerek kurabilirsin
+      allow create: if signedIn()
+        && request.resource.data.members == [me()];
+
+      // Üyeler çift bilgilerini (başlangıç tarihi, seri…) değiştirebilir
+      // ama üye listesine ve davet koduna dokunamaz
+      allow update: if signedIn()
+        && me() in resource.data.members
+        && !changes().hasAny(['members', 'inviteCode']);
+
+      // Henüz partner katılmamışsa kurucu çifti silebilir
+      allow delete: if signedIn() && resource.data.members == [me()];
+    }
+
+    // ── Çifte ait içerikler ─────────────────────────────────
+    match /{collection}/{docId} {
+
+      function shared() {
+        return collection in [
+          'memories', 'songs', 'dreams', 'photos',
+          'sliderImages', 'events', 'misses'
+        ];
+      }
+
+      allow read: if shared() && inMyCouple(resource.data.coupleId);
+
+      // Ekleyen kendi adına ekler, kendi çiftine ekler
+      allow create: if shared()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.get('authorId', me()) == me();
+
+      // Kayıt başka bir çifte taşınamaz, yazarı değiştirilemez
+      allow update: if shared()
+        && inMyCouple(resource.data.coupleId)
+        && !changes().hasAny(['coupleId', 'authorId']);
+
+      allow delete: if shared() && inMyCouple(resource.data.coupleId);
+    }
+
+    // ── Bildirim token'ları ─────────────────────────────────
+    // Her telefon kendi token'ını kendi adına kaydeder.
+    // Okumayı sadece sunucu (Cloud Function) yapar.
+    match /pushTokens/{token} {
+
+      allow create, update: if signedIn()
+        && request.resource.data.uid == me();
+
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+  }
+}

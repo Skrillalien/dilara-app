@@ -10,10 +10,12 @@ async function getGalleryItems() {
     }));
 
     const memoryPhotos = memories
-        .filter(m => m.image)
+        .filter(m => hasImage(m))
         .map(m => ({
             id: m.id,
             image: m.image,
+            imageUrl: m.imageUrl,
+            thumbUrl: m.thumbUrl,
             createdAt: m.createdAt,
             type: "memory",
             text: m.text,
@@ -105,8 +107,10 @@ async function loadPhotos() {
                 <div class="photo-card">
 
                     <img
-                        src="${photo.image}"
+                        src="${imageSrc(photo, 'thumb')}"
                         class="photo-item"
+                        loading="lazy"
+                        decoding="async"
                         onclick="openImage(${globalIndex})">
 
                     ${
@@ -183,51 +187,33 @@ function selectPhoto(){
 
 async function previewGalleryPhoto(event) {
 
+    const input = document.getElementById("galleryPhotoInput");
     const file = event.target.files[0];
 
     if (!file) return;
 
-    const img = new Image();
+    showToast("📷 Fotoğraf yükleniyor…");
 
-    img.src = URL.createObjectURL(file);
+    try {
 
-    img.onload = async () => {
+        const prepared = await prepareImage(file);
 
-        const canvas = document.createElement("canvas");
-
-        const MAX_WIDTH = 800;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > MAX_WIDTH) {
-
-            height = height * (MAX_WIDTH / width);
-            width = MAX_WIDTH;
-
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const image = canvas.toDataURL(
-            "image/jpeg",
-            0.65
-        );
-
-        await window.firebase.addPhoto(image);
+        await window.firebase.addPhoto(prepared);
 
         showToast("📷 Fotoğraf eklendi");
 
         loadPhotos();
 
-        document.getElementById("galleryPhotoInput").value = "";
+    } catch (error) {
 
-    };
+        console.error("Fotoğraf eklenemedi:", error);
+        showToast("Fotoğraf yüklenemedi, tekrar dene.");
+
+    } finally {
+
+        input.value = "";
+
+    }
 
 }
 

@@ -25,7 +25,7 @@ async function initSlider() {
 
         wrapper.innerHTML += `
             <div class="swiper-slide">
-                <img src="${photo.image}">
+                <img src="${imageSrc(photo, 'full')}">
             </div>
         `;
 
@@ -59,49 +59,31 @@ async function initSlider() {
 
 async function previewSliderPhoto(event) {
 
+    const input = document.getElementById("sliderPhotoInput");
     const file = event.target.files[0];
 
     if (!file) return;
 
-    const img = new Image();
+    showToast("🎞️ Fotoğraf yükleniyor…");
 
-    img.src = URL.createObjectURL(file);
+    try {
 
-    img.onload = async () => {
+        const prepared = await prepareImage(file);
 
-        const canvas = document.createElement("canvas");
-
-        const MAX_WIDTH = 800;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > MAX_WIDTH) {
-
-            height = height * (MAX_WIDTH / width);
-            width = MAX_WIDTH;
-
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const image = canvas.toDataURL(
-            "image/jpeg",
-            0.65
-        );
-
-        await window.firebase.addSliderImage(image);
+        await window.firebase.addSliderImage(prepared);
 
         showToast("🎞️ Slider fotoğrafı eklendi");
 
-        document.getElementById("sliderPhotoInput").value = "";
+    } catch (error) {
 
-    };
+        console.error("Slider fotoğrafı eklenemedi:", error);
+        showToast("Fotoğraf yüklenemedi, tekrar dene.");
+
+    } finally {
+
+        input.value = "";
+
+    }
 
 }
 
@@ -132,7 +114,8 @@ function loadSliderImagesList() {
             <div style="display:flex;align-items:center;gap:12px;width:100%;">
 
                 <img
-                    src="${photo.image}"
+                    src="${imageSrc(photo, 'thumb')}"
+                    loading="lazy"
                     style="
                         width:70px;
                         height:70px;
