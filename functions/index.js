@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Push bildirimleri
 //
-// memories / songs / dreams koleksiyonlarına yeni bir kayıt
+// memories / songs / dreams / misses koleksiyonlarına yeni bir kayıt
 // eklenince, çiftin DİĞER üyesinin telefonlarına bildirim gönderir.
 // Bildirime dokununca uygulama ilgili sayfayı açar (data.page).
 //
@@ -38,6 +38,18 @@ const TYPES = {
         page: "our-dreams",
         icon: "✨",
         body: (d) => withPreview("Yeni bir hayal ekledi", d.title)
+    },
+    misses: {
+        page: "miss",
+        icon: "💗",
+        // Aynı etiketli bildirimler telefonda üst üste yığılmaz, yenisi eskisinin yerine geçer
+        tag: "miss",
+        body: (d) => {
+            const n = Math.max(1, Math.floor(Number(d.count) || 1));
+            if (n === 1) return "Seni özledi 🥺";
+            if (n >= 100) return `Seni tam ${n} kere özledi! 💥💗`;
+            return `Seni ${n} kere özledi 🥺`;
+        }
     }
 };
 
@@ -117,7 +129,8 @@ async function notifyPartner(type, event) {
                 notification: {
                     channelId: "partner",
                     icon: "ic_stat_heart",
-                    color: "#c084fc"
+                    color: "#c084fc",
+                    ...(t.tag ? { tag: t.tag } : {})
                 }
             }
         });
@@ -156,3 +169,4 @@ async function notifyPartner(type, event) {
 exports.onMemoryCreated = onDocumentCreated("memories/{id}", (event) => notifyPartner("memories", event));
 exports.onSongCreated = onDocumentCreated("songs/{id}", (event) => notifyPartner("songs", event));
 exports.onDreamCreated = onDocumentCreated("dreams/{id}", (event) => notifyPartner("dreams", event));
+exports.onMissCreated = onDocumentCreated("misses/{id}", (event) => notifyPartner("misses", event));

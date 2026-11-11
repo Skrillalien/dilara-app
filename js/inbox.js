@@ -294,7 +294,8 @@ function openInboxBanner() {
 
     hideInboxBanner();
 
-    if (target) showPage(target);
+    if (typeof target === "function") target();
+    else if (target) openAppTarget(target);
 
 }
 

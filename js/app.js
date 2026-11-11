@@ -3,6 +3,31 @@ let coupleNames = {
     partner: "Ben"
 };
 
+// Bir kaydı (not, şarkı, hayal, fotoğraf) kimin eklediğini çiftin
+// kendi isimlerinden bulur. İsimler veritabanından gelir (users/{uid}.name).
+// Eski kayıtlarda authorId yok, sadece isim (author) tutuluyordu.
+function authorInfo(item) {
+
+    const myUid = window.firebase?.getCurrentAuthUser?.()?.uid;
+
+    if (!item || (!item.authorId && !item.author)) {
+        return { mine: false, emoji: "", name: "", label: "" };
+    }
+
+    const mine = item.authorId
+        ? item.authorId === myUid
+        : item.author === coupleNames.me;
+
+    const name = item.authorId
+        ? (mine ? coupleNames.me : coupleNames.partner)
+        : item.author;
+
+    const emoji = mine ? "💙" : "💗";
+
+    return { mine, emoji, name, label: `${emoji} ${name}` };
+
+}
+
 const savedTheme = localStorage.getItem('theme') || 'mor';
 setTheme(savedTheme);
 
@@ -207,13 +232,14 @@ function checkUserSelection() {
             overlay.style.display = "none";
 
             checkStreak();
+            startMissYou();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git
             window.appReady = true;
 
             if (window.pendingPushPage) {
-                showPage(window.pendingPushPage);
+                openAppTarget(window.pendingPushPage);
                 window.pendingPushPage = null;
             }
 
@@ -288,6 +314,8 @@ function updateCoupleNameDisplay() {
     // İki isim de varsa
     element.textContent =
         `${myName} & ${partnerName}`;
+
+    document.title = `${myName} & ${partnerName} 💜`;
 
 }
 

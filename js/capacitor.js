@@ -53,7 +53,7 @@ window.appNotifications = {
 
             id: 999,
 
-            title: "Berk & Dilara 💜",
+            title: "💜",
 
             body: "Bildirim sistemi çalışıyor! 🎉",
 
@@ -78,8 +78,8 @@ function openPushPage(page) {
 
     if (!page) return;
 
-    if (window.appReady && typeof showPage === "function") {
-        showPage(page);
+    if (window.appReady && typeof openAppTarget === "function") {
+        openAppTarget(page);
     } else {
         // Uygulama henüz yüklenmedi: giriş tamamlanınca app.js açar
         window.pendingPushPage = page;
@@ -191,6 +191,8 @@ function closeTopLayer() {
         closeModal();
         return true;
     }
+
+    if (isOpen("missPanel")) { closeMissPanel(); return true; }
 
     if (isOpen("bnyPanel")) { toggleBNY(); return true; }
 
