@@ -1152,7 +1152,85 @@ async function updateDream(id, data) {
 
 }
 
+// ── Özledim ─────────────────────────────────────────────────
+// misses/{id} = { coupleId, authorId, count, day:"YYYY-MM-DD", clientAt, createdAt }
+// Her "özledim serisi" (art arda basışlar) tek bir kayıt olur.
+// Cloud Function partnere bildirim gönderir.
+
+function localDayKey(date = new Date()) {
+
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${d}`;
+
+}
+
+async function addMiss(count) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    await addDoc(collection(db, "misses"), {
+        coupleId,
+        authorId: user.uid,
+        count: Math.max(1, Math.floor(count)),
+        day: localDayKey(),
+        clientAt: Date.now(),
+        createdAt: serverTimestamp()
+    });
+
+}
+
+// Bugünün özledimlerini dinler. callback(items, changes)
+// changes: ilk yüklemeden sonra yeni eklenenler
+function listenTodayMisses(callback) {
+
+    let unsubscribe = null;
+    let first = true;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) {
+            callback([], []);
+            return;
+        }
+
+        // İki eşitlik filtresi: ek index gerektirmez
+        const q = query(
+            collection(db, "misses"),
+            where("coupleId", "==", coupleId),
+            where("day", "==", localDayKey())
+        );
+
+        unsubscribe = onSnapshot(q, snapshot => {
+
+            const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            const added = first
+                ? []
+                : snapshot.docChanges()
+                    .filter(c => c.type === "added")
+                    .map(c => ({ id: c.doc.id, ...c.doc.data() }));
+
+            first = false;
+
+            callback(items, added);
+
+        }, error => console.warn("Özledim dinlenemedi:", error));
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
 window.firebase = {
+    addMiss,
+    listenTodayMisses,
     registerUser,
     loginUser,
     logoutUser,

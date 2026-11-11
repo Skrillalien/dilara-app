@@ -11,7 +11,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Berk & Dilara 💜</title>
 
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
   
   <link
     rel="stylesheet"
@@ -32,6 +32,11 @@
     <div class="inbox-banner-text" id="inboxBannerText"></div>
   </div>
 </div>
+
+<!-- Özledim butonu (sol alt) -->
+<button id="missBtn" onclick="openMissPanel()" aria-label="Özledim">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/></svg>
+</button>
 
 <button id="randomIdeaBtn" onclick="toggleBNY()">
     🎲
@@ -1066,6 +1071,54 @@
   </div>
 </div>
 
+<!-- Özledim paneli -->
+<div class="bny-overlay" id="missOverlay" onclick="closeMissPanel()"></div>
+
+<div class="bny-panel miss-panel" id="missPanel">
+
+  <div class="bny-handle"></div>
+
+  <div class="bny-title" id="missTitle">Özledin mi? 💗</div>
+  <div class="miss-sub" id="missSub"></div>
+
+  <div class="miss-stage">
+
+    <div class="miss-combo" id="missCombo"></div>
+
+    <button class="miss-heart" id="missHeart" aria-label="Özledim">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <clipPath id="missHeartClip"><path d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/></clipPath>
+          <linearGradient id="missFillGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color:var(--accent2)"/>
+            <stop offset="1" style="stop-color:var(--accent)"/>
+          </linearGradient>
+        </defs>
+        <path class="miss-heart-bg" d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/>
+        <g clip-path="url(#missHeartClip)">
+          <rect id="missFillRect" x="0" y="21.4" width="24" height="24" fill="url(#missFillGrad)"/>
+        </g>
+        <path class="miss-heart-outline" d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/>
+      </svg>
+      <div class="miss-floaters" id="missFloaters"></div>
+    </button>
+
+    <div class="miss-goal" id="missGoal"></div>
+
+  </div>
+
+  <div class="miss-status" id="missStatus"></div>
+
+  <div class="miss-today" id="missToday"></div>
+
+</div>
+
+<!-- Özledim patlaması -->
+<div class="miss-burst" id="missBurst" aria-hidden="true">
+  <div class="miss-burst-heart">💗</div>
+  <div class="miss-burst-text" id="missBurstText"></div>
+</div>
+
 <!-- Seri kurtarma -->
 <div id="streakRescueOverlay" class="streak-rescue-overlay">
 
@@ -1205,33 +1258,34 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=6"></script>
+    <script type="module" src="js/firebase.js?v=7"></script>
     
     <script src="js/theme.js?v=2"></script>
     <script src="js/bny.js?v=2"></script>
-    <script src="js/events.js?v=3"></script>
+    <script src="js/events.js?v=4"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
     <script src="js/notifications.js?v=2"></script>
-    <script src="js/memories.js?v=3"></script>
+    <script src="js/memories.js?v=4"></script>
     <script src="js/photos.js?v=1"></script>
-    <script src="js/songs.js?v=2"></script>
-    <script src="js/dreams.js?v=1"></script>
+    <script src="js/songs.js?v=3"></script>
+    <script src="js/dreams.js?v=2"></script>
 
 
 
-    <script src="js/ui.js?v=3"></script>
+    <script src="js/ui.js?v=4"></script>
 
     <script src="js/slider.js?v=1"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
+    <script src="js/missyou.js?v=1"></script>
 
-    <script src="js/inbox.js?v=1"></script>
+    <script src="js/inbox.js?v=2"></script>
 
-    <script src="js/app.js?v=5"></script>
+    <script src="js/app.js?v=6"></script>
   
 </body>
 </html>

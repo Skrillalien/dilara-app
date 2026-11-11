@@ -8,6 +8,22 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// Bildirimden / şeritten gelen hedefi açar.
+// "miss" → ana sayfa + Özledim paneli, diğerleri → sayfa adı
+function openAppTarget(target) {
+
+    if (!target) return;
+
+    if (target === "miss") {
+        showPage("home");
+        if (typeof openMissPanel === "function") openMissPanel();
+        return;
+    }
+
+    showPage(target);
+
+}
+
 function showPage(page) {
 
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -42,6 +58,8 @@ function showPage(page) {
         inboxMarkSeenForPage(page);
     }
 
+    if (typeof updateMissButton === "function") updateMissButton();
+
     if (fab) {
         if (page === "home") {
             fab.style.display = "flex";
@@ -70,39 +88,8 @@ function openImage(index) {
 
     document.getElementById("viewerImage").src = photo.image;
 
-        if (photo.authorId) {
-
-            const currentUid =
-                window.firebase.getCurrentAuthUser()?.uid;
-
-            if (photo.authorId === currentUid) {
-
-                document.getElementById("viewerAuthor").textContent =
-                    `💙 ${coupleNames.me || "Sen"}`;
-
-            } else {
-
-                document.getElementById("viewerAuthor").textContent =
-                    `💗 ${coupleNames.partner || "Ben"}`;
-
-            }
-
-        } else if (photo.author === "Berk") {
-
-            document.getElementById("viewerAuthor").textContent =
-                "💙 Berk";
-
-        } else if (photo.author === "Dilara") {
-
-            document.getElementById("viewerAuthor").textContent =
-                "💗 Dilara";
-
-        } else {
-
-            document.getElementById("viewerAuthor").textContent =
-                "";
-
-        }
+    document.getElementById("viewerAuthor").textContent =
+        authorInfo(photo).label;
 
     if (photo.createdAt?.seconds) {
 

@@ -228,17 +228,9 @@ function renderSongCard(song) {
     const platform = song.platform || detectSongPlatform(song.link);
     const cleanNote = (song.note || "").trim();
 
-    const isMine = song.authorId
-        ? song.authorId === window.firebase.getCurrentAuthUser()?.uid
-        : null;
-
-    const authorName = song.authorId
-        ? (isMine ? (coupleNames.me || "Sen") : (coupleNames.partner || "Partner"))
-        : (song.author || "");
-
-    const authorEmoji = song.authorId
-        ? (isMine ? "💙" : "💗")
-        : (song.author === "Berk" ? "💙" : "💗");
+    const author = authorInfo(song);
+    const authorName = author.name;
+    const authorEmoji = author.emoji || "💗";
 
     const title = song.title || "İsimsiz şarkı";
 

@@ -1,4 +1,3 @@
-let selectedAuthor = 'Berk';
 let selectedPhoto = null;
 
 let currentMemories = [];
@@ -43,11 +42,6 @@ async function loadCoupleMemberProfiles() {
 
 }
 
-function selectAuthor(name) {
-  selectedAuthor = name;
-  document.querySelectorAll('.author-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + name.toLowerCase()).classList.add('active');
-}
 
     async function previewPhoto(event) {
     
@@ -155,19 +149,7 @@ async function loadMemories() {
               <div class="memory-card">
                 <div class="memory-header">
                 <span class="memory-author">
-                    ${
-                        m.authorId
-                            ? (
-                                m.authorId === window.firebase.getCurrentAuthUser()?.uid
-                                    ? `💙 ${coupleMemberProfiles[m.authorId] || "Sen"}`
-                                    : `💗 ${coupleMemberProfiles[m.authorId] || "Ben"}`
-                            )
-                            : (
-                                m.author === 'Berk'
-                                    ? '💙 Berk'
-                                    : '💗 Dilara'
-                            )
-                    }
+                    ${escapeInboxHtml(authorInfo(m).label)}
                 </span>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span class="memory-date">${dateStr}</span>
@@ -218,17 +200,7 @@ async function loadLastMemory() {
         const last = memories[0];
 
         document.getElementById('lastMemoryAuthor').textContent =
-            last.authorId
-                ? (
-                    last.authorId === window.firebase.getCurrentAuthUser()?.uid
-                        ? `💙 ${coupleMemberProfiles[last.authorId] || "Sen"}`
-                        : `💗 ${coupleMemberProfiles[last.authorId] || "Ben"}`
-                )
-                : (
-                    last.author === 'Berk'
-                        ? '💙 Berk'
-                        : '💗 Dilara'
-                )
+            authorInfo(last).label
         document.getElementById('lastMemoryText').innerHTML =
             formatMemoryText(last.text);
         const date = last.createdAt?.toDate?.();
@@ -286,39 +258,8 @@ function openMemoryImage(memoryId) {
 
     document.getElementById("viewerImage").src = memory.image;
 
-    if (memory.authorId) {
-
-        const currentUid =
-            window.firebase.getCurrentAuthUser()?.uid;
-
-        if (memory.authorId === currentUid) {
-
-            document.getElementById("viewerAuthor").textContent =
-                `💙 ${coupleNames.me || "Sen"}`;
-
-        } else {
-
-            document.getElementById("viewerAuthor").textContent =
-                `💗 ${coupleNames.partner || "Ben"}`;
-
-        }
-
-    } else if (memory.author === "Berk") {
-
-        document.getElementById("viewerAuthor").textContent =
-            "💙 Berk";
-
-    } else if (memory.author === "Dilara") {
-
-        document.getElementById("viewerAuthor").textContent =
-            "💗 Dilara";
-
-    } else {
-
-        document.getElementById("viewerAuthor").textContent =
-            "";
-
-    }
+    document.getElementById("viewerAuthor").textContent =
+        authorInfo(memory).label;
 
     if (memory.createdAt?.toDate) {
 
