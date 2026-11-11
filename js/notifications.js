@@ -1,4 +1,43 @@
+function isNativeApp() {
+
+    return !!window.Capacitor?.isNativePlatform?.();
+
+}
+
+// Web'de (iPhone ana ekran uygulaması, tarayıcı) partner bildirimleri
+async function requestWebNotification() {
+
+    const btn = document.getElementById("notifBtn");
+
+    const result = await window.firebase.enableWebPush();
+
+    if (result === "enabled") {
+
+        localStorage.setItem("notifEnabled", "1");
+        btn.textContent = "✓ Bildirimler aktif";
+        btn.classList.add("enabled");
+        showToast("Bildirimler aktif! 🔔");
+        return;
+
+    }
+
+    const messages = {
+        "needs-install": "iPhone'da bildirim için önce Paylaş → Ana Ekrana Ekle ile uygulamayı ekle, oradan aç.",
+        "denied": "Bildirim izni kapalı. Telefon ayarlarından bu uygulamaya bildirim izni ver.",
+        "unsupported": "Bu tarayıcı bildirimleri desteklemiyor.",
+        "error": "Bildirimler açılamadı, biraz sonra tekrar dene."
+    };
+
+    showToast(messages[result] || messages.error);
+
+}
+
 async function requestNotification() {
+
+    if (!isNativeApp()) {
+        await requestWebNotification();
+        return;
+    }
 
     try {
 
