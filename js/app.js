@@ -171,6 +171,8 @@ function checkUserSelection() {
 
             overlay.style.display = "flex";
 
+            hideSplash();
+
             return;
         }
 
@@ -203,6 +205,8 @@ function checkUserSelection() {
 
             if (!couple) {
 
+                hideSplash();
+
                 showCoupleSetup();
 
                 return;
@@ -225,13 +229,15 @@ function checkUserSelection() {
                 document.getElementById("invitePopup")
                     .classList.add("active");
 
+                hideSplash();
+
                 return;
             }
 
             // Couple tamamlanmış
             overlay.style.display = "none";
 
-            checkStreak();
+            const streakLoad = checkStreak();
             startMissYou();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
@@ -244,13 +250,23 @@ function checkUserSelection() {
             }
 
             loadWaitingItems();
-            loadLastMemory();
+            const memoryLoad = loadLastMemory();
             loadNextEvent();
-            updateMemoryAuthorInfo();
+            const authorLoad = updateMemoryAuthorInfo();
             loadDreams();
-            initSlider();
+            const sliderLoad = initSlider().then(waitFirstSlide);
             loadSliderImagesList();
-            initEvents();
+            const eventsLoad = initEvents();
+
+            // Ana sayfadaki her şey gelene kadar (en fazla 5 sn) açılış ekranı kalsın
+            settleWithin([
+                streakLoad,
+                memoryLoad,
+                authorLoad,
+                sliderLoad,
+                eventsLoad,
+                inboxReadyPromise
+            ], 5000).then(() => hideSplash());
 
             // Token kaydını sayfa verileri yüklendikten sonra yap
             setTimeout(() => window.appPush?.syncToken?.(), 4000);
@@ -262,6 +278,8 @@ function checkUserSelection() {
                 error
             );
 
+            hideSplash();
+
             showToast(
                 "Çift bilgisi alınamadı."
             );
@@ -269,6 +287,23 @@ function checkUserSelection() {
         }
 
     });
+
+}
+
+// Başlıktaki ilk fotoğraf inene kadar bekle (en fazla 2.5 sn)
+function waitFirstSlide() {
+
+    const img = document.querySelector("#headerSlides img");
+
+    if (!img || img.complete) return Promise.resolve();
+
+    return Promise.race([
+        new Promise(resolve => {
+            img.addEventListener("load", resolve, { once: true });
+            img.addEventListener("error", resolve, { once: true });
+        }),
+        new Promise(resolve => setTimeout(resolve, 2500))
+    ]);
 
 }
 
@@ -316,6 +351,11 @@ function updateCoupleNameDisplay() {
         `${myName} & ${partnerName}`;
 
     document.title = `${myName} & ${partnerName} 💜`;
+
+    // Bir sonraki açılışta açılış ekranında görünsün
+    try {
+        localStorage.setItem("splashNames", `${myName} & ${partnerName}`);
+    } catch {}
 
 }
 
@@ -686,89 +726,6 @@ async function joinMyCouple() {
 
 }
 
-function initSettingsDrag() {
-
-    const panel = document.getElementById("settingsPanel");
-    const header = panel?.querySelector(".settings-header");
-
-    if (!panel || !header) return;
-
-    let startY = 0;
-    let currentY = 0;
-    let dragging = false;
-
-    header.addEventListener("touchstart", (e) => {
-
-        if (e.touches.length !== 1) return;
-
-        startY = e.touches[0].clientY;
-        currentY = startY;
-        dragging = true;
-
-        panel.classList.add("dragging");
-
-    }, { passive: true });
-
-
-    header.addEventListener("touchmove", (e) => {
-
-        if (!dragging) return;
-
-        currentY = e.touches[0].clientY;
-
-        let delta = currentY - startY;
-
-        if (delta < 0) {
-            delta = 0;
-        }
-
-        panel.style.transform =
-            `translateX(-50%) translateY(${delta}px)`;
-
-    }, { passive: true });
-
-
-    header.addEventListener("touchend", () => {
-
-        if (!dragging) return;
-
-        dragging = false;
-
-        const delta = currentY - startY;
-
-        panel.classList.remove("dragging");
-
-        // Aşağı yeterince çekildiyse kapat
-        if (delta > 120) {
-
-            toggleSettings();
-
-            // Inline transform'u kaldır.
-            // Böylece CSS'teki translateY(100%) devreye girer.
-            requestAnimationFrame(() => {
-                panel.style.transform = "";
-            });
-
-            return;
-        }
-
-        // Yeterince çekilmediyse eski yerine dön
-        panel.style.transform = "";
-
-    });
-
-
-    header.addEventListener("touchcancel", () => {
-
-        dragging = false;
-
-        panel.classList.remove("dragging");
-
-        panel.style.transform = "";
-
-    });
-
-}
 
 function closeInvitePopup() {
 
@@ -886,6 +843,6 @@ window.addEventListener("load", () => {
 
     startMidnightUpdater();
 
-    initSettingsDrag();
+    initSheetDrags();
 
 });

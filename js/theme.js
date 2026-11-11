@@ -38,8 +38,14 @@ function toggleSettings() {
     const overlay = document.getElementById('settingsOverlay');
     const navBtn = document.getElementById('settingsNavBtn');
 
-    panel.classList.toggle('open');
-    overlay.classList.toggle('open');
-    navBtn.classList.toggle('active');
+    const opening = !panel.classList.contains('open');
+
+    if (opening && typeof closeSheets === 'function') closeSheets('settingsPanel');
+
+    panel.classList.toggle('open', opening);
+    overlay.classList.toggle('open', opening);
+    navBtn?.classList.toggle('active', opening);
+
+    if (typeof updateMissButton === 'function') updateMissButton();
 
 }

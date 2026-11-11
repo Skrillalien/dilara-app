@@ -211,6 +211,8 @@ function isMissPanelOpen() {
 
 function openMissPanel() {
 
+    if (typeof closeSheets === "function") closeSheets("missPanel");
+
     const { partner } = missNames();
 
     document.getElementById("missTitle").textContent = "Özledin mi? 💗";
@@ -246,11 +248,14 @@ function updateMissButton() {
 
     const onHome = document.getElementById("page-home")?.classList.contains("active");
 
-    btn.style.display = missReady && onHome && !isMissPanelOpen() ? "flex" : "none";
+    const anySheetOpen = ["missPanel", "bnyPanel", "settingsPanel"]
+        .some(id => document.getElementById(id)?.classList.contains("open"));
 
-    // Panel açıkken zar butonu panelin üstünde kalmasın
+    // Bir panel açıkken iki yuvarlak buton da gizlenir
+    btn.style.display = missReady && onHome && !anySheetOpen ? "flex" : "none";
+
     const dice = document.getElementById("randomIdeaBtn");
-    if (dice) dice.style.visibility = isMissPanelOpen() ? "hidden" : "";
+    if (dice) dice.style.visibility = anySheetOpen ? "hidden" : "";
 
 }
 
