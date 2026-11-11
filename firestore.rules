@@ -95,10 +95,10 @@ service cloud.firestore {
         && request.resource.data.members == [me()];
 
       // Üyeler çift bilgilerini (başlangıç tarihi, seri…) değiştirebilir
-      // ama üye listesine ve davet koduna dokunamaz
+      // ama üye listesine, davet koduna ve pakete (plan) dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode']);
+        && !changes().hasAny(['members', 'inviteCode', 'plan']);
 
       // Henüz partner katılmamışsa kurucu çifti silebilir
       allow delete: if signedIn() && resource.data.members == [me()];
@@ -127,6 +127,28 @@ service cloud.firestore {
         && !changes().hasAny(['coupleId', 'authorId']);
 
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
+    }
+
+    // ── Mühürlü mektuplar ───────────────────────────────────
+    // Yazma işlemleri Cloud Function'lardan geçer (sealLetter,
+    // updateLetter, deleteLetter, openLetterNow). İstemci sadece
+    // "gördüm" (seenBy) ve "okudum" (readAt) işaretleyebilir.
+    match /letters/{letterId} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow update: if inMyCouple(resource.data.coupleId)
+        && changes().hasOnly(['seenBy', 'readAt']);
+
+      allow create, delete: if false;
+    }
+
+    // Mühürlü mektubun içeriği: sadece yazan okuyabilir
+    match /letterContents/{letterId} {
+
+      allow read: if signedIn() && resource.data.authorId == me();
+
+      allow write: if false;
     }
 
     // ── Bildirim token'ları ─────────────────────────────────

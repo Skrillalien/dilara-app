@@ -1335,7 +1335,198 @@ function listenTodayMisses(callback) {
 
 }
 
+// ── Mühürlü mektuplar ───────────────────────────────────────
+// Yazma işlemleri Cloud Function'lardan geçer (functions/index.js).
+// Bkz. js/letters.js
+
+// Çiftin bütün mektupları (mühürlüler içeriksiz)
+function listenLetters(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) {
+            callback([]);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(collection(db, "letters"), where("coupleId", "==", coupleId)),
+            snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+            error => {
+                console.error("Mektuplar dinlenemedi:", error);
+                callback([]);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// Benim mühürlü mektuplarımın içerikleri (sadece ben görebilirim)
+function listenMyLetterContents(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        const user = auth.currentUser;
+
+        if (!coupleId || !user) {
+            callback([]);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(
+                collection(db, "letterContents"),
+                where("coupleId", "==", coupleId),
+                where("authorId", "==", user.uid)
+            ),
+            snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+            error => {
+                console.error("Mektup içerikleri dinlenemedi:", error);
+                callback([]);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+async function uploadSealedImage(coupleId, uid, id, prepared) {
+
+    const base = `couples/${coupleId}/sealed/${uid}/${id}`;
+    const metadata = { contentType: "image/jpeg" };
+
+    await Promise.all([
+        uploadBytes(storageRef(storage, `${base}.jpg`), prepared.blob, metadata),
+        uploadBytes(storageRef(storage, `${base}_thumb.jpg`), prepared.thumbBlob, metadata)
+    ]);
+
+}
+
+function callableError(error) {
+
+    // Sunucunun gönderdiği hata kodu mesajda
+    return new Error(error?.message || "UNKNOWN");
+
+}
+
+// letter: { text, openAt (ms), hideDate, photo: prepareImage() çıktısı | null }
+async function sealLetter(letter) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const id = doc(collection(db, "letters")).id;
+
+    if (letter.photo) await uploadSealedImage(coupleId, user.uid, id, letter.photo);
+
+    try {
+
+        await httpsCallable(functions, "sealLetter")({
+            id,
+            text: letter.text,
+            openAt: letter.openAt,
+            hideDate: letter.hideDate,
+            hasPhoto: !!letter.photo
+        });
+
+    } catch (error) {
+
+        throw callableError(error);
+
+    }
+
+    return id;
+
+}
+
+// photo: prepareImage() çıktısı (değiştir) | "remove" (kaldır) | null (dokunma)
+async function updateLetter(id, letter) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    let photoMode = "keep";
+
+    if (letter.photo === "remove") {
+        photoMode = "remove";
+    } else if (letter.photo) {
+        await uploadSealedImage(coupleId, user.uid, id, letter.photo);
+        photoMode = "replace";
+    }
+
+    try {
+
+        await httpsCallable(functions, "updateLetter")({
+            id,
+            text: letter.text,
+            openAt: letter.openAt,
+            hideDate: letter.hideDate,
+            photo: photoMode
+        });
+
+    } catch (error) {
+
+        throw callableError(error);
+
+    }
+
+}
+
+async function deleteLetter(id) {
+
+    try {
+        await httpsCallable(functions, "deleteLetter")({ id });
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+async function openLetterNow(id) {
+
+    try {
+        const result = await httpsCallable(functions, "openLetterNow")({ id });
+        return result.data?.opened === true;
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+async function markLetterRead(id) {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await updateDoc(doc(db, "letters", id), {
+        readAt: serverTimestamp(),
+        seenBy: arrayUnion(user.uid)
+    });
+
+}
+
 window.firebase = {
+    listenLetters,
+    listenMyLetterContents,
+    sealLetter,
+    updateLetter,
+    deleteLetter,
+    openLetterNow,
+    markLetterRead,
     listLegacyImages,
     attachLegacyImage,
     addMiss,

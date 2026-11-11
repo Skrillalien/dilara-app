@@ -3,7 +3,8 @@ rules_version = '2';
 // ─────────────────────────────────────────────────────────────
 // Storage güvenlik kuralları
 //
-// Fotoğraflar couples/{coupleId}/{tür}/{dosya} yolunda durur.
+// Fotoğraflar couples/{coupleId}/{tür}/{dosya} yolunda durur
+// (tür: photos, memories, slider, letters, sealed/{yazan}).
 // Sadece o çiftin üyeleri yükleyebilir, okuyabilir, silebilir.
 // Yüklenen dosya görsel olmalı ve 3 MB'tan küçük olmalı.
 //
@@ -19,15 +20,33 @@ service firebase.storage {
            firestore.get(/databases/(default)/documents/couples/$(coupleId)).data.members;
     }
 
-    match /couples/{coupleId}/{allPaths=**} {
+    // Mühürlü mektup fotoğrafları: sadece yazan görebilir
+    match /couples/{coupleId}/sealed/{uid}/{file} {
 
-      allow read: if isMember(coupleId);
+      allow read, delete: if request.auth != null
+        && request.auth.uid == uid
+        && isMember(coupleId);
 
-      allow create, update: if isMember(coupleId)
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && isMember(coupleId)
+        && request.resource.size < 3 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Diğer çift dosyaları
+    match /couples/{coupleId}/{kind}/{file} {
+
+      // Mühürlüler yukarıdaki kurala tabi; burada asla okunmaz
+      allow read: if kind != 'sealed' && isMember(coupleId);
+
+      // Açılmış mektup fotoğraflarını (letters/) sadece sunucu yazar
+      allow create, update: if kind in ['photos', 'memories', 'slider']
+        && isMember(coupleId)
         && request.resource.size < 3 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
 
-      allow delete: if isMember(coupleId);
+      allow delete: if kind in ['photos', 'memories', 'slider'] && isMember(coupleId);
     }
 
   }

@@ -13,8 +13,44 @@
 const INBOX_TYPES = {
     memories: { page: "our-memories", icon: "💌", one: "not",   verb: "bıraktı" },
     songs:    { page: "our-songs",    icon: "🎵", one: "şarkı", verb: "bıraktı" },
-    dreams:   { page: "our-dreams",   icon: "✨", one: "hayal", verb: "ekledi" }
+    dreams:   { page: "our-dreams",   icon: "✨", one: "hayal", verb: "ekledi" },
+    // Mühürlü mektup: hem "bıraktı" hem "açıldı" anında yeni görünür
+    // (açılınca sunucu seenBy'ı sıfırlar)
+    letters:  { page: "our-letters",  icon: "💌", one: "mühürlü mektup", verb: "bıraktı" }
 };
+
+// Açılmış mektuplar için ayrı cümle (isimden sonra ek gerektirmesin)
+function inboxLetterText(items, forBanner) {
+
+    const opened = items.filter(i => i.status === "open").length;
+    const sealed = items.length - opened;
+
+    if (opened && !sealed) {
+        return opened === 1
+            ? (forBanner ? "yazdığı mühürlü mektup açıldı, şimdi okuyabilirsin" : "mühürlü mektubu açıldı")
+            : `${opened} mühürlü mektup açıldı`;
+    }
+
+    if (sealed && !opened) {
+        return sealed === 1
+            ? (forBanner ? "sana mühürlü bir mektup bıraktı 🤫" : "yeni bir mühürlü mektup bıraktı")
+            : `${sealed} mühürlü mektup bıraktı`;
+    }
+
+    const sealedPart = sealed === 1 ? "yeni bir mühürlü mektup bıraktı" : `${sealed} mühürlü mektup bıraktı`;
+    const openedPart = opened === 1 ? "bir mektup da açıldı" : `${opened} mektup da açıldı`;
+
+    return `${sealedPart} · ${openedPart}`;
+
+}
+
+// Şeridin bir kez gösterildiğini hatırlamak için anahtar
+// (mektup açılınca aynı kayıt tekrar gösterilebilsin)
+function inboxKey(item) {
+
+    return item.status ? `${item.id}:${item.status}` : item.id;
+
+}
 
 // Bundan eski kayıtlar için şerit gösterme (kart yine gösterir)
 const INBOX_BANNER_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
@@ -26,8 +62,8 @@ let inboxStarted = false;
 // Üç dinleyici de ilk cevabı verince çözülür (açılış ekranı bekler)
 let inboxReadyResolve;
 const inboxReadyPromise = new Promise(resolve => { inboxReadyResolve = resolve; });
-let inboxUnseen = { memories: [], songs: [], dreams: [] };
-let inboxReady = { memories: false, songs: false, dreams: false };
+let inboxUnseen = { memories: [], songs: [], dreams: [], letters: [] };
+let inboxReady = { memories: false, songs: false, dreams: false, letters: false };
 let inboxBannerTimer = null;
 let inboxBannerTarget = null;
 let inboxEvaluateTimer = null;
@@ -48,6 +84,7 @@ function startInbox() {
     window.firebase.listenMemories(items => onInboxSnapshot("memories", items));
     window.firebase.listenSongs(items => onInboxSnapshot("songs", items));
     window.firebase.listenDreams(items => onInboxSnapshot("dreams", items));
+    window.firebase.listenLetters(items => onInboxSnapshot("letters", items));
 
     setupInboxBannerGestures();
 
@@ -85,7 +122,7 @@ function onInboxSnapshot(type, items) {
 
     inboxReady[type] = true;
 
-    if (inboxReady.memories && inboxReady.songs && inboxReady.dreams) inboxReadyResolve();
+    if (Object.values(inboxReady).every(Boolean)) inboxReadyResolve();
 
     renderInboxCard();
 
@@ -147,10 +184,14 @@ function renderInboxCard() {
             const count = inboxUnseen[type].length;
             const what = count === 1 ? `yeni bir ${t.one}` : `${count} yeni ${t.one}`;
 
+            const sentence = type === "letters"
+                ? inboxLetterText(inboxUnseen[type], false)
+                : `${what} ${t.verb}`;
+
             return `
                 <div class="waiting-item" onclick="showPage('${t.page}')">
                     <span class="waiting-icon">${t.icon}</span>
-                    <span class="waiting-title">${escapeInboxHtml(partnerDisplayName())} ${what} ${t.verb}</span>
+                    <span class="waiting-title">${escapeInboxHtml(partnerDisplayName())} ${sentence}</span>
                     <span class="waiting-arrow">›</span>
                 </div>
             `;
@@ -186,7 +227,7 @@ function rememberShownIds(ids) {
 
 function maybeShowInboxBanner() {
 
-    if (!inboxReady.memories || !inboxReady.songs || !inboxReady.dreams) return;
+    if (!Object.values(inboxReady).every(Boolean)) return;
 
     const shown = getShownIds();
     const now = Date.now();
@@ -197,7 +238,8 @@ function maybeShowInboxBanner() {
 
         fresh[type] = inboxUnseen[type].filter(item => {
             const created = item.createdAt?.toMillis?.() ?? now;
-            return !shown.has(item.id) && now - created < INBOX_BANNER_MAX_AGE_MS;
+            const when = item.openedAt?.toMillis?.() ?? created;
+            return !shown.has(inboxKey(item)) && now - when < INBOX_BANNER_MAX_AGE_MS;
         });
 
     }
@@ -218,7 +260,9 @@ function maybeShowInboxBanner() {
         icon = t.icon;
         target = t.page;
 
-        if (items.length === 1) {
+        if (type === "letters") {
+            text = inboxLetterText(items, true);
+        } else if (items.length === 1) {
             text = `sana yeni bir ${t.one} ${t.verb}` + inboxPreview(type, items[0]);
         } else {
             text = `sana ${items.length} yeni ${t.one} ${t.verb}`;
@@ -237,7 +281,7 @@ function maybeShowInboxBanner() {
 
     showInboxBanner(icon, name, text, target);
 
-    rememberShownIds(types.flatMap(t => fresh[t].map(i => i.id)));
+    rememberShownIds(types.flatMap(t => fresh[t].map(inboxKey)));
 
 }
 
