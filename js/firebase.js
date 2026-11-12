@@ -45,7 +45,10 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    onAuthStateChanged
+    onAuthStateChanged,
+    sendPasswordResetEmail,
+    EmailAuthProvider,
+    reauthenticateWithCredential
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
@@ -1950,7 +1953,45 @@ async function getTogetherYear(year) {
 
 }
 
+// ── Şifre sıfırlama ve hesap silme ──────────────────────────
+
+async function sendPasswordReset(email) {
+
+    // Firebase'in gönderdiği e-posta Türkçe olsun
+    auth.languageCode = "tr";
+
+    await sendPasswordResetEmail(auth, email);
+
+}
+
+// Şifreyle yeniden doğrula, sonra sunucuda hesabı ve verileri sil
+async function deleteMyAccount(password) {
+
+    const user = auth.currentUser;
+
+    if (!user?.email) throw new Error("NOT_SIGNED_IN");
+
+    await reauthenticateWithCredential(
+        user,
+        EmailAuthProvider.credential(user.email, password)
+    );
+
+    // Yeni giriş zamanı sunucuya taze bir kimlik kartıyla gitsin
+    await user.getIdToken(true);
+
+    try {
+        await httpsCallable(functions, "deleteAccount")({});
+    } catch (error) {
+        throw callableError(error);
+    }
+
+    await signOut(auth).catch(() => {});
+
+}
+
 window.firebase = {
+    sendPasswordReset,
+    deleteMyAccount,
     listenCouple,
     setProximityOptIn,
     reportPresence,

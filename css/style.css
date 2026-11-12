@@ -4991,3 +4991,105 @@ margin-bottom:14px;
     font-size: 10px;
     color: var(--muted);
 }
+
+/* ── Giriş ekranı ve hesap ─────────────────────────────── */
+.password-field {
+    position: relative;
+    width: 100%;
+}
+
+.password-field > input {
+    width: 100%;
+    padding-right: 48px;
+}
+
+.eye-btn {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Alanın altındaki boşluğu düğme hesaba katmasın */
+.password-field > input.song-input + .eye-btn {
+    margin-top: -6px;
+}
+
+.eye-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.eye-btn:active {
+    color: var(--accent);
+}
+
+.auth-link {
+    display: block;
+    margin: 2px 0 0 auto;
+    padding: 4px 2px;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.danger-link {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px;
+    border: none;
+    background: none;
+    color: #f87171;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.danger-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 14px;
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    background: #dc2626;
+    cursor: pointer;
+}
+
+.danger-btn:disabled {
+    opacity: .6;
+}
+
+.delete-info {
+    margin-bottom: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.delete-info p {
+    margin: 0 0 8px;
+}
+
+.user-btn:disabled {
+    opacity: .7;
+    cursor: default;
+}
