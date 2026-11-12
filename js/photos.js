@@ -16,6 +16,8 @@ async function getGalleryItems() {
             image: m.image,
             imageUrl: m.imageUrl,
             thumbUrl: m.thumbUrl,
+            width: m.width,
+            height: m.height,
             createdAt: m.createdAt,
             type: "memory",
             text: m.text,

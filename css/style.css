@@ -4276,3 +4276,34 @@ margin-bottom:14px;
 .img-wrap {
     width: 100%;
 }
+
+/* Görüntüleyici: hızlıca belirir; fotoğrafın yeri önceden ayrılır */
+#imageViewer {
+    animation: viewerIn .18s ease-out;
+}
+
+@keyframes viewerIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+#viewerImage {
+    animation: viewerImageIn .22s cubic-bezier(.2,.8,.2,1);
+}
+
+#viewerImage[style*="aspect-ratio"] {
+    width: 90%;
+    height: auto;
+}
+
+@keyframes viewerImageIn {
+    from { transform: scale(.94); }
+    to   { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #imageViewer,
+    #viewerImage {
+        animation: none;
+    }
+}
