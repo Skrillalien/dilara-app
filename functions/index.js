@@ -254,6 +254,9 @@ exports.joinCouple = onCall(async (request) => {
 
         if (members.includes(uid)) return coupleRef.id;
 
+        // Partneri hesabını silmiş (arşiv) çiftlere kimse katılamaz
+        if (couple.get("partnerLeft")) throw new HttpsError("failed-precondition", "COUPLE_FULL");
+
         if (members.length >= 2) throw new HttpsError("failed-precondition", "COUPLE_FULL");
 
         // Kullanıcının mevcut çifti
@@ -1654,6 +1657,172 @@ exports.clearPresence = onCall(async (request) => {
     if (!uid) throw new HttpsError("unauthenticated", "Giriş yapmalısın.");
 
     await db.doc(`presence/${uid}`).delete().catch(() => {});
+
+    return { ok: true };
+
+});
+
+
+// ═════════════════════════════════════════════════════════════
+// HESAP SİLME
+//
+// Silen kişinin eklediği her şey silinir; partnerin ekledikleri
+// partnerde kalır. Partner kalan çiftte "arşiv" olarak devam eder
+// (couples.partnerLeft); bu çifte artık kimse katılamaz.
+// Kayıtlar silinince fotoğraf dosyaları tetikleyicilerle silinir.
+// İstemci önce şifreyle yeniden doğrulama yapar.
+// ═════════════════════════════════════════════════════════════
+
+// Silen kişinin eklediği kayıtların bulunduğu koleksiyonlar
+const AUTHORED_COLLECTIONS = [
+    "memories", "photos", "songs", "dreams", "events",
+    "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers"
+];
+
+async function deleteQueryInBatches(docs) {
+
+    for (let i = 0; i < docs.length; i += 400) {
+
+        const batch = db.batch();
+
+        docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+
+        await batch.commit();
+
+    }
+
+}
+
+async function deleteStoragePrefix(prefix) {
+
+    await admin.storage().bucket().deleteFiles({ prefix, force: true }).catch(error => {
+        logger.warn("Storage klasörü silinemedi", { prefix, error: error.message });
+    });
+
+}
+
+exports.deleteAccount = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "Giriş yapmalısın.");
+
+    // Hassas işlem: son 10 dakika içinde şifreyle giriş/doğrulama yapılmış olmalı
+    const authTime = (request.auth.token?.auth_time || 0) * 1000;
+
+    if (Date.now() - authTime > 10 * 60 * 1000) {
+        throw new HttpsError("failed-precondition", "REAUTH_REQUIRED");
+    }
+
+    const userRef = db.doc(`users/${uid}`);
+    const user = await userRef.get();
+    const myName = user.get("name") || "";
+    const coupleId = user.get("coupleId") || null;
+
+    logger.info("Hesap siliniyor", { uid, coupleId });
+
+    if (coupleId) {
+
+        const coupleRef = db.doc(`couples/${coupleId}`);
+        const couple = await coupleRef.get();
+        const members = (couple.get("members") || []).filter(m => m !== uid);
+
+        // 1) Benim eklediklerim (eski kayıtlarda sadece isim tutuluyordu)
+        for (const name of AUTHORED_COLLECTIONS) {
+
+            const snap = await db.collection(name).where("coupleId", "==", coupleId).get();
+
+            const mine = snap.docs.filter(d => {
+                const data = d.data();
+                return data.authorId === uid || (!data.authorId && myName && data.author === myName);
+            });
+
+            await deleteQueryInBatches(mine);
+
+        }
+
+        // 2) Günün Sorusu: açılmış cevaplardan benimkini çıkar
+        const questions = await db.collection("dailyQuestions").where("coupleId", "==", coupleId).get();
+
+        for (const q of questions.docs) {
+
+            const answers = { ...(q.get("answers") || {}) };
+            const reactions = { ...(q.get("reactions") || {}) };
+
+            delete answers[uid];
+            delete reactions[uid];
+
+            await q.ref.update({
+                answers,
+                reactions,
+                answeredBy: (q.get("answeredBy") || []).filter(m => m !== uid)
+            });
+
+        }
+
+        // 3) Mühürlü mektup fotoğraflarım
+        await deleteStoragePrefix(`couples/${coupleId}/sealed/${uid}/`);
+
+        if (members.length === 0) {
+
+            // Çiftte kimse kalmadı: ortak alanın tamamını sil
+            for (const name of [
+                ...AUTHORED_COLLECTIONS, "sliderImages", "dailyQuestions",
+                "onThisDay", "togetherDays"
+            ]) {
+                const rest = await db.collection(name).where("coupleId", "==", coupleId).get();
+                await deleteQueryInBatches(rest.docs);
+            }
+
+            await deleteStoragePrefix(`couples/${coupleId}/`);
+            await coupleRef.delete();
+
+        } else {
+
+            // Partner kalıyor: çift arşive dönüşür, kimse katılamaz
+            const moods = { ...(couple.get("moods") || {}) };
+            const optIn = { ...(couple.get("proximityOptIn") || {}) };
+
+            delete moods[uid];
+            delete optIn[uid];
+
+            await coupleRef.update({
+                members,
+                moods,
+                proximityOptIn: optIn,
+                "together.active": false,
+                partnerLeft: {
+                    name: myName || null,
+                    at: admin.firestore.FieldValue.serverTimestamp()
+                },
+                inviteCode: admin.firestore.FieldValue.delete()
+            });
+
+            await sendPushToUser(members[0], {
+                title: "💔 Hesap silindi",
+                body: `${myName || "Partnerin"} hesabını sildi. Senin eklediklerin uygulamada saklanıyor.`,
+                data: { page: "home", type: "account" }
+            }).catch(() => {});
+
+        }
+
+    }
+
+    // 4) Kişisel kayıtlar
+    const tokens = await db.collection("pushTokens").where("uid", "==", uid).get();
+
+    await deleteQueryInBatches(tokens.docs);
+
+    await Promise.all([
+        db.doc(`presence/${uid}`).delete().catch(() => {}),
+        db.doc(`moodNotify/${uid}`).delete().catch(() => {}),
+        userRef.delete()
+    ]);
+
+    // 5) Giriş hesabı
+    await admin.auth().deleteUser(uid);
+
+    logger.info("Hesap silindi", { uid });
 
     return { ok: true };
 

@@ -19,7 +19,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=16">
   
   <link
     rel="stylesheet"
@@ -126,7 +126,11 @@
             autocomplete="current-password"
         >
 
-        <button class="user-btn" onclick="loginUser()">
+        <button class="auth-link forgot-link" type="button" onclick="forgotPassword(this)">
+            Şifremi unuttum
+        </button>
+
+        <button class="user-btn primary" onclick="loginUser(this)">
             💜 Giriş Yap
         </button>
 
@@ -1162,6 +1166,10 @@
 
     </button>
 
+    <button class="danger-link" onclick="openDeleteAccount()">
+        Hesabımı sil
+    </button>
+
   </div>
 
 </div>
@@ -1555,6 +1563,31 @@
 
 </div>
 
+<!-- Hesabı sil -->
+<div id="deleteAccountModal" class="modal">
+
+    <div class="modal-header">
+        <div class="modal-title">Hesabını sil</div>
+        <button class="modal-close" onclick="closeDeleteAccount()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+        <div class="delete-info">
+            <p><b>Silinecekler:</b> hesabın, profilin ve senin eklediğin her şey: notlar, fotoğraflar, şarkılar, hayaller, mektuplar, günün sorusu cevapların, ruh hallerin.</p>
+            <p><b>Kalacaklar:</b> <span id="deleteAccountPartner">Partnerin</span> tarafından eklenenler. O, kendi eklediklerini görmeye devam eder.</p>
+            <p>Bu işlem geri alınamaz.</p>
+        </div>
+
+        <input id="deleteAccountPassword" class="song-input" type="password"
+            placeholder="Onaylamak için şifren" autocomplete="current-password">
+
+        <button class="danger-btn" onclick="confirmDeleteAccount(this)">Hesabımı kalıcı olarak sil</button>
+
+    </div>
+
+</div>
+
 <!-- Günün Sorusu: tek soru -->
 <div id="questionModal" class="modal question-modal">
 
@@ -1677,11 +1710,11 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=14"></script>
+    <script type="module" src="js/firebase.js?v=15"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
-    <script src="js/events.js?v=8"></script>
+    <script src="js/events.js?v=9"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
@@ -1701,6 +1734,7 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
+    <script src="js/account.js?v=1"></script>
     <script src="js/proximity.js?v=1"></script>
     <script src="js/onthisday.js?v=1"></script>
     <script src="js/moods.js?v=2"></script>
@@ -1710,7 +1744,7 @@
 
     <script src="js/inbox.js?v=7"></script>
 
-    <script src="js/app.js?v=14"></script>
+    <script src="js/app.js?v=15"></script>
   
 </body>
 </html>

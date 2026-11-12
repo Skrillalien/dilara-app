@@ -52,7 +52,7 @@ if (localStorage.getItem("notifEnabled") === "1" && notifBtn) {
     notifBtn.classList.add("enabled");
 }
 
-async function loginUser() {
+async function loginUser(button) {
 
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
@@ -60,6 +60,15 @@ async function loginUser() {
     if (!email || !password) {
         showToast("E-posta ve şifre gerekli.");
         return;
+    }
+
+    if (button?.disabled) return;
+
+    const originalText = button?.innerHTML;
+
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = "Giriş yapılıyor…";
     }
 
     try {
@@ -98,10 +107,13 @@ async function loginUser() {
 
         console.error(error);
 
-        if (error.code === "auth/invalid-credential") {
-            showToast("E-posta veya şifre hatalı.");
-        } else {
-            showToast("Giriş yapılamadı.");
+        showToast(authErrorText(error, "Giriş yapılamadı."));
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
         }
 
     }
@@ -226,10 +238,33 @@ function checkUserSelection() {
                 return;
             }
 
+            // Partner hesabını silmiş: kendi eklediklerini görmeye devam eder
+            if (couple.partnerLeft) {
+
+                if (couple.partnerLeft.name) {
+                    coupleNames.partner = couple.partnerLeft.name;
+                    updateCoupleNameDisplay();
+                }
+
+                const key = "partnerLeftShown";
+
+                if (localStorage.getItem(key) !== String(couple.partnerLeft.at?.seconds || 1)) {
+
+                    localStorage.setItem(key, String(couple.partnerLeft.at?.seconds || 1));
+
+                    setTimeout(() => showToast(
+                        `${couple.partnerLeft.name || "Partnerin"} hesabını sildi. Senin eklediklerin burada saklanıyor.`
+                    ), 1500);
+
+                }
+
+            }
+
             // Couple var ama partner henüz katılmamış
             if (
                 Array.isArray(couple.members) &&
-                couple.members.length === 1
+                couple.members.length === 1 &&
+                !couple.partnerLeft
             ) {
 
                 overlay.style.display = "none";
@@ -440,7 +475,7 @@ function showRegister() {
             autocomplete="new-password"
         >
 
-        <button class="user-btn" onclick="registerUser()">
+        <button class="user-btn primary" onclick="registerUser(this)">
             💜 Kayıt Ol
         </button>
 
@@ -455,9 +490,11 @@ function showRegister() {
 
     `;
 
+    setupAuthCard();
+
 }
 
-async function registerUser() {
+async function registerUser(button) {
 
     const name =
         document.getElementById("registerName").value.trim();
@@ -495,6 +532,15 @@ async function registerUser() {
 
     }
 
+    if (button?.disabled) return;
+
+    const originalText = button?.innerHTML;
+
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = "Hesap oluşturuluyor…";
+    }
+
     try {
 
         const user =
@@ -525,14 +571,13 @@ async function registerUser() {
 
         console.error(error);
 
-        if (error.code === "auth/email-already-in-use") {
+        showToast(authErrorText(error, "Kayıt oluşturulamadı."));
 
-            showToast("Bu e-posta zaten kayıtlı.");
+    } finally {
 
-        } else {
-
-            showToast("Kayıt oluşturulamadı.");
-
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = originalText;
         }
 
     }

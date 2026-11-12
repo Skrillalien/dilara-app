@@ -291,6 +291,11 @@ function limitEventEmoji(input) {
 
 function closeModal(){
 
+    if(document.getElementById("deleteAccountModal")?.classList.contains("active")){
+        closeDeleteAccount();
+        return;
+    }
+
     if(document.getElementById("togetherStatsModal")?.classList.contains("active")){
         closeTogetherStats();
         return;
