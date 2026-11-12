@@ -241,7 +241,7 @@ function openMemoryImage(memoryId) {
 
     if (!memory) return;
 
-    document.getElementById("viewerImage").src = imageSrc(memory, "full");
+    showInViewer(memory);
 
     document.getElementById("viewerAuthor").textContent =
         authorInfo(memory).label;

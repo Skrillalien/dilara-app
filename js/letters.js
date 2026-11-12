@@ -440,7 +440,7 @@ function openLetterPhoto(id) {
 
     if (!letter) return;
 
-    document.getElementById("viewerImage").src = imageSrc(letter, "full");
+    showInViewer(letter);
     document.getElementById("viewerAuthor").textContent = authorInfo(letter).label;
     document.getElementById("viewerDate").textContent = letterDateText(letterMs(letter.openedAt));
     document.getElementById("viewerText").style.display = "none";

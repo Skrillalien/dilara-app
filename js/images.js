@@ -46,6 +46,38 @@ function imageBoxAttrs(item, maxHeight) {
 
 }
 
+// Tam ekran görüntüleyicide fotoğrafı göster.
+// Önce zaten yüklenmiş küçük hali (önizleme) hemen gösterilir: ekran boş
+// kalmaz, fotoğrafın yeri baştan doğru boyutta açılır, altındaki yazı
+// kaymaz. Büyük hali arka planda inince sessizce yerine geçer.
+function showInViewer(item) {
+
+    const img = document.getElementById("viewerImage");
+
+    if (!img || !item) return;
+
+    const thumb = imageSrc(item, "thumb");
+    const full = imageSrc(item, "full");
+
+    // Boyut biliniyorsa yer hemen ayrılsın
+    img.style.aspectRatio = item.width && item.height ? `${item.width} / ${item.height}` : "";
+
+    img.dataset.pending = full;
+    img.src = thumb || full;
+
+    if (!full || full === img.src) return;
+
+    const loader = new Image();
+
+    loader.onload = () => {
+        // Bu arada başka bir fotoğraf açılmadıysa büyüğünü koy
+        if (img.dataset.pending === full) img.src = full;
+    };
+
+    loader.src = full;
+
+}
+
 function hasImage(item) {
 
     return !!(item && (item.imageUrl || item.thumbUrl || item.image));
