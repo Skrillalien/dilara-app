@@ -291,6 +291,16 @@ function limitEventEmoji(input) {
 
 function closeModal(){
 
+    if(document.getElementById("questionModal")?.classList.contains("active")){
+        closeQuestionModal();
+        return;
+    }
+
+    if(document.getElementById("customQuestionModal")?.classList.contains("active")){
+        closeCustomQuestion();
+        return;
+    }
+
     if(document.getElementById("letterModal")?.classList.contains("active")){
         closeLetterComposer();
         return;

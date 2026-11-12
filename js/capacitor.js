@@ -189,7 +189,8 @@ function closeTopLayer() {
 
     if (isOpen("letterMenu", "active")) { closeLetterMenu(); return true; }
 
-    if (isOpen("letterModal", "active") || isOpen("letterReader", "active")) {
+    if (isOpen("letterModal", "active") || isOpen("letterReader", "active") ||
+        isOpen("questionModal", "active") || isOpen("customQuestionModal", "active")) {
         closeModal();
         return true;
     }
@@ -230,7 +231,8 @@ if (App) {
             "page-our-songs",
             "page-our-calendar",
             "page-our-dreams",
-            "page-our-letters"
+            "page-our-letters",
+            "page-our-questions"
         ];
 
         if (ourPages.includes(pageId)) {

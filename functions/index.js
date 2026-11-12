@@ -810,3 +810,267 @@ exports.onLetterRead = onDocumentUpdated("letters/{id}", async (event) => {
 // Dosya temizliği
 exports.onLetterDeleted = onDocumentDeleted("letters/{id}", deleteStoredImages);
 exports.onLetterContentDeleted = onDocumentDeleted("letterContents/{id}", deleteStoredImages);
+
+
+// ═════════════════════════════════════════════════════════════
+// GÜNÜN SORUSU
+//
+//   dailyQuestions/{coupleId}_{gün}   Çiftin ikisi de görür: soru,
+//        kimlerin cevapladığı (answeredBy), açıldıysa iki cevap
+//        (answers) ve tepkiler (reactions).
+//   questionAnswers/{coupleId}_{gün}_{uid}   Sadece yazan görür.
+//
+// İkisi de cevaplayınca sunucu iki cevabı dailyQuestions'a kopyalar
+// (revealed: true). O ana kadar partnerin cevabı telefona hiç inmez.
+//
+// Soru sırası: couples.questionCursor. Kimsenin uygulamayı açmadığı
+// günlerde soru verilmez, havuz boşa harcanmaz. Premium çiftlerin
+// kendi soruları (couples.customQueue) sıradaki havuz sorusundan önce gelir.
+// ═════════════════════════════════════════════════════════════
+
+const { QUESTIONS } = require("./questions");
+
+// Gün sınırı bu saat dilimine göre (ileride çifte göre ayarlanabilir)
+const QUESTION_TIMEZONE = "Europe/Istanbul";
+const ANSWER_MAX = 1000;
+const CUSTOM_QUEUE_MAX = 30;
+const QUESTION_REACTIONS = ["❤️", "😂", "😮", "🥺", "🔥", "👏"];
+
+function questionDayKey(date = new Date()) {
+
+    // en-CA biçimi: 2026-11-12
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: QUESTION_TIMEZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(date);
+
+}
+
+function questionDocId(coupleId, day) {
+
+    return `${coupleId}_${day}`;
+
+}
+
+// Bugünün sorusunu (yoksa) oluştur
+exports.ensureTodayQuestion = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+    const { coupleId } = await requireCouple(uid);
+
+    const day = questionDayKey();
+    const questionRef = db.doc(`dailyQuestions/${questionDocId(coupleId, day)}`);
+    const coupleRef = db.doc(`couples/${coupleId}`);
+
+    await db.runTransaction(async tx => {
+
+        const [question, couple] = await Promise.all([tx.get(questionRef), tx.get(coupleRef)]);
+
+        if (question.exists) return;
+
+        const queue = couple.get("customQueue") || [];
+        const cursor = couple.get("questionCursor") || 0;
+
+        let data;
+
+        if (queue.length > 0) {
+
+            const [custom, ...rest] = queue;
+
+            data = { text: custom.text, category: "custom", customBy: custom.authorId || null, index: null };
+
+            tx.update(coupleRef, { customQueue: rest });
+
+        } else {
+
+            const q = QUESTIONS[cursor % QUESTIONS.length];
+
+            data = { text: q.text, category: q.category, index: cursor };
+
+            tx.update(coupleRef, { questionCursor: cursor + 1 });
+
+        }
+
+        tx.set(questionRef, {
+            coupleId,
+            day,
+            ...data,
+            answeredBy: [],
+            revealed: false,
+            answers: {},
+            reactions: {},
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+    });
+
+    return { id: questionRef.id, day };
+
+});
+
+// Cevap ver (ya da açılmadan önce düzenle)
+// data: { day: "2026-11-12", text }
+exports.answerQuestion = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+    const { coupleId, partnerId } = await requireCouple(uid);
+
+    const day = String(request.data?.day || "");
+    const text = String(request.data?.text ?? "").replace(/\r\n/g, "\n").trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new HttpsError("invalid-argument", "BAD_DAY");
+    if (!text) throw new HttpsError("invalid-argument", "EMPTY_ANSWER");
+    if (text.length > ANSWER_MAX) throw new HttpsError("invalid-argument", "TEXT_TOO_LONG");
+
+    const questionRef = db.doc(`dailyQuestions/${questionDocId(coupleId, day)}`);
+    const myRef = db.doc(`questionAnswers/${questionDocId(coupleId, day)}_${uid}`);
+    const partnerRef = partnerId
+        ? db.doc(`questionAnswers/${questionDocId(coupleId, day)}_${partnerId}`)
+        : null;
+
+    const result = await db.runTransaction(async tx => {
+
+        const [question, mine, theirs] = await Promise.all([
+            tx.get(questionRef),
+            tx.get(myRef),
+            partnerRef ? tx.get(partnerRef) : Promise.resolve(null)
+        ]);
+
+        if (!question.exists || question.get("coupleId") !== coupleId) {
+            throw new HttpsError("not-found", "QUESTION_NOT_FOUND");
+        }
+
+        if (question.get("revealed")) {
+            throw new HttpsError("failed-precondition", "ALREADY_REVEALED");
+        }
+
+        const now = admin.firestore.Timestamp.now();
+        const firstTime = !mine.exists;
+
+        tx.set(myRef, {
+            coupleId,
+            day,
+            authorId: uid,
+            text,
+            answeredAt: mine.exists ? mine.get("answeredAt") : now,
+            updatedAt: now
+        });
+
+        // Partner de cevapladıysa ikisini birlikte aç
+        if (theirs?.exists) {
+
+            tx.update(questionRef, {
+                answeredBy: admin.firestore.FieldValue.arrayUnion(uid),
+                revealed: true,
+                revealedAt: now,
+                answers: {
+                    [uid]: { text, at: now },
+                    [partnerId]: { text: theirs.get("text"), at: theirs.get("answeredAt") || now }
+                }
+            });
+
+            return { revealed: true, firstTime };
+
+        }
+
+        tx.update(questionRef, {
+            answeredBy: admin.firestore.FieldValue.arrayUnion(uid)
+        });
+
+        return { revealed: false, firstTime };
+
+    });
+
+    if (partnerId) {
+
+        const name = await userName(uid);
+        const data = { page: "question", type: "question", day };
+
+        if (result.revealed) {
+
+            await sendPushToUser(partnerId, {
+                title: "💬 Cevaplarınız açıldı",
+                body: `${name} de günün sorusunu cevapladı. Gel bak ne yazmış!`,
+                data,
+                tag: `question-${day}`
+            });
+
+        } else if (result.firstTime) {
+
+            await sendPushToUser(partnerId, {
+                title: `💬 ${name} günün sorusunu cevapladı`,
+                body: "Seninkini bekliyor 👀 Sen de cevaplayınca ikiniz de görebileceksiniz.",
+                data,
+                tag: `question-${day}`
+            });
+
+        }
+
+    }
+
+    return { revealed: result.revealed };
+
+});
+
+// Kendi sorunu ekle (Premium)
+exports.addCustomQuestion = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+    const { coupleId, couple } = await requireCouple(uid);
+
+    if (couple.get("plan") !== "premium") {
+        throw new HttpsError("permission-denied", "PREMIUM_REQUIRED");
+    }
+
+    const text = String(request.data?.text ?? "").replace(/\s+/g, " ").trim();
+
+    if (text.length < 5) throw new HttpsError("invalid-argument", "TOO_SHORT");
+    if (text.length > 200) throw new HttpsError("invalid-argument", "TEXT_TOO_LONG");
+
+    const queue = couple.get("customQueue") || [];
+
+    if (queue.length >= CUSTOM_QUEUE_MAX) throw new HttpsError("resource-exhausted", "QUEUE_FULL");
+
+    await db.doc(`couples/${coupleId}`).update({
+        customQueue: admin.firestore.FieldValue.arrayUnion({
+            text,
+            authorId: uid,
+            at: admin.firestore.Timestamp.now()
+        })
+    });
+
+    return { position: queue.length + 1 };
+
+});
+
+// Cevaba tepki bırakılınca diğerine haber ver
+exports.onQuestionReaction = onDocumentUpdated("dailyQuestions/{id}", async (event) => {
+
+    const before = event.data.before.data() || {};
+    const after = event.data.after.data() || {};
+
+    const prev = before.reactions || {};
+    const next = after.reactions || {};
+
+    for (const [reactorId, emoji] of Object.entries(next)) {
+
+        if (!emoji || prev[reactorId] === emoji) continue;
+        if (!QUESTION_REACTIONS.includes(emoji)) continue;
+
+        const couple = await db.doc(`couples/${after.coupleId}`).get();
+        const otherId = (couple.get("members") || []).find(m => m !== reactorId);
+
+        if (!otherId) continue;
+
+        await sendPushToUser(otherId, {
+            title: `${emoji} ${await userName(reactorId)}`,
+            body: "Günün sorusundaki cevabına tepki bıraktı",
+            data: { page: "our-questions", type: "question", day: after.day },
+            tag: `question-reaction-${after.day}`
+        });
+
+    }
+
+});

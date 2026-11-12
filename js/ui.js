@@ -159,6 +159,16 @@ function openAppTarget(target) {
 
     if (!target) return;
 
+    // Günün Sorusu bildirimi: ana sayfadaki karta git
+    if (target === "question") {
+        showPage("home");
+        setTimeout(() => {
+            document.getElementById("questionCard")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+        return;
+    }
+
     if (target === "miss") {
         showPage("home");
         if (typeof openMissPanel === "function") openMissPanel();
@@ -204,6 +214,11 @@ function showPage(page) {
     // Bu sayfadaki yeni notlar/şarkılar/hayaller artık görüldü
     if (typeof inboxMarkSeenForPage === "function") {
         inboxMarkSeenForPage(page);
+    }
+
+    if (page === "our-questions" && typeof renderQuestionArchive === "function") {
+        startQuestions();
+        renderQuestionArchive();
     }
 
     if (page === "our-letters" && typeof renderLetters === "function") {

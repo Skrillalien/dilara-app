@@ -95,10 +95,10 @@ service cloud.firestore {
         && request.resource.data.members == [me()];
 
       // Üyeler çift bilgilerini (başlangıç tarihi, seri…) değiştirebilir
-      // ama üye listesine, davet koduna ve pakete (plan) dokunamaz
+      // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan']);
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue']);
 
       // Henüz partner katılmamışsa kurucu çifti silebilir
       allow delete: if signedIn() && resource.data.members == [me()];
@@ -145,6 +145,30 @@ service cloud.firestore {
 
     // Mühürlü mektubun içeriği: sadece yazan okuyabilir
     match /letterContents/{letterId} {
+
+      allow read: if signedIn() && resource.data.authorId == me();
+
+      allow write: if false;
+    }
+
+    // ── Günün Sorusu ────────────────────────────────────────
+    // Soruyu ve cevapları sunucu yazar (ensureTodayQuestion, answerQuestion).
+    // İstemci sadece açılmış sorulara kendi tepkisini bırakabilir.
+    match /dailyQuestions/{questionId} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow update: if inMyCouple(resource.data.coupleId)
+        && resource.data.revealed == true
+        && changes().hasOnly(['reactions'])
+        && request.resource.data.reactions.diff(resource.data.get('reactions', {}))
+             .affectedKeys().hasOnly([me()]);
+
+      allow create, delete: if false;
+    }
+
+    // Açılmadan önce cevap sadece yazana görünür
+    match /questionAnswers/{answerId} {
 
       allow read: if signedIn() && resource.data.authorId == me();
 
