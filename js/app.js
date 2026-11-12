@@ -241,6 +241,7 @@ function checkUserSelection() {
             startMissYou();
             startLetters();
             startQuestions();
+            startMoods();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git

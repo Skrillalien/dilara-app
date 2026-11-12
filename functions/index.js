@@ -1074,3 +1074,103 @@ exports.onQuestionReaction = onDocumentUpdated("dailyQuestions/{id}", async (eve
     }
 
 });
+
+
+// ═════════════════════════════════════════════════════════════
+// RUH HALİ
+//
+//   couples.moods.{uid} = { mood, note, at }   şu anki ruh hali
+//   moodLogs/{id}                              geçmiş (takvim, Premium)
+//   nudges/{id}                                "sarıl", "kahve" gibi karşılıklar
+//
+// Zor ruh hallerinde partnere bildirim gider, ama kişi başına 6 saatte
+// en fazla bir kez. 6 saat ilk bildirimden sayılır; arada yapılan
+// değişiklikler süreyi sıfırlamaz.
+// ═════════════════════════════════════════════════════════════
+
+const MOODS = {
+    love:     { emoji: "🥰", label: "Aşık" },
+    happy:    { emoji: "😊", label: "Mutlu" },
+    calm:     { emoji: "😌", label: "Huzurlu" },
+    tired:    { emoji: "😴", label: "Yorgun" },
+    stressed: { emoji: "😰", label: "Stresli", notify: true },
+    sad:      { emoji: "😔", label: "Üzgün", notify: true },
+    angry:    { emoji: "😤", label: "Sinirli", notify: true },
+    sick:     { emoji: "🤒", label: "Hasta", notify: true }
+};
+
+const MOOD_NOTIFY_GAP_MS = 6 * 60 * 60 * 1000;
+
+const NUDGES = {
+    hug:    { emoji: "🫂", text: "sana sarıldı" },
+    coffee: { emoji: "☕", text: "sana kahve ısmarlıyor" },
+    kiss:   { emoji: "😘", text: "sana bir öpücük gönderdi" }
+};
+
+exports.onMoodLogged = onDocumentCreated("moodLogs/{id}", async (event) => {
+
+    const data = event.data?.data();
+    const mood = MOODS[data?.mood];
+
+    if (!data || !mood?.notify) return;
+
+    const { coupleId, authorId } = data;
+
+    // Son bildirim zamanı sunucuya özel bir kayıtta tutulur
+    const stateRef = db.doc(`moodNotify/${authorId}`);
+
+    const allowed = await db.runTransaction(async tx => {
+
+        const state = await tx.get(stateRef);
+        const last = state.get("lastAt")?.toMillis?.() || 0;
+
+        if (Date.now() - last < MOOD_NOTIFY_GAP_MS) return false;
+
+        tx.set(stateRef, { lastAt: admin.firestore.Timestamp.now() });
+
+        return true;
+
+    });
+
+    if (!allowed) {
+        logger.info("Ruh hali bildirimi atlandı (6 saat dolmadı)", { authorId });
+        return;
+    }
+
+    const couple = await db.doc(`couples/${coupleId}`).get();
+    const partnerId = (couple.get("members") || []).find(m => m !== authorId);
+
+    if (!partnerId) return;
+
+    const name = await userName(authorId);
+    const note = String(data.note || "").trim();
+
+    await sendPushToUser(partnerId, {
+        title: `${mood.emoji} ${name}: ${mood.label}`,
+        body: note ? `“${note.slice(0, 100)}”` : "Bugün biraz desteğe ihtiyacı olabilir 💜",
+        data: { page: "mood", type: "mood" },
+        tag: "mood"
+    });
+
+});
+
+exports.onNudge = onDocumentCreated("nudges/{id}", async (event) => {
+
+    const data = event.data?.data();
+    const nudge = NUDGES[data?.type];
+
+    if (!data || !nudge) return;
+
+    const couple = await db.doc(`couples/${data.coupleId}`).get();
+    const partnerId = (couple.get("members") || []).find(m => m !== data.authorId);
+
+    if (!partnerId) return;
+
+    await sendPushToUser(partnerId, {
+        title: `${nudge.emoji} ${await userName(data.authorId)}`,
+        body: nudge.text,
+        data: { page: "mood", type: "nudge" },
+        tag: "nudge"
+    });
+
+});

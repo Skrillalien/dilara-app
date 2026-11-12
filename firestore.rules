@@ -98,7 +98,12 @@ service cloud.firestore {
       // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue']);
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue'])
+        // Ruh hali: herkes sadece kendi ruh halini değiştirebilir
+        && (!('moods' in changes())
+            || request.resource.data.moods
+                 .diff(resource.data.get('moods', {}))
+                 .affectedKeys().hasOnly([me()]));
 
       // Henüz partner katılmamışsa kurucu çifti silebilir
       allow delete: if signedIn() && resource.data.members == [me()];
@@ -110,7 +115,7 @@ service cloud.firestore {
       function shared() {
         return collection in [
           'memories', 'songs', 'dreams', 'photos',
-          'sliderImages', 'events', 'misses'
+          'sliderImages', 'events', 'misses', 'moodLogs', 'nudges'
         ];
       }
 

@@ -1700,7 +1700,99 @@ async function reactToQuestion(id, emoji) {
 
 }
 
+// ── Ruh Hali ────────────────────────────────────────────────
+// Bkz. js/moods.js
+
+// Çiftin şu anki ruh halleri: callback({ uid: { mood, note, at } })
+function listenMoods(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) {
+            callback({});
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            doc(db, "couples", coupleId),
+            snap => callback(snap.get("moods") || {}),
+            error => console.error("Ruh hali dinlenemedi:", error)
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+async function setMood(mood, note = "") {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const cleanNote = String(note || "").trim().slice(0, 120);
+
+    const d = new Date();
+    const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    await updateDoc(doc(db, "couples", coupleId), {
+        [`moods.${user.uid}`]: { mood, note: cleanNote, at: serverTimestamp() }
+    });
+
+    // Geçmiş (takvim) ve gerekirse partnere bildirim için
+    await addDoc(collection(db, "moodLogs"), {
+        coupleId,
+        authorId: user.uid,
+        mood,
+        note: cleanNote,
+        day,
+        createdAt: serverTimestamp()
+    });
+
+}
+
+async function sendNudge(type) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    await addDoc(collection(db, "nudges"), {
+        coupleId,
+        authorId: user.uid,
+        type,
+        createdAt: serverTimestamp()
+    });
+
+}
+
+// Bir kişinin ruh hali geçmişi (takvim)
+async function getMoodLogs(uid) {
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) return [];
+
+    const snap = await getDocs(query(
+        collection(db, "moodLogs"),
+        where("coupleId", "==", coupleId),
+        where("authorId", "==", uid)
+    ));
+
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+}
+
 window.firebase = {
+    listenMoods,
+    setMood,
+    sendNudge,
+    getMoodLogs,
     listenQuestions,
     listenMyAnswers,
     ensureTodayQuestion,

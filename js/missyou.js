@@ -248,7 +248,7 @@ function updateMissButton() {
 
     const onHome = document.getElementById("page-home")?.classList.contains("active");
 
-    const anySheetOpen = ["missPanel", "bnyPanel", "settingsPanel"]
+    const anySheetOpen = (typeof SHEETS !== "undefined" ? Object.keys(SHEETS) : ["missPanel", "bnyPanel", "settingsPanel"])
         .some(id => document.getElementById(id)?.classList.contains("open"));
 
     // Bir panel açıkken iki yuvarlak buton da gizlenir
