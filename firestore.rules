@@ -98,7 +98,12 @@ service cloud.firestore {
       // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue'])
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue', 'together'])
+        // Yakınlık izni: herkes sadece kendi iznini değiştirebilir
+        && (!('proximityOptIn' in changes())
+            || request.resource.data.proximityOptIn
+                 .diff(resource.data.get('proximityOptIn', {}))
+                 .affectedKeys().hasOnly([me()]))
         // Ruh hali: herkes sadece kendi ruh halini değiştirebilir
         && (!('moods' in changes())
             || request.resource.data.moods
@@ -183,6 +188,16 @@ service cloud.firestore {
     // ── Bugün geçen yıl ─────────────────────────────────────
     // Sunucu her gece hazırlar; uygulama sadece okur
     match /onThisDay/{dayId} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow write: if false;
+    }
+
+    // ── Yakınlık ────────────────────────────────────────────
+    // Konumlara (presence) istemci hiç erişemez; sadece sunucu.
+    // Yan yana geçen günler okunabilir, yazılamaz.
+    match /togetherDays/{monthId} {
 
       allow read: if inMyCouple(resource.data.coupleId);
 

@@ -16,6 +16,7 @@ async function getGalleryItems() {
             image: m.image,
             imageUrl: m.imageUrl,
             thumbUrl: m.thumbUrl,
+            together: m.together,
             width: m.width,
             height: m.height,
             createdAt: m.createdAt,
@@ -107,6 +108,8 @@ async function loadPhotos() {
 
             const html = `
                 <div class="photo-card">
+
+                    ${photo.together ? `<span class="together-dot" title="Birlikteydik">💞</span>` : ""}
 
                     <div class="photo-cell">
                         <img

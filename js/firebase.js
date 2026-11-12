@@ -500,6 +500,7 @@ async function addMemory(text, image = null) {
 
         text,
         ...uploaded,
+        ...(window.isTogetherNow?.() ? { together: true } : {}),
 
         coupleId,
 
@@ -655,6 +656,7 @@ async function addPhoto(image) {
     await setDoc(photoRef, {
 
         ...uploaded,
+        ...(window.isTogetherNow?.() ? { together: true } : {}),
         authorId: profile.uid,
         coupleId,
 
@@ -1853,7 +1855,107 @@ async function getOnThisDayItems(items) {
 
 }
 
+// ── Yakınlık ────────────────────────────────────────────────
+// Bkz. js/proximity.js ve functions/index.js → reportPresence
+
+// Çift kaydının tamamını dinle (yakınlık durumu, izinler)
+function listenCouple(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        unsubscribe = onSnapshot(
+            doc(db, "couples", coupleId),
+            snap => callback(snap.data() || {}),
+            error => console.warn("Çift kaydı dinlenemedi:", error)
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+async function setProximityOptIn(enabled) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    await updateDoc(doc(db, "couples", coupleId), {
+        [`proximityOptIn.${user.uid}`]: enabled ? true : deleteField()
+    });
+
+    if (!enabled) {
+        await httpsCallable(functions, "clearPresence")({}).catch(() => {});
+    }
+
+}
+
+async function reportPresence(lat, lng, accuracy) {
+
+    try {
+        const result = await httpsCallable(functions, "reportPresence")({ lat, lng, accuracy });
+        return result.data;
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+// Bu ayın "yan yana" günleri: callback(gün listesi)
+function listenTogetherMonth(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        const month = istanbulToday().slice(0, 7);
+
+        unsubscribe = onSnapshot(
+            doc(db, "togetherDays", `${coupleId}_${month}`),
+            snap => callback(snap.exists() ? (snap.get("days") || []) : []),
+            error => {
+                console.warn("Yan yana günler okunamadı:", error);
+                callback([]);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// Bir yılın aylık "yan yana" günleri
+async function getTogetherYear(year) {
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) return [];
+
+    const snap = await getDocs(query(
+        collection(db, "togetherDays"),
+        where("coupleId", "==", coupleId),
+        where("year", "==", year)
+    ));
+
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+}
+
 window.firebase = {
+    listenCouple,
+    setProximityOptIn,
+    reportPresence,
+    listenTogetherMonth,
+    getTogetherYear,
     listenOnThisDay,
     getOnThisDayItems,
     listenMoods,

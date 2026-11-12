@@ -191,7 +191,7 @@ function closeTopLayer() {
 
     if (isOpen("letterModal", "active") || isOpen("letterReader", "active") ||
         isOpen("questionModal", "active") || isOpen("customQuestionModal", "active") ||
-        isOpen("moodHistoryModal", "active")) {
+        isOpen("moodHistoryModal", "active") || isOpen("togetherStatsModal", "active")) {
         closeModal();
         return true;
     }

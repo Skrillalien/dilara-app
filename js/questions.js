@@ -147,7 +147,7 @@ function startQuestions() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        questionPlan = couple?.plan === "premium" ? "premium" : "free";
+        questionPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
     }).catch(() => {});
 
     // Uygulama gece yarısını geçerek açık kaldıysa yeni günün sorusu

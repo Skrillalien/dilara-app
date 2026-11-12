@@ -135,7 +135,7 @@ function startLetters() {
 
     // Paket (ileride Premium)
     window.firebase.getMyCoupleData?.().then(couple => {
-        letterLimit = couple?.plan === "premium" ? LETTER_PREMIUM_LIMIT : LETTER_FREE_LIMIT;
+        letterLimit = isPremiumPlan(couple?.plan) ? LETTER_PREMIUM_LIMIT : LETTER_FREE_LIMIT;
         renderLetters();
     }).catch(() => {});
 

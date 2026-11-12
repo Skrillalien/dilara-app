@@ -3,6 +3,20 @@ let coupleNames = {
     partner: "Ben"
 };
 
+// ─────────────────────────────────────────────────────────────
+// PREMIUM
+// false: Premium özellikleri herkese açık (👑 işareti yine görünür).
+// true:  sadece couples.plan == "premium" olan çiftlere açık.
+// Sunucudaki eşi: functions/index.js → PREMIUM_ENFORCED (ikisi aynı olmalı)
+// ─────────────────────────────────────────────────────────────
+const PREMIUM_ENFORCED = false;
+
+function isPremiumPlan(plan) {
+
+    return !PREMIUM_ENFORCED || plan === "premium";
+
+}
+
 // Bir kaydı (not, şarkı, hayal, fotoğraf) kimin eklediğini çiftin
 // kendi isimlerinden bulur. İsimler veritabanından gelir (users/{uid}.name).
 // Eski kayıtlarda authorId yok, sadece isim (author) tutuluyordu.
@@ -243,6 +257,7 @@ function checkUserSelection() {
             startQuestions();
             startMoods();
             startOnThisDay();
+            startProximity();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git

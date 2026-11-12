@@ -116,7 +116,7 @@ function startMoods() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        moodPlan = couple?.plan === "premium" ? "premium" : "free";
+        moodPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
     }).catch(() => {});
 
 }
