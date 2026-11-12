@@ -1755,7 +1755,7 @@ async function setMood(mood, note = "") {
 
 }
 
-async function sendNudge(type) {
+async function sendNudge(type, extra = {}) {
 
     const user = auth.currentUser;
     const coupleId = await getMyCouple();
@@ -1766,6 +1766,7 @@ async function sendNudge(type) {
         coupleId,
         authorId: user.uid,
         type,
+        ...(extra.label ? { label: String(extra.label).slice(0, 40) } : {}),
         createdAt: serverTimestamp()
     });
 
@@ -1788,7 +1789,73 @@ async function getMoodLogs(uid) {
 
 }
 
+// ── Bugün geçen yıl ─────────────────────────────────────────
+// Sunucu her gece onThisDay/{coupleId}_{gün} kaydını hazırlar.
+
+function istanbulToday() {
+
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Istanbul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date());
+
+}
+
+// callback(kayıt ya da null)
+function listenOnThisDay(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) {
+            callback(null);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            doc(db, "onThisDay", `${coupleId}_${istanbulToday()}`),
+            snap => callback(snap.exists() ? { id: snap.id, ...snap.data() } : null),
+            error => {
+                console.warn("Bugün geçen yıl okunamadı:", error);
+                callback(null);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// items: [{ collection, id, label, months }] → kayıtların kendisi
+async function getOnThisDayItems(items) {
+
+    const results = await Promise.all(items.map(async item => {
+
+        try {
+
+            const snap = await getDoc(doc(db, item.collection, item.id));
+
+            return snap.exists() ? { ...item, data: { id: snap.id, ...snap.data() } } : null;
+
+        } catch {
+
+            return null;
+
+        }
+
+    }));
+
+    return results.filter(Boolean);
+
+}
+
 window.firebase = {
+    listenOnThisDay,
+    getOnThisDayItems,
     listenMoods,
     setMood,
     sendNudge,

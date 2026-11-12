@@ -200,6 +200,7 @@ function renderInboxCard() {
 
     // Diğer özelliklerin satırları (ör. Günün Sorusu)
     if (typeof questionInboxRows === "function") rows.push(...questionInboxRows());
+    if (typeof onThisDayInboxRows === "function") rows.push(...onThisDayInboxRows());
 
     card.style.display = rows.length ? "block" : "none";
     list.innerHTML = rows.join("");

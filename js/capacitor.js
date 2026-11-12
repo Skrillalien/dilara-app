@@ -201,6 +201,8 @@ function closeTopLayer() {
         return true;
     }
 
+    if (isOpen("otdViewer")) { closeOnThisDay(); return true; }
+
     if (isOpen("moodSheet")) { closeMoodPicker(); return true; }
 
     if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }

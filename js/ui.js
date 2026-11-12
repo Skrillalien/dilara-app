@@ -163,6 +163,13 @@ function openAppTarget(target) {
 
     if (!target) return;
 
+    // Bugün geçen yıl bildirimi: anıları aç
+    if (target === "onthisday") {
+        showPage("home");
+        if (typeof openOnThisDay === "function") setTimeout(openOnThisDay, 300);
+        return;
+    }
+
     // Ruh hali / sarılma bildirimi: partnerin ruh halini aç
     if (target === "mood") {
         showPage("home");
