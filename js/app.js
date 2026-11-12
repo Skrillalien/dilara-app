@@ -242,6 +242,7 @@ function checkUserSelection() {
             startLetters();
             startQuestions();
             startMoods();
+            startOnThisDay();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git

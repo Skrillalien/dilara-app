@@ -701,6 +701,7 @@ async function openLetter(id) {
 
         tx.update(letterRef, {
             status: "open",
+            ...dayIndexFields(new Date(), "open"),
             text: c.get("text") || "",
             openAt: c.get("openAt"),
             openedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -1104,7 +1105,9 @@ const MOOD_NOTIFY_GAP_MS = 6 * 60 * 60 * 1000;
 const NUDGES = {
     hug:    { emoji: "🫂", text: "sana sarıldı" },
     coffee: { emoji: "☕", text: "sana kahve ısmarlıyor" },
-    kiss:   { emoji: "😘", text: "sana bir öpücük gönderdi" }
+    kiss:   { emoji: "😘", text: "sana bir öpücük gönderdi" },
+    // Bugün geçen yıl → "Hatırladım"
+    remember: { emoji: "💜", text: null, page: "onthisday" }
 };
 
 exports.onMoodLogged = onDocumentCreated("moodLogs/{id}", async (event) => {
@@ -1166,11 +1169,323 @@ exports.onNudge = onDocumentCreated("nudges/{id}", async (event) => {
 
     if (!partnerId) return;
 
+    const label = String(data.label || "").slice(0, 40);
+
     await sendPushToUser(partnerId, {
         title: `${nudge.emoji} ${await userName(data.authorId)}`,
-        body: nudge.text,
-        data: { page: "mood", type: "nudge" },
-        tag: "nudge"
+        body: nudge.text || (label
+            ? `${label.replace(/ bugün$/, "")}ki bir anınızı hatırladı`
+            : "Eski bir anınızı hatırladı"),
+        data: { page: nudge.page || "mood", type: "nudge" },
+        tag: nudge.page ? "remember" : "nudge"
     });
+
+});
+
+
+// ═════════════════════════════════════════════════════════════
+// BUGÜN GEÇEN YIL
+//
+// Her kayda eklendiği günün anahtarı yazılır:
+//   md: "11-12", dayKey: "2026-11-12"  (Türkiye saatine göre)
+//   (açılan mektuplarda openMd / openDayKey)
+//
+// Her gece 00:05'te her çift için bugüne denk gelen anılar
+// (3 ay, 6 ay, 1 yıl, 2 yıl… önce) bulunur ve
+// onThisDay/{coupleId}_{gün} kaydına yazılır. Uygulama sadece
+// bu kaydı okur. Sabah 9'da anısı olan çiftlere bildirim gider.
+//
+// Ayın her ayda olmayan günleri (ör. 30 Kasım + 3 ay): dönüm,
+// hedef ayın son gününde gösterilir.
+// ═════════════════════════════════════════════════════════════
+
+const OTD_TIMEZONE = "Europe/Istanbul";
+const OTD_MONTH_OFFSETS = [3, 6];
+const OTD_MAX_YEARS = 20;
+const OTD_INDEX_VERSION = 1;
+
+// Türkiye saatine göre "YYYY-MM-DD"
+function istanbulDayKey(date) {
+
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: OTD_TIMEZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(date);
+
+}
+
+function dayIndexFields(date, prefix = "") {
+
+    const dayKey = istanbulDayKey(date);
+    const md = dayKey.slice(5);
+
+    return prefix
+        ? { [`${prefix}DayKey`]: dayKey, [`${prefix}Md`]: md }
+        : { dayKey, md };
+
+}
+
+function lastDayOfMonth(year, month1) {
+
+    return new Date(Date.UTC(year, month1, 0)).getUTCDate();
+
+}
+
+function pad2(n) {
+
+    return String(n).padStart(2, "0");
+
+}
+
+function otdLabel(months) {
+
+    return months < 12 ? `${months} ay önce bugün` : `${months / 12} yıl önce bugün`;
+
+}
+
+// Bugüne denk gelen kaynak günler: { "2025-11-12": { months, label }, … }
+function anniversarySourceDays(todayKey) {
+
+    const [ty, tm, td] = todayKey.split("-").map(Number);
+    const todayIsLast = td === lastDayOfMonth(ty, tm);
+
+    const offsets = [
+        ...OTD_MONTH_OFFSETS,
+        ...Array.from({ length: OTD_MAX_YEARS }, (_, i) => (i + 1) * 12)
+    ];
+
+    const result = {};
+
+    for (const months of offsets) {
+
+        // Kaynak ay
+        const total = ty * 12 + (tm - 1) - months;
+        const sy = Math.floor(total / 12);
+        const sm = (total % 12) + 1;
+        const sLast = lastDayOfMonth(sy, sm);
+
+        // Kaynak günden "months" ay sonrası (gün yoksa ayın son günü) bugün olmalı
+        const days = todayIsLast
+            ? Array.from({ length: Math.max(0, sLast - td + 1) }, (_, i) => td + i)
+            : (td <= sLast ? [td] : []);
+
+        for (const d of days) {
+            result[`${sy}-${pad2(sm)}-${pad2(d)}`] = { months, label: otdLabel(months) };
+        }
+
+    }
+
+    return result;
+
+}
+
+// Yeni kayıtlara gün anahtarını yaz
+async function indexCreatedDay(event) {
+
+    const snap = event.data;
+
+    if (!snap || snap.get("md")) return;
+
+    const created = snap.get("createdAt")?.toDate?.() || new Date();
+
+    await snap.ref.update(dayIndexFields(created)).catch(error => {
+        logger.warn("Gün anahtarı yazılamadı", { path: snap.ref.path, error: error.message });
+    });
+
+}
+
+exports.indexMemoryDay = onDocumentCreated("memories/{id}", indexCreatedDay);
+exports.indexPhotoDay = onDocumentCreated("photos/{id}", indexCreatedDay);
+exports.indexSongDay = onDocumentCreated("songs/{id}", indexCreatedDay);
+
+// Bir çiftin eski kayıtlarına (bir kez) gün anahtarı yaz
+async function backfillCoupleDays(coupleId) {
+
+    let writes = 0;
+    let batch = db.batch();
+
+    const flush = async () => {
+        if (writes % 400 === 0 && writes > 0) {
+            await batch.commit();
+            batch = db.batch();
+        }
+    };
+
+    for (const name of ["memories", "photos", "songs"]) {
+
+        const snap = await db.collection(name).where("coupleId", "==", coupleId).get();
+
+        for (const doc of snap.docs) {
+
+            if (doc.get("md")) continue;
+
+            const created = doc.get("createdAt")?.toDate?.();
+
+            if (!created) continue;
+
+            batch.update(doc.ref, dayIndexFields(created));
+            writes++;
+            await flush();
+
+        }
+
+    }
+
+    const letters = await db.collection("letters")
+        .where("coupleId", "==", coupleId)
+        .where("status", "==", "open")
+        .get();
+
+    for (const doc of letters.docs) {
+
+        if (doc.get("openMd")) continue;
+
+        const opened = (doc.get("openedAt") || doc.get("openAt"))?.toDate?.();
+
+        if (!opened) continue;
+
+        batch.update(doc.ref, dayIndexFields(opened, "open"));
+        writes++;
+        await flush();
+
+    }
+
+    if (writes % 400 !== 0) await batch.commit();
+
+    await db.doc(`couples/${coupleId}`).update({ dayIndexVersion: OTD_INDEX_VERSION });
+
+    logger.info("Gün anahtarları dolduruldu", { coupleId, writes });
+
+}
+
+// Bir çift için bugünün anılarını bul
+async function findAnniversaries(coupleId, todayKey) {
+
+    const sources = anniversarySourceDays(todayKey);
+    const mds = [...new Set(Object.keys(sources).map(k => k.slice(5)))];
+
+    if (mds.length === 0) return [];
+
+    // "in" en fazla 30 değer alır
+    const chunks = [];
+    for (let i = 0; i < mds.length; i += 30) chunks.push(mds.slice(i, i + 30));
+
+    const items = [];
+
+    const collect = (name, snap, dayField) => {
+        snap.docs.forEach(doc => {
+            const source = sources[doc.get(dayField)];
+            if (source) items.push({ collection: name, id: doc.id, months: source.months, label: source.label });
+        });
+    };
+
+    for (const chunk of chunks) {
+
+        for (const name of ["memories", "photos", "songs"]) {
+
+            const snap = await db.collection(name)
+                .where("coupleId", "==", coupleId)
+                .where("md", "in", chunk)
+                .get();
+
+            collect(name, snap, "dayKey");
+
+        }
+
+        const letters = await db.collection("letters")
+            .where("coupleId", "==", coupleId)
+            .where("openMd", "in", chunk)
+            .get();
+
+        collect("letters", letters, "openDayKey");
+
+    }
+
+    // En eski dönüm önce; aynı dönümde fotoğraflı olanlar önce
+    const order = { photos: 0, memories: 1, letters: 2, songs: 3 };
+
+    return items.sort((a, b) => b.months - a.months || order[a.collection] - order[b.collection]);
+
+}
+
+// Her gece: bugünün anılarını hazırla
+exports.prepareOnThisDay = onSchedule({
+    schedule: "5 0 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const todayKey = istanbulDayKey(new Date());
+    const couples = await db.collection("couples").select("members", "dayIndexVersion").get();
+
+    let withItems = 0;
+
+    for (const couple of couples.docs) {
+
+        if ((couple.get("members") || []).length < 2) continue;
+
+        try {
+
+            if (couple.get("dayIndexVersion") !== OTD_INDEX_VERSION) {
+                await backfillCoupleDays(couple.id);
+            }
+
+            const items = await findAnniversaries(couple.id, todayKey);
+
+            if (items.length === 0) continue;
+
+            await db.doc(`onThisDay/${couple.id}_${todayKey}`).set({
+                coupleId: couple.id,
+                day: todayKey,
+                label: items[0].label,
+                items,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            withItems++;
+
+        } catch (error) {
+
+            logger.error("Bugün geçen yıl hazırlanamadı", { coupleId: couple.id, error: error.message });
+
+        }
+
+    }
+
+    logger.info("Bugün geçen yıl hazır", { day: todayKey, couples: couples.size, withItems });
+
+});
+
+// Sabah 9: anısı olan çiftlere bildirim
+exports.notifyOnThisDay = onSchedule({
+    schedule: "0 9 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const todayKey = istanbulDayKey(new Date());
+    const snap = await db.collection("onThisDay").where("day", "==", todayKey).get();
+
+    for (const doc of snap.docs) {
+
+        const couple = await db.doc(`couples/${doc.get("coupleId")}`).get();
+        const count = (doc.get("items") || []).length;
+
+        for (const uid of couple.get("members") || []) {
+
+            await sendPushToUser(uid, {
+                title: `📅 ${doc.get("label")}`,
+                body: count > 1 ? `${count} anınız var 💜` : "Bir anınız var 💜",
+                data: { page: "onthisday", type: "onthisday" },
+                tag: "onthisday"
+            }).catch(error => logger.warn("Bildirim gönderilemedi", { uid, error: error.message }));
+
+        }
+
+    }
 
 });

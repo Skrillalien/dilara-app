@@ -180,6 +180,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Bugün geçen yıl ─────────────────────────────────────
+    // Sunucu her gece hazırlar; uygulama sadece okur
+    match /onThisDay/{dayId} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow write: if false;
+    }
+
     // ── Bildirim token'ları ─────────────────────────────────
     // Her telefon kendi token'ını kendi adına kaydeder.
     // Okumayı sadece sunucu (Cloud Function) yapar.

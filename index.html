@@ -19,7 +19,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/style.css?v=14">
   
   <link
     rel="stylesheet"
@@ -1249,6 +1249,30 @@
   </div>
 </div>
 
+<!-- Bugün geçen yıl: tam ekran -->
+<div id="otdViewer" class="otd-viewer">
+
+  <div class="otd-bars" id="otdBars"></div>
+
+  <div class="otd-top">
+    <div>
+      <div class="otd-label" id="otdLabel"></div>
+      <div class="otd-date" id="otdDate"></div>
+    </div>
+    <button class="otd-close" onclick="closeOnThisDay()" aria-label="Kapat">✕</button>
+  </div>
+
+  <div class="otd-tap" id="otdTap">
+    <div class="otd-stage" id="otdStage"></div>
+  </div>
+
+  <div class="otd-bottom">
+    <div class="otd-author" id="otdAuthor"></div>
+    <button class="otd-remember" id="otdRemember" onclick="rememberOnThisDay()">💜 Hatırladım</button>
+  </div>
+
+</div>
+
 <!-- Ruh hali panelleri -->
 <div class="bny-overlay" id="moodOverlay" onclick="closeSheets()"></div>
 
@@ -1606,7 +1630,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=12"></script>
+    <script type="module" src="js/firebase.js?v=13"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
@@ -1623,21 +1647,22 @@
 
 
 
-    <script src="js/ui.js?v=11"></script>
+    <script src="js/ui.js?v=12"></script>
 
     <script src="js/slider.js?v=2"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
+    <script src="js/onthisday.js?v=1"></script>
     <script src="js/moods.js?v=1"></script>
     <script src="js/questions.js?v=2"></script>
     <script src="js/letters.js?v=2"></script>
     <script src="js/missyou.js?v=3"></script>
 
-    <script src="js/inbox.js?v=6"></script>
+    <script src="js/inbox.js?v=7"></script>
 
-    <script src="js/app.js?v=12"></script>
+    <script src="js/app.js?v=13"></script>
   
 </body>
 </html>
