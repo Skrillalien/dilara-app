@@ -156,12 +156,14 @@ async function loadMemories() {
                 </div>
                 <div class="memory-text">${formatMemoryText(m.text)}</div>
                 ${hasImage(m) ? `
-                    <img
-                        src="${imageSrc(m, 'thumb')}"
-                        class="memory-image"
-                        loading="lazy"
-                        decoding="async"
-                        onclick="openMemoryImage('${m.id}')">
+                    <div class="img-wrap" ${imageBoxAttrs(m, 250)}>
+                        <img
+                            src="${imageSrc(m, 'thumb')}"
+                            class="memory-image"
+                            loading="lazy"
+                            decoding="async"
+                            onclick="openMemoryImage('${m.id}')">
+                    </div>
                 ` : ''}
               </div>`;
         }).join('');

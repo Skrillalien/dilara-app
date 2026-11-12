@@ -3,7 +3,8 @@ const THEME_COLORS = {
   bordo: '#0f0508',
   gri: '#0a0a0a',
   gs: '#0a0500',
-  bjk: '#050505'
+  bjk: '#050505',
+  pembe: '#fff4f7'
 };
 
 function setTheme(theme) {

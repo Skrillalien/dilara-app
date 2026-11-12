@@ -33,6 +33,19 @@ function imageSrc(item, size = "full") {
 
 }
 
+// Fotoğrafın yeri, yüklenmeden önce ayrılsın (altındaki yazı kaymasın).
+// Boyutu bilinen fotoğraflarda oran kullanılır; bilinmeyenlerde geçici bir
+// yükseklik verilir ve yüklenince yumuşakça gerçek boyuna büyür (ui.js).
+function imageBoxAttrs(item, maxHeight) {
+
+    if (item?.width && item?.height) {
+        return `style="aspect-ratio:${item.width} / ${item.height};max-height:${maxHeight}px"`;
+    }
+
+    return `data-smooth="${maxHeight}" style="height:180px"`;
+
+}
+
 function hasImage(item) {
 
     return !!(item && (item.imageUrl || item.thumbUrl || item.image));

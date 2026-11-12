@@ -368,17 +368,119 @@ async function performDeleteAction() {
 
 }
 
+// Biz kartına basınca kart büyüyerek ekranı kaplar, sonra sayfa açılır
 function openCard(page, element) {
 
     vibrate();
+
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    if (!element || reduce) {
+        showPage(page);
+        return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const ghost = document.createElement("div");
+
+    ghost.className = "card-ghost";
+    ghost.style.top = `${rect.top}px`;
+    ghost.style.left = `${rect.left}px`;
+    ghost.style.width = `${rect.width}px`;
+    ghost.style.height = `${rect.height}px`;
+
+    document.body.appendChild(ghost);
+
+    // Tarayıcı başlangıç konumunu çizsin, sonra büyüt
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => ghost.classList.add("expand"));
+    });
 
     setTimeout(() => {
 
         showPage(page);
 
-    }, 180);
+        ghost.classList.add("fade");
+
+        setTimeout(() => ghost.remove(), 200);
+
+    }, 230);
 
 }
+
+// ── Fotoğrafların yumuşak yüklenmesi ────────────────────────
+// Yüklenen her görsele "loaded" sınıfı eklenir (CSS ile belirir).
+// .img-wrap[data-smooth] içindeki görselde, yer tutucu yükseklikten
+// gerçek yüksekliğe yumuşak geçiş yapılır; altındaki yazı zıplamaz.
+
+function markImageLoaded(img) {
+
+    img.classList.add("loaded");
+
+    const wrap = img.closest(".img-wrap, .photo-cell");
+
+    if (!wrap) return;
+
+    if (wrap.dataset.smooth && img.naturalWidth) {
+
+        const max = Number(wrap.dataset.smooth) || 250;
+        const target = Math.min(max, wrap.clientWidth * img.naturalHeight / img.naturalWidth);
+
+        wrap.style.height = `${Math.round(target)}px`;
+
+        delete wrap.dataset.smooth;
+
+    }
+
+    wrap.classList.add("loaded");
+
+}
+
+document.addEventListener("load", event => {
+    if (event.target?.tagName === "IMG") markImageLoaded(event.target);
+}, true);
+
+document.addEventListener("error", event => {
+    if (event.target?.tagName === "IMG") markImageLoaded(event.target);
+}, true);
+
+// Önbellekten anında gelen ya da adresi değişen görseller için
+new MutationObserver(mutations => {
+
+    for (const m of mutations) {
+
+        if (m.type === "attributes" && m.target.tagName === "IMG") {
+
+            const img = m.target;
+
+            img.classList.remove("loaded");
+
+            if (img.complete && img.naturalWidth) markImageLoaded(img);
+
+            continue;
+
+        }
+
+        m.addedNodes.forEach(node => {
+
+            if (node.nodeType !== 1) return;
+
+            const imgs = node.tagName === "IMG" ? [node] : node.querySelectorAll?.("img") || [];
+
+            imgs.forEach(img => {
+                if (img.complete && img.naturalWidth) markImageLoaded(img);
+            });
+
+        });
+
+    }
+
+}).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["src"]
+});
 
 function vibrate() {
 
@@ -393,3 +495,9 @@ function vibrate() {
     }
 
 }
+// Sayfa ilk açıldığında zaten yüklenmiş görseller
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("img").forEach(img => {
+        if (img.complete && img.naturalWidth) markImageLoaded(img);
+    });
+});

@@ -189,6 +189,62 @@ function renderQuestionViews() {
 
     if (questionModalDay) renderQuestionModal();
 
+    if (typeof renderInboxCard === "function") renderInboxCard();
+
+}
+
+// ── "Seni Bekleyenler" satırı: açılan ama henüz bakılmamış cevaplar ──
+
+const QUESTION_SEEN_KEY = "questionRevealSeen";
+
+function questionSeenDays() {
+
+    try {
+        return new Set(JSON.parse(localStorage.getItem(QUESTION_SEEN_KEY) || "[]"));
+    } catch {
+        return new Set();
+    }
+
+}
+
+function markQuestionRevealSeen(day) {
+
+    const days = [...questionSeenDays(), day].slice(-60);
+
+    try { localStorage.setItem(QUESTION_SEEN_KEY, JSON.stringify(days)); } catch {}
+
+    if (typeof renderInboxCard === "function") renderInboxCard();
+
+}
+
+// inbox.js → renderInboxCard çağırır
+function questionInboxRows() {
+
+    const seen = questionSeenDays();
+    const limit = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    const unseen = questionsAll.filter(q =>
+        q.revealed &&
+        !seen.has(q.day) &&
+        (q.revealedAt?.toMillis?.() ?? Date.now()) > limit
+    );
+
+    if (unseen.length === 0) return [];
+
+    const latest = unseen.sort((a, b) => b.day.localeCompare(a.day))[0];
+
+    const text = unseen.length === 1
+        ? "Günün sorusunun cevapları açıldı"
+        : `${unseen.length} sorunun cevapları açıldı`;
+
+    return [`
+        <div class="waiting-item" onclick="openQuestionModal('${latest.day}')">
+            <span class="waiting-icon">💬</span>
+            <span class="waiting-title">${text}</span>
+            <span class="waiting-arrow">›</span>
+        </div>
+    `];
+
 }
 
 // ── Bir sorunun gövdesi (ana sayfa kartı ve pencere ortak) ──
@@ -297,7 +353,11 @@ function renderQuestionCard() {
 
     const q = questionByDay(questionToday());
 
-    if (!q) {
+    // Ana sayfa sade kalsın: cevapladıktan sonra kart kalkar
+    // (cevaplar açılınca "Seni Bekleyenler"de bir satır çıkar)
+    const answered = q && (q.revealed || questionMyAnswers[q.day]) && !questionEditing.has(q.day);
+
+    if (!q || answered) {
         card.style.display = "none";
         return;
     }
@@ -336,7 +396,19 @@ async function submitQuestionAnswer(day, ctx) {
 
         window.appHaptics?.light?.();
 
-        showToast(result?.revealed ? "Cevaplarınız açıldı! 💞" : "Cevabın kaydedildi 🔒");
+        if (result?.revealed) {
+
+            // İkinci cevap benimki: iki cevabı hemen göster
+            showToast("Cevaplarınız açıldı! 💞");
+
+            if (ctx === "home") setTimeout(() => openQuestionModal(day), 400);
+            else markQuestionRevealSeen(day);
+
+        } else {
+
+            showToast("Cevabın kaydedildi 🔒");
+
+        }
 
     } catch (error) {
 
@@ -453,6 +525,8 @@ function renderQuestionArchive() {
 function openQuestionModal(day) {
 
     questionModalDay = day;
+
+    if (questionByDay(day)?.revealed) markQuestionRevealSeen(day);
 
     renderQuestionModal();
 
