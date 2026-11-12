@@ -133,7 +133,7 @@ async function loadMemories() {
                     ${escapeInboxHtml(authorInfo(m).label)}
                 </span>
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <span class="memory-date">${dateStr}</span>
+                    <span class="memory-date">${m.together ? `<span class="together-chip">💞 Birlikteydik</span>` : ""}${dateStr}</span>
 
                     <button
                         class="memory-menu-btn"

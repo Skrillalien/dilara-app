@@ -19,7 +19,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=14">
+  <link rel="stylesheet" href="css/style.css?v=15">
   
   <link
     rel="stylesheet"
@@ -162,6 +162,7 @@
       <div class="header-content">
         <span class="header-emoji">💜</span>
         <div class="header-title" id="coupleNameDisplay">Sen & Ben</div>
+        <div class="together-badge" id="togetherBadge" style="display:none;">💞 Şu an birliktesiniz</div>
       </div>
 
     </div>
@@ -177,6 +178,7 @@
         <div class="counter-since">
           <span id="sinceDate">12 Şubat 2026</span>'dan beri
         </div>
+        <div class="counter-together" id="togetherMonth" style="display:none;"></div>
       </div>
     </div>
 
@@ -963,6 +965,29 @@
 
   </div>
 
+    <div class="biz-card" onclick="openTogetherStats()">
+
+      <div class="biz-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="12" r="5"/>
+                <circle cx="16" cy="12" r="5"/>
+            </svg>
+      </div>
+
+      <div>
+
+          <div class="biz-card-title">
+              Yan Yana <span class="premium-crown">👑</span>
+          </div>
+
+          <div class="biz-card-subtitle">
+              Birlikte geçirdiğimiz günler
+          </div>
+
+      </div>
+
+    </div>
+
     <div class="biz-card" onclick="openCard('our-questions', this)">
 
       <div class="biz-card-icon">
@@ -1113,6 +1138,16 @@
     <button class="theme-btn notif-btn" id="notifBtn" onclick="requestNotification()">
       🔔 Bildirimler için izin ver
     </button>
+
+    <div class="settings-label" style="margin-top:24px;">
+        Yakınlık
+    </div>
+
+    <button class="theme-btn notif-btn" id="proximityBtn" onclick="toggleProximity()">
+      💞 Yakınlığı aç
+    </button>
+
+    <div class="settings-hint" id="proximityStatus"></div>
 
     <div class="settings-label" style="margin-top:24px;">
         Hesap
@@ -1508,6 +1543,18 @@
 
 </div>
 
+<!-- Yan yana istatistikleri (Premium) -->
+<div id="togetherStatsModal" class="modal">
+
+    <div class="modal-header">
+        <div class="modal-title">💞 Yan Yana</div>
+        <button class="modal-close" onclick="closeTogetherStats()">✕</button>
+    </div>
+
+    <div class="modal-body" id="togetherStatsBody"></div>
+
+</div>
+
 <!-- Günün Sorusu: tek soru -->
 <div id="questionModal" class="modal question-modal">
 
@@ -1630,39 +1677,40 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=13"></script>
+    <script type="module" src="js/firebase.js?v=14"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
-    <script src="js/events.js?v=7"></script>
+    <script src="js/events.js?v=8"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
     <script src="js/notifications.js?v=3"></script>
     <script src="js/images.js?v=3"></script>
-    <script src="js/memories.js?v=7"></script>
-    <script src="js/photos.js?v=4"></script>
+    <script src="js/memories.js?v=8"></script>
+    <script src="js/photos.js?v=5"></script>
     <script src="js/songs.js?v=3"></script>
     <script src="js/dreams.js?v=2"></script>
 
 
 
-    <script src="js/ui.js?v=12"></script>
+    <script src="js/ui.js?v=13"></script>
 
     <script src="js/slider.js?v=2"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
+    <script src="js/proximity.js?v=1"></script>
     <script src="js/onthisday.js?v=1"></script>
-    <script src="js/moods.js?v=1"></script>
-    <script src="js/questions.js?v=2"></script>
-    <script src="js/letters.js?v=2"></script>
+    <script src="js/moods.js?v=2"></script>
+    <script src="js/questions.js?v=3"></script>
+    <script src="js/letters.js?v=3"></script>
     <script src="js/missyou.js?v=3"></script>
 
     <script src="js/inbox.js?v=7"></script>
 
-    <script src="js/app.js?v=13"></script>
+    <script src="js/app.js?v=14"></script>
   
 </body>
 </html>

@@ -20,6 +20,20 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
+// ─────────────────────────────────────────────────────────────
+// PREMIUM
+// false: Premium özellikleri herkese açık (👑 işareti yine görünür).
+// true:  sadece couples.plan == "premium" olan çiftlere açık.
+// İstemcideki eşi: js/app.js → PREMIUM_ENFORCED
+// ─────────────────────────────────────────────────────────────
+const PREMIUM_ENFORCED = false;
+
+function isPremiumCouple(couple) {
+
+    return !PREMIUM_ENFORCED || couple?.get?.("plan") === "premium";
+
+}
+
 const db = admin.firestore();
 
 // Firestore veritabanının bulunduğu bölgeyle aynı olmalı.
@@ -337,7 +351,7 @@ const LETTER_MAX_DELAY_MS = 5 * 365 * 24 * 60 * 60 * 1000;
 
 function letterLimit(couple) {
 
-    return couple.get("plan") === "premium" ? LETTER_LIMITS.premium : LETTER_LIMITS.free;
+    return isPremiumCouple(couple) ? LETTER_LIMITS.premium : LETTER_LIMITS.free;
 
 }
 
@@ -1021,7 +1035,7 @@ exports.addCustomQuestion = onCall(async (request) => {
     const uid = request.auth?.uid;
     const { coupleId, couple } = await requireCouple(uid);
 
-    if (couple.get("plan") !== "premium") {
+    if (!isPremiumCouple(couple)) {
         throw new HttpsError("permission-denied", "PREMIUM_REQUIRED");
     }
 
@@ -1419,6 +1433,14 @@ exports.prepareOnThisDay = onSchedule({
 }, async () => {
 
     const todayKey = istanbulDayKey(new Date());
+
+    // Yakınlık: 6 saatten eski konumları sil
+    const stale = await db.collection("presence")
+        .where("at", "<", admin.firestore.Timestamp.fromMillis(Date.now() - PRESENCE_KEEP_MS))
+        .get();
+
+    await Promise.all(stale.docs.map(d => d.ref.delete().catch(() => {})));
+
     const couples = await db.collection("couples").select("members", "dayIndexVersion").get();
 
     let withItems = 0;
@@ -1487,5 +1509,152 @@ exports.notifyOnThisDay = onSchedule({
         }
 
     }
+
+});
+
+
+// ═════════════════════════════════════════════════════════════
+// YAKINLIK
+//
+// Uygulama açıkken telefon kaba konumunu reportPresence'a gönderir.
+// Sunucu iki son konumu karşılaştırır ve sadece sonucu kaydeder:
+//   couples.together = { active, lastAt, since }
+//   togetherDays/{coupleId}_{YYYY-MM} = { coupleId, year, month, days: [...] }
+// Konum presence/{uid} kaydında sadece son değer olarak durur,
+// istemci okuyamaz ve 6 saatten eskisi silinir.
+//
+// İkisi de açmadıysa (couples.proximityOptIn.{uid}) çalışmaz.
+// ═════════════════════════════════════════════════════════════
+
+const PRESENCE_FRESH_MS = 30 * 60 * 1000;     // "aynı anda" sayılma penceresi
+const PRESENCE_KEEP_MS = 6 * 60 * 60 * 1000;  // konum en fazla bu kadar tutulur
+const TOGETHER_MIN_M = 100;                   // konum iyi ölçülünce eşik
+const TOGETHER_MAX_M = 200;                   // konum belirsizken en fazla
+const PRESENCE_MAX_ACCURACY_M = 500;          // bundan kötü ölçümle karar verilmez
+
+function distanceMeters(a, b) {
+
+    const R = 6371000;
+    const rad = x => x * Math.PI / 180;
+
+    const dLat = rad(b.lat - a.lat);
+    const dLng = rad(b.lng - a.lng);
+
+    const h = Math.sin(dLat / 2) ** 2 +
+        Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+
+    return 2 * R * Math.asin(Math.sqrt(h));
+
+}
+
+// İki ölçümün belirsizliğine göre 100–200 m arası eşik
+function togetherThreshold(accA, accB) {
+
+    const uncertainty = ((Number(accA) || 100) + (Number(accB) || 100)) / 2;
+
+    return Math.min(TOGETHER_MAX_M, Math.max(TOGETHER_MIN_M, uncertainty));
+
+}
+
+exports.reportPresence = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+    const { coupleId, couple, partnerId } = await requireCouple(uid);
+
+    const lat = Number(request.data?.lat);
+    const lng = Number(request.data?.lng);
+    const accuracy = Math.max(1, Math.min(5000, Number(request.data?.accuracy) || 100));
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+        throw new HttpsError("invalid-argument", "BAD_LOCATION");
+    }
+
+    const optIn = couple.get("proximityOptIn") || {};
+
+    if (!optIn[uid]) throw new HttpsError("failed-precondition", "NOT_ENABLED");
+
+    const now = Date.now();
+    const myRef = db.doc(`presence/${uid}`);
+
+    // Çok belirsiz ölçüm (ör. kapalı alanda 1-2 km): hiçbir şeyi değiştirme
+    if (accuracy > PRESENCE_MAX_ACCURACY_M) return { together: null, unsure: true };
+
+    await myRef.set({ coupleId, lat, lng, accuracy, at: admin.firestore.Timestamp.fromMillis(now) });
+
+    if (!partnerId || !optIn[partnerId]) return { together: false, waiting: true };
+
+    const partnerRef = db.doc(`presence/${partnerId}`);
+    const partner = await partnerRef.get();
+
+    let together = false;
+
+    if (partner.exists) {
+
+        const partnerAt = partner.get("at")?.toMillis?.() || 0;
+
+        if (now - partnerAt > PRESENCE_KEEP_MS) {
+
+            await partnerRef.delete().catch(() => {});
+
+        } else if (
+            now - partnerAt <= PRESENCE_FRESH_MS &&
+            partner.get("coupleId") === coupleId &&
+            (partner.get("accuracy") || 0) <= PRESENCE_MAX_ACCURACY_M
+        ) {
+
+            const distance = distanceMeters(
+                { lat, lng },
+                { lat: partner.get("lat"), lng: partner.get("lng") }
+            );
+
+            together = distance <= togetherThreshold(accuracy, partner.get("accuracy"));
+
+        }
+
+    }
+
+    const coupleRef = db.doc(`couples/${coupleId}`);
+    const previous = couple.get("together") || {};
+    const nowTs = admin.firestore.Timestamp.fromMillis(now);
+
+    if (together) {
+
+        const wasActive = previous.active && now - (previous.lastAt?.toMillis?.() || 0) <= PRESENCE_FRESH_MS;
+
+        await coupleRef.update({
+            together: { active: true, lastAt: nowTs, since: wasActive ? previous.since : nowTs }
+        });
+
+        // Bugünü "yan yana geçen günler"e ekle
+        const dayKey = istanbulDayKey(new Date(now));
+        const monthKey = dayKey.slice(0, 7);
+
+        await db.doc(`togetherDays/${coupleId}_${monthKey}`).set({
+            coupleId,
+            year: Number(dayKey.slice(0, 4)),
+            month: monthKey,
+            days: admin.firestore.FieldValue.arrayUnion(dayKey)
+        }, { merge: true });
+
+    } else if (previous.active) {
+
+        await coupleRef.update({ "together.active": false });
+
+    }
+
+    return { together };
+
+});
+
+// Kapatınca konumu hemen sil
+exports.clearPresence = onCall(async (request) => {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "Giriş yapmalısın.");
+
+    await db.doc(`presence/${uid}`).delete().catch(() => {});
+
+    return { ok: true };
 
 });
