@@ -423,7 +423,7 @@ async function getCurrentUserName() {
 
 }
 
-async function createUserProfile(uid, name, email) {
+async function createUserProfile(uid, name, email, consentVersion = null) {
 
     await setDoc(
         doc(db, "users", uid),
@@ -431,10 +431,24 @@ async function createUserProfile(uid, name, email) {
             name: name,
             email: email,
             coupleId: null,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            ...(consentVersion ? { consents: { version: consentVersion, at: serverTimestamp() } } : {})
         },
         { merge: true }
     );
+
+}
+
+// Gizlilik politikası / kullanım koşulları onayı (sürümüyle birlikte)
+async function saveConsent(version) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), {
+        consents: { version, at: serverTimestamp() }
+    });
 
 }
 
@@ -1990,6 +2004,7 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    saveConsent,
     sendPasswordReset,
     deleteMyAccount,
     listenCouple,

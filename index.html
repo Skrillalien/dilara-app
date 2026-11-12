@@ -19,7 +19,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=17">
   
   <link
     rel="stylesheet"
@@ -142,6 +142,39 @@
             Hesap Oluştur
 
         </button>
+
+        <div class="auth-legal">
+            <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik</a>
+            ·
+            <a href="#" onclick="event.preventDefault(); openLegal('terms')">Koşullar</a>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Gizlilik metni güncellendi: mevcut kullanıcılardan bir kez onay -->
+<div id="consentUpdateOverlay" class="consent-overlay">
+
+    <div class="user-card">
+
+        <div class="user-title" style="margin-bottom:12px;">🔒 Gizlilik</div>
+
+        <div class="consent-text">
+            Uygulamanın Gizlilik Politikası ve Kullanım Koşulları'nı yayınladık.
+            Kullanmaya devam etmek için göz atıp onaylaman gerekiyor.
+        </div>
+
+        <label class="consent-check">
+            <input type="checkbox" id="consentUpdateCheck">
+            <span>
+                <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik Politikası</a>'nı ve
+                <a href="#" onclick="event.preventDefault(); openLegal('terms')">Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+                Verilerimin yurt dışındaki sunucularda işlenmesine açık rıza veriyorum.
+            </span>
+        </label>
+
+        <button class="user-btn primary" onclick="acceptLegalUpdate(this)">Onaylıyorum</button>
 
     </div>
 
@@ -1166,6 +1199,15 @@
 
     </button>
 
+    <div class="settings-label" style="margin-top:24px;">
+        Hakkında
+    </div>
+
+    <div class="legal-links">
+        <button class="theme-btn" onclick="openLegal('privacy')">🔒 Gizlilik Politikası</button>
+        <button class="theme-btn" onclick="openLegal('terms')">📄 Kullanım Koşulları</button>
+    </div>
+
     <button class="danger-link" onclick="openDeleteAccount()">
         Hesabımı sil
     </button>
@@ -1710,7 +1752,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=15"></script>
+    <script type="module" src="js/firebase.js?v=16"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
@@ -1734,7 +1776,7 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
-    <script src="js/account.js?v=1"></script>
+    <script src="js/account.js?v=2"></script>
     <script src="js/proximity.js?v=1"></script>
     <script src="js/onthisday.js?v=1"></script>
     <script src="js/moods.js?v=2"></script>
@@ -1744,7 +1786,7 @@
 
     <script src="js/inbox.js?v=7"></script>
 
-    <script src="js/app.js?v=15"></script>
+    <script src="js/app.js?v=16"></script>
   
 </body>
 </html>

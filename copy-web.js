@@ -22,6 +22,7 @@ const items = [
     "icon-512.png",
     "css",
     "js",
+    "legal",
     "dailyMessages.js"
 ];
 
