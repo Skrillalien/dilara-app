@@ -106,12 +106,14 @@ async function loadPhotos() {
             const html = `
                 <div class="photo-card">
 
-                    <img
-                        src="${imageSrc(photo, 'thumb')}"
-                        class="photo-item"
-                        loading="lazy"
-                        decoding="async"
-                        onclick="openImage(${globalIndex})">
+                    <div class="photo-cell">
+                        <img
+                            src="${imageSrc(photo, 'thumb')}"
+                            class="photo-item"
+                            loading="lazy"
+                            decoding="async"
+                            onclick="openImage(${globalIndex})">
+                    </div>
 
                     ${
                         photo.type === "memory"
