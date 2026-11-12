@@ -190,7 +190,8 @@ function closeTopLayer() {
     if (isOpen("letterMenu", "active")) { closeLetterMenu(); return true; }
 
     if (isOpen("letterModal", "active") || isOpen("letterReader", "active") ||
-        isOpen("questionModal", "active") || isOpen("customQuestionModal", "active")) {
+        isOpen("questionModal", "active") || isOpen("customQuestionModal", "active") ||
+        isOpen("moodHistoryModal", "active")) {
         closeModal();
         return true;
     }
@@ -199,6 +200,10 @@ function closeTopLayer() {
         closeModal();
         return true;
     }
+
+    if (isOpen("moodSheet")) { closeMoodPicker(); return true; }
+
+    if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }
 
     if (isOpen("missPanel")) { closeMissPanel(); return true; }
 

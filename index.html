@@ -19,7 +19,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/style.css?v=13">
   
   <link
     rel="stylesheet"
@@ -208,6 +208,12 @@
 
       <div class="streak-status" id="streakStatus"></div>
 
+    </div>
+
+    <!-- Ruh Hali: tek satır -->
+    <div class="mood-card" id="moodCard" style="display:none;">
+      <button class="mood-chip" id="moodMine" onclick="openMoodPicker()"></button>
+      <button class="mood-chip" id="moodTheirs" onclick="openPartnerMood()"></button>
     </div>
 
     <div class="dashboard-card" id="waitingCard" style="display:none;">
@@ -1243,6 +1249,43 @@
   </div>
 </div>
 
+<!-- Ruh hali panelleri -->
+<div class="bny-overlay" id="moodOverlay" onclick="closeSheets()"></div>
+
+<div class="bny-panel mood-sheet" id="moodSheet">
+
+  <div class="bny-handle"></div>
+
+  <div class="bny-title">Bugün nasılsın?</div>
+
+  <div class="mood-grid" id="moodGrid"></div>
+
+  <input id="moodNote" class="song-input mood-note-input" maxlength="120"
+    placeholder="Kısa bir not (isteğe bağlı)">
+
+  <button class="send-btn mood-save" id="moodSaveBtn" onclick="saveMood()">Paylaş</button>
+
+  <button class="question-link mood-history-link" onclick="openMoodHistory('me')">📅 Ruh hali takvimim 👑</button>
+
+</div>
+
+<div class="bny-panel mood-sheet" id="partnerMoodSheet">
+
+  <div class="bny-handle"></div>
+
+  <div id="partnerMoodBody" class="partner-mood"></div>
+
+  <div class="mood-nudges">
+    <button onclick="sendMoodNudge('hug')"><span>🫂</span>Sarıl</button>
+    <button onclick="sendMoodNudge('coffee')"><span>☕</span>Kahve ısmarla</button>
+    <button onclick="sendMoodNudge('kiss')"><span>😘</span>Öpücük</button>
+    <button onclick="moodLeaveNote()"><span>💌</span>Not bırak</button>
+  </div>
+
+  <button class="question-link mood-history-link" onclick="openMoodHistory('partner')">📅 Ruh hali takvimi 👑</button>
+
+</div>
+
 <!-- Özledim paneli -->
 <div class="bny-overlay" id="missOverlay" onclick="closeMissPanel()"></div>
 
@@ -1429,6 +1472,18 @@
 
 </div>
 
+<!-- Ruh hali takvimi (Premium) -->
+<div id="moodHistoryModal" class="modal">
+
+    <div class="modal-header">
+        <div class="modal-title">📅 Ruh hali takvimi</div>
+        <button class="modal-close" onclick="closeMoodHistory()">✕</button>
+    </div>
+
+    <div class="modal-body" id="moodHistoryBody"></div>
+
+</div>
+
 <!-- Günün Sorusu: tek soru -->
 <div id="questionModal" class="modal question-modal">
 
@@ -1551,11 +1606,11 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=11"></script>
+    <script type="module" src="js/firebase.js?v=12"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
-    <script src="js/events.js?v=6"></script>
+    <script src="js/events.js?v=7"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
@@ -1568,20 +1623,21 @@
 
 
 
-    <script src="js/ui.js?v=10"></script>
+    <script src="js/ui.js?v=11"></script>
 
     <script src="js/slider.js?v=2"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
+    <script src="js/moods.js?v=1"></script>
     <script src="js/questions.js?v=2"></script>
     <script src="js/letters.js?v=2"></script>
-    <script src="js/missyou.js?v=2"></script>
+    <script src="js/missyou.js?v=3"></script>
 
     <script src="js/inbox.js?v=6"></script>
 
-    <script src="js/app.js?v=11"></script>
+    <script src="js/app.js?v=12"></script>
   
 </body>
 </html>

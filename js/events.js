@@ -291,6 +291,11 @@ function limitEventEmoji(input) {
 
 function closeModal(){
 
+    if(document.getElementById("moodHistoryModal")?.classList.contains("active")){
+        closeMoodHistory();
+        return;
+    }
+
     if(document.getElementById("questionModal")?.classList.contains("active")){
         closeQuestionModal();
         return;

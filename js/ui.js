@@ -48,7 +48,9 @@ function settleWithin(promises, ms) {
 const SHEETS = {
     bnyPanel:      { overlay: "bnyOverlay",      close: () => toggleBNY() },
     missPanel:     { overlay: "missOverlay",     close: () => closeMissPanel() },
-    settingsPanel: { overlay: "settingsOverlay", close: () => toggleSettings() }
+    settingsPanel: { overlay: "settingsOverlay", close: () => toggleSettings() },
+    moodSheet:        { overlay: "moodOverlay",  close: () => closeMoodPicker() },
+    partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() }
 };
 
 function isSheetOpen(id) {
@@ -146,6 +148,8 @@ function initSheetDrags() {
 
     initSheetDrag("bnyPanel");
     initSheetDrag("missPanel");
+    initSheetDrag("moodSheet");
+    initSheetDrag("partnerMoodSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");
@@ -158,6 +162,13 @@ function initSheetDrags() {
 function openAppTarget(target) {
 
     if (!target) return;
+
+    // Ruh hali / sarılma bildirimi: partnerin ruh halini aç
+    if (target === "mood") {
+        showPage("home");
+        if (typeof openPartnerMood === "function") setTimeout(openPartnerMood, 250);
+        return;
+    }
 
     // Günün Sorusu bildirimi: ana sayfadaki karta git
     if (target === "question") {
