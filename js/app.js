@@ -240,6 +240,7 @@ function checkUserSelection() {
             const streakLoad = checkStreak();
             startMissYou();
             startLetters();
+            startQuestions();
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git

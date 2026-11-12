@@ -1592,7 +1592,121 @@ async function markLetterRead(id) {
 
 }
 
+// ── Günün Sorusu ────────────────────────────────────────────
+// Bkz. js/questions.js ve functions/index.js
+
+function listenQuestions(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) {
+            callback([]);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(collection(db, "dailyQuestions"), where("coupleId", "==", coupleId)),
+            snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+            error => {
+                console.error("Sorular dinlenemedi:", error);
+                callback([]);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// Benim cevaplarım (açılmamış olanlar dahil; sadece ben görebilirim)
+function listenMyAnswers(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        const user = auth.currentUser;
+
+        if (!coupleId || !user) {
+            callback([]);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(
+                collection(db, "questionAnswers"),
+                where("coupleId", "==", coupleId),
+                where("authorId", "==", user.uid)
+            ),
+            snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+            error => {
+                console.error("Cevaplar dinlenemedi:", error);
+                callback([]);
+            }
+        );
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+async function ensureTodayQuestion() {
+
+    try {
+        const result = await httpsCallable(functions, "ensureTodayQuestion")({});
+        return result.data;
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+async function answerQuestion(day, text) {
+
+    try {
+        const result = await httpsCallable(functions, "answerQuestion")({ day, text });
+        return result.data;
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+async function addCustomQuestion(text) {
+
+    try {
+        const result = await httpsCallable(functions, "addCustomQuestion")({ text });
+        return result.data;
+    } catch (error) {
+        throw callableError(error);
+    }
+
+}
+
+// emoji: null → tepkiyi kaldır
+async function reactToQuestion(id, emoji) {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await updateDoc(doc(db, "dailyQuestions", id), {
+        [`reactions.${user.uid}`]: emoji || deleteField()
+    });
+
+}
+
 window.firebase = {
+    listenQuestions,
+    listenMyAnswers,
+    ensureTodayQuestion,
+    answerQuestion,
+    addCustomQuestion,
+    reactToQuestion,
     enableWebPush,
     disableWebPush,
     listenLetters,
