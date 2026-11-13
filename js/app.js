@@ -294,6 +294,9 @@ function checkUserSelection() {
             startOnThisDay();
             startProximity();
 
+            // Gizlilik metni güncellendiyse onay iste
+            setTimeout(checkLegalConsent, 2500);
+
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git
             window.appReady = true;
@@ -475,6 +478,15 @@ function showRegister() {
             autocomplete="new-password"
         >
 
+        <label class="consent-check">
+            <input type="checkbox" id="registerConsent">
+            <span>
+                <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik Politikası</a>'nı ve
+                <a href="#" onclick="event.preventDefault(); openLegal('terms')">Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+                Verilerimin yurt dışındaki sunucularda işlenmesine açık rıza veriyorum.
+            </span>
+        </label>
+
         <button class="user-btn primary" onclick="registerUser(this)">
             💜 Kayıt Ol
         </button>
@@ -532,6 +544,14 @@ async function registerUser(button) {
 
     }
 
+    if (!document.getElementById("registerConsent")?.checked) {
+
+        showToast("Devam etmek için Gizlilik Politikası ve Kullanım Koşulları'nı onaylaman gerekiyor.");
+
+        return;
+
+    }
+
     if (button?.disabled) return;
 
     const originalText = button?.innerHTML;
@@ -552,7 +572,8 @@ async function registerUser(button) {
         await window.firebase.createUserProfile(
             user.uid,
             name,
-            email
+            email,
+            LEGAL_VERSION
         );
 
         localStorage.setItem(

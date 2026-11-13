@@ -1,4 +1,4 @@
-package com.berkanddilara.app;
+package com.kalpkalbe.app;
 
 import com.getcapacitor.BridgeActivity;
 
