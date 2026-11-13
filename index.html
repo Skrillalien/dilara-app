@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=21">
   
   <link
     rel="stylesheet"
@@ -222,6 +222,17 @@
         </div>
         <div class="counter-together" id="togetherMonth" style="display:none;"></div>
       </div>
+    </div>
+
+    <!-- E-posta doğrulama hatırlatması (js/verify.js) -->
+    <div class="verify-card" id="verifyCard" style="display:none;">
+      <div class="verify-card-icon">✉️</div>
+      <div class="verify-card-body">
+        <div class="verify-card-title">E-postanı doğrular mısın?</div>
+        <div class="verify-card-text">Şifreni unutursan hesabına bu adresle ulaşırsın.</div>
+        <button class="verify-card-btn" onclick="resendVerification(this)">Bağlantıyı gönder</button>
+      </div>
+      <button class="verify-card-close" onclick="dismissVerifyCard()" aria-label="Kapat">✕</button>
     </div>
 
     <!-- Seri (streak) -->
@@ -1195,6 +1206,14 @@
         Hesap
     </div>
 
+    <div class="verify-row" id="verifyRow" style="display:none;">
+        <div class="verify-row-text">
+            <b>✉️ E-postan doğrulanmadı</b>
+            <span><span class="verify-email"></span> adresine gönderdiğimiz bağlantıya dokun. Şifreni unutursan hesabını bu adresle kurtarırsın.</span>
+        </div>
+        <button class="verify-row-btn" onclick="resendVerification(this)">Tekrar gönder</button>
+    </div>
+
     <button
         class="theme-btn"
         style="width:100%; color:var(--text);"
@@ -1782,7 +1801,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=16"></script>
+    <script type="module" src="js/firebase.js?v=17"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
@@ -1817,7 +1836,8 @@
     <script src="js/inbox.js?v=7"></script>
 
     <script src="js/invite.js?v=1"></script>
-    <script src="js/app.js?v=17"></script>
+    <script src="js/verify.js?v=1"></script>
+    <script src="js/app.js?v=18"></script>
   
 </body>
 </html>
