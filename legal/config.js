@@ -8,16 +8,16 @@
 window.LEGAL = {
 
     // Mağazadaki uygulama adı
-    appName: "[UYGULAMA ADI]",
+    appName: "Kalp Kalbe",
 
     // Veri sorumlusu / yayıncı
     publisher: "Berk Can Asatekin",
 
     // Kullanıcıların veri talepleri ve destek için yazacağı adres
-    contactEmail: "[DESTEK E-POSTASI]",
+    contactEmail: "kalpkalbe.app@gmail.com",
 
     // Metinlerin son güncellenme tarihi
-    updated: "12 Kasım 2026",
+    updated: "13 Kasım 2026",
 
     // Metin sürümü (değiştikçe artır; kullanıcı onayları bu sürümle kaydedilir)
     version: 1
