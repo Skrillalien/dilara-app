@@ -5167,3 +5167,40 @@ margin-bottom:14px;
     text-align: center;
     line-height: 1.45;
 }
+
+/* ── Kalp Kalbe logosu ───────────────────────────────────── */
+.brand-mark{
+    display:block;
+    width:100%;
+    height:100%;
+    overflow:visible;
+}
+
+.brand-head{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    margin-bottom:4px;
+}
+
+.brand-head .brand-mark{
+    width:64px;
+    height:64px;
+    filter:drop-shadow(0 8px 22px rgba(244,114,182,.25));
+}
+
+.brand-name{
+    font-family:'Playfair Display', serif;
+    font-size:26px;
+    font-weight:600;
+    color:var(--text);
+    letter-spacing:.2px;
+}
+
+/* Üst kısımdaki kalp emojisi yerine temaya göre renklenen logo */
+.header-emoji .brand-mark{
+    width:1.15em;
+    height:1.15em;
+    margin:0 auto;
+}

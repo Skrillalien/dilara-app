@@ -8,7 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Kalp Kalbe">
   <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="icons/kalp-kalbe.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <title>Kalp Kalbe</title>
 
   <!-- Temayı sayfa çizilmeden uygula: açılış ekranı doğru renkte gelsin -->
@@ -19,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=17">
+  <link rel="stylesheet" href="css/style.css?v=19">
   
   <link
     rel="stylesheet"
@@ -29,18 +31,20 @@
 
 <body>
 
+<!-- Kalp Kalbe logosu (iki yarım, tek kalp). Renkleri seçili temadan alır. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="brandMark" viewBox="150 205 724 730">
+    <g fill="none" stroke-width="78" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M512 345 C485 290 430 250 360 250 C270 250 190 320 190 420 C190 560 300 680 512 820 L600 892" style="stroke:var(--accent)"/>
+      <path d="M512 345 C539 290 594 250 664 250 C754 250 834 320 834 420 C834 560 724 680 512 820 L424 892" style="stroke:var(--accent2)"/>
+    </g>
+  </symbol>
+</svg>
+
 <!-- Açılış ekranı: veriler yüklenene kadar görünür (js/ui.js → hideSplash) -->
 <div id="splash" class="splash" aria-hidden="true">
   <div class="splash-heart">
-    <svg viewBox="0 0 24 24">
-      <defs>
-        <linearGradient id="splashGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" style="stop-color:var(--accent)"/>
-          <stop offset="1" style="stop-color:var(--accent2)"/>
-        </linearGradient>
-      </defs>
-      <path fill="url(#splashGrad)" d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/>
-    </svg>
+    <svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg>
   </div>
   <div class="splash-names" id="splashNames"></div>
   <div class="splash-dots"><span></span><span></span><span></span></div>
@@ -49,7 +53,7 @@
   window.splashVisible = true;
   try {
     var n = localStorage.getItem('splashNames');
-    if (n) document.getElementById('splashNames').textContent = n;
+    document.getElementById('splashNames').textContent = n || 'Kalp Kalbe';
   } catch (e) {}
   // Ne olursa olsun açılış ekranı sonsuza kadar kalmasın
   setTimeout(function () { if (window.hideSplash) window.hideSplash(true); }, 9000);
@@ -102,8 +106,9 @@
 
     <div class="user-card">
 
-        <div class="user-title">
-            💜 Sen & Ben
+        <div class="brand-head">
+            <svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg>
+            <div class="brand-name">Kalp Kalbe</div>
         </div>
 
         <div style="color:var(--muted); margin:10px 0 24px;">
@@ -197,7 +202,7 @@
       <div class="header-fade"></div>
 
       <div class="header-content">
-        <span class="header-emoji">💜</span>
+        <span class="header-emoji"><svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg></span>
         <div class="header-title" id="coupleNameDisplay">Sen & Ben</div>
         <div class="together-badge" id="togetherBadge" style="display:none;">💞 Şu an birliktesiniz</div>
       </div>
@@ -1132,12 +1137,12 @@
 
       <button class="theme-btn" id="theme-gs" onclick="setTheme('gs')">
         <div class="swatch swatch-gs"></div>
-        <span>Galatasaray</span>
+        <span>Sarı-Kırmızı</span>
       </button>
 
       <button class="theme-btn" id="theme-bjk" onclick="setTheme('bjk')">
         <div class="swatch swatch-bjk"></div>
-        <span>Beşiktaş</span>
+        <span>Siyah-Beyaz</span>
       </button>
 
       <button class="theme-btn" id="theme-pembe" onclick="setTheme('pembe')">
