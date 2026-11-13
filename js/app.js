@@ -199,6 +199,8 @@ function checkUserSelection() {
 
             hideSplash();
 
+            applyPendingInvite();
+
             return;
         }
 
@@ -280,11 +282,16 @@ function checkUserSelection() {
 
                 hideSplash();
 
+                applyPendingInvite();
+
                 return;
             }
 
             // Couple tamamlanmış
             overlay.style.display = "none";
+
+            window.isCoupleReady = true;
+            applyPendingInvite();
 
             const streakLoad = checkStreak();
             startMissYou();
@@ -502,6 +509,8 @@ function showRegister() {
 
     `;
 
+    applyPendingInvite();
+
     setupAuthCard();
 
 }
@@ -654,13 +663,19 @@ function showCoupleSetup() {
             style="text-transform:uppercase;"
         >
 
-        <button class="user-btn" onclick="joinMyCouple()">
+        <button class="user-btn" id="joinCoupleBtn" onclick="joinMyCouple(this)">
             💜 Partnerime Katıl
         </button>
+
+        <div class="invite-help">
+            Partnerin sana bir davet bağlantısı gönderdiyse ona dokunman yeterli, kod buraya kendiliğinden gelir.
+        </div>
 
     `;
 
     document.getElementById("userSelectOverlay").style.display = "flex";
+
+    applyPendingInvite();
 
 }
 
@@ -773,7 +788,7 @@ async function createMyCouple() {
 }
 
 
-async function joinMyCouple() {
+async function joinMyCouple(button) {
 
     const input = document.getElementById("inviteCode");
 
@@ -788,44 +803,20 @@ async function joinMyCouple() {
 
     }
 
-    const user = window.firebase.getCurrentAuthUser();
+    if (button?.disabled) return;
 
-    if (!user) return;
+    if (button) {
+        button.disabled = true;
+        button.dataset.label = button.innerHTML;
+        button.innerHTML = "Bağlanıyor…";
+    }
 
-    try {
+    // Başarılı olursa sayfa yenilenir (js/invite.js → joinWithCode)
+    const ok = await joinWithCode(inviteCode);
 
-        await window.firebase.joinCouple(
-            user,
-            inviteCode
-        );
-
-        document.getElementById("userSelectOverlay").style.display = "none";
-
-        showToast("Partnerine bağlandın! 💜");
-
-        loadWaitingItems();
-        loadLastMemory();
-        loadNextEvent();
-        updateMemoryAuthorInfo();
-
-    } catch (error) {
-
-        console.error(error);
-
-        if (error.message === "INVITE_CODE_NOT_FOUND") {
-
-            showToast("Davet kodu bulunamadı.");
-
-        } else if (error.message === "COUPLE_FULL") {
-
-            showToast("Bu çift zaten dolu.");
-
-        } else {
-
-            showToast("Çifte katılınamadı.");
-
-        }
-
+    if (!ok && button) {
+        button.disabled = false;
+        button.innerHTML = button.dataset.label;
     }
 
 }
@@ -848,9 +839,7 @@ async function copyInviteCode() {
 
     try {
 
-        await window.Capacitor.Plugins.Clipboard.write({
-            string: code
-        });
+        await copyText(code);
 
         showToast("Davet kodu kopyalandı ✓");
 
