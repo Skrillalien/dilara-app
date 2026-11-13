@@ -5204,3 +5204,131 @@ margin-bottom:14px;
     height:1.15em;
     margin:0 auto;
 }
+
+/* ── Davet bağlantısı (js/invite.js) ───────────────────────── */
+.invite-copy-btn.secondary{
+    background:var(--surface);
+    color:var(--text);
+    border:1px solid var(--border, rgba(255,255,255,.08));
+}
+
+.invite-copy-btn.busy{
+    opacity:.6;
+    pointer-events:none;
+}
+
+.invite-notice{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    text-align:left;
+    margin:0 0 18px;
+    padding:12px 14px;
+    border-radius:14px;
+    font-size:13.5px;
+    line-height:1.45;
+    color:var(--text);
+    background:color-mix(in srgb, var(--accent) 14%, transparent);
+    border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.invite-notice-icon{
+    font-size:18px;
+    line-height:1.2;
+}
+
+.invite-code-input.invite-prefilled{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.invite-pulse{
+    animation:invitePulse 1.6s ease-in-out 3;
+}
+
+@keyframes invitePulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.03); box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent); }
+}
+
+.invite-help{
+    margin-top:14px;
+    font-size:12.5px;
+    line-height:1.45;
+    color:var(--muted);
+}
+
+.invite-sheet-wrap{
+    position:fixed;
+    inset:0;
+    z-index:100000;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    background:rgba(0,0,0,.55);
+    animation:inviteFade .2s ease;
+}
+
+.invite-sheet{
+    width:100%;
+    max-width:460px;
+    padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    border-radius:24px 24px 0 0;
+    background:var(--bg);
+    color:var(--text);
+    text-align:center;
+    animation:inviteUp .28s cubic-bezier(.2,.8,.2,1);
+}
+
+.invite-sheet-logo{
+    width:52px;
+    height:52px;
+    margin:0 auto 10px;
+}
+
+.invite-sheet-title{
+    font-family:'Playfair Display', serif;
+    font-size:21px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.invite-sheet-text{
+    font-size:14px;
+    line-height:1.5;
+    color:var(--muted);
+    margin-bottom:16px;
+}
+
+.invite-sheet-code{
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:6px;
+    margin:0 0 16px;
+    color:var(--accent);
+}
+
+.invite-sheet-btn{
+    display:block;
+    width:100%;
+    min-height:50px;
+    line-height:50px;
+    margin-top:10px;
+    border:none;
+    border-radius:15px;
+    font-size:15px;
+    font-weight:600;
+    text-decoration:none;
+    color:var(--text);
+    background:var(--surface);
+    cursor:pointer;
+    font-family:inherit;
+}
+
+.invite-sheet-btn.primary{
+    background:var(--accent);
+    color:#fff;
+}
+
+@keyframes inviteFade{ from{ opacity:0; } }
+@keyframes inviteUp{ from{ transform:translateY(40px); opacity:0; } }

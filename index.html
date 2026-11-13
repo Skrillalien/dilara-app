@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=19">
+  <link rel="stylesheet" href="css/style.css?v=20">
   
   <link
     rel="stylesheet"
@@ -1256,7 +1256,8 @@
     </div>
 
     <div class="invite-text">
-        Partnerinin sana katılması için bu kodu kullanabilirsin.
+        Davet bağlantısını partnerine gönder. Bağlantıya dokunduğunda sizi otomatik bağlarız.
+        İstersen kodu da elle girebilir.
     </div>
 
     <div class="invite-code" id="inviteCodeDisplay">
@@ -1265,6 +1266,30 @@
 
     <button
         class="invite-copy-btn"
+        onclick="shareInviteLink(this)">
+
+        <svg
+            class="invite-copy-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+
+        </svg>
+
+        <span>Davet Bağlantısını Paylaş</span>
+
+    </button>
+
+    <button
+        class="invite-copy-btn secondary"
         onclick="copyInviteCode()">
 
         <svg
@@ -1791,7 +1816,8 @@
 
     <script src="js/inbox.js?v=7"></script>
 
-    <script src="js/app.js?v=16"></script>
+    <script src="js/invite.js?v=1"></script>
+    <script src="js/app.js?v=17"></script>
   
 </body>
 </html>
