@@ -293,6 +293,8 @@ function checkUserSelection() {
             window.isCoupleReady = true;
             applyPendingInvite();
 
+            checkEmailVerification();
+
             const streakLoad = checkStreak();
             startMissYou();
             startLetters();
@@ -520,7 +522,7 @@ async function registerUser(button) {
     const name =
         document.getElementById("registerName").value.trim();
 
-    const email =
+    let email =
         document.getElementById("registerEmail").value.trim();
 
     const password =
@@ -563,6 +565,9 @@ async function registerUser(button) {
 
     if (button?.disabled) return;
 
+    // "gmial.com" gibi yazım hatalarını yakala
+    email = confirmEmailSpelling(email);
+
     const originalText = button?.innerHTML;
 
     if (button) {
@@ -593,7 +598,10 @@ async function registerUser(button) {
         document.getElementById("userSelectOverlay")
             .style.display = "none";
 
-        showToast("Hesabın oluşturuldu! 💜");
+        // Engellemez; sadece doğrulama bağlantısı gönderir
+        sendWelcomeVerification();
+
+        showToast("Hesabın oluşturuldu! 💜 E-postana bir doğrulama bağlantısı gönderdik.");
 
         showCoupleSetup();
 

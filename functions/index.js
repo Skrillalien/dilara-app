@@ -1676,7 +1676,9 @@ exports.clearPresence = onCall(async (request) => {
 // Silen kişinin eklediği kayıtların bulunduğu koleksiyonlar
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
-    "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers"
+    "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
+    // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
+    "sliderImages"
 ];
 
 async function deleteQueryInBatches(docs) {
@@ -1767,7 +1769,7 @@ exports.deleteAccount = onCall(async (request) => {
 
             // Çiftte kimse kalmadı: ortak alanın tamamını sil
             for (const name of [
-                ...AUTHORED_COLLECTIONS, "sliderImages", "dailyQuestions",
+                ...AUTHORED_COLLECTIONS, "dailyQuestions",
                 "onThisDay", "togetherDays"
             ]) {
                 const rest = await db.collection(name).where("coupleId", "==", coupleId).get();

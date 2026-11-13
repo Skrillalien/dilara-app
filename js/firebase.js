@@ -47,6 +47,8 @@ import {
     signOut,
     onAuthStateChanged,
     sendPasswordResetEmail,
+    sendEmailVerification,
+    reload,
     EmailAuthProvider,
     reauthenticateWithCredential
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -976,6 +978,7 @@ async function addSliderImage(image) {
             order: nextOrder,
             active: true,
             coupleId,
+            authorId: auth.currentUser?.uid || null,
             createdAt: serverTimestamp()
         }
     );
@@ -1978,6 +1981,41 @@ async function sendPasswordReset(email) {
 
 }
 
+// ── E-posta doğrulama (js/verify.js) ────────────────────────
+
+async function sendVerificationEmail() {
+
+    const user = auth.currentUser;
+
+    if (!user || user.emailVerified) return false;
+
+    auth.languageCode = "tr";
+
+    await sendEmailVerification(user);
+
+    return true;
+
+}
+
+// Doğrulama bağlantısına başka bir uygulamada (e-posta) basılmış
+// olabilir: güncel durumu sunucudan al
+async function refreshEmailVerified() {
+
+    const user = auth.currentUser;
+
+    if (!user) return null;
+
+    try { await reload(user); } catch {}
+
+    return {
+        verified: !!auth.currentUser?.emailVerified,
+        usesPassword: (auth.currentUser?.providerData || []).some(p => p.providerId === "password"),
+        createdAt: Date.parse(auth.currentUser?.metadata?.creationTime || "") || 0,
+        email: auth.currentUser?.email || ""
+    };
+
+}
+
 // Şifreyle yeniden doğrula, sonra sunucuda hesabı ve verileri sil
 async function deleteMyAccount(password) {
 
@@ -2004,6 +2042,8 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    sendVerificationEmail,
+    refreshEmailVerified,
     saveConsent,
     sendPasswordReset,
     deleteMyAccount,

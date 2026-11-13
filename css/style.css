@@ -5332,3 +5332,95 @@ margin-bottom:14px;
 
 @keyframes inviteFade{ from{ opacity:0; } }
 @keyframes inviteUp{ from{ transform:translateY(40px); opacity:0; } }
+
+/* ── E-posta doğrulama (js/verify.js) ──────────────────────── */
+.verify-card{
+    position:relative;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin:0 20px 16px;
+    padding:14px 40px 14px 14px;
+    border-radius:18px;
+    background:color-mix(in srgb, var(--accent) 12%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.verify-card-icon{
+    font-size:22px;
+    line-height:1.2;
+}
+
+.verify-card-title{
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--text);
+}
+
+.verify-card-text{
+    font-size:13px;
+    line-height:1.45;
+    color:var(--muted);
+    margin:2px 0 10px;
+}
+
+.verify-card-btn,
+.verify-row-btn{
+    border:none;
+    border-radius:12px;
+    padding:8px 14px;
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    color:#fff;
+    background:var(--accent);
+    cursor:pointer;
+}
+
+.verify-card-btn:disabled,
+.verify-row-btn:disabled{
+    opacity:.6;
+}
+
+.verify-card-close{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:50%;
+    background:transparent;
+    color:var(--muted);
+    font-size:14px;
+    cursor:pointer;
+}
+
+.verify-row{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border:1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.verify-row-text{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:13px;
+    line-height:1.45;
+    color:var(--muted);
+}
+
+.verify-row-text b{
+    color:var(--text);
+    font-size:14px;
+}
+
+.verify-row-btn{
+    align-self:flex-start;
+}
