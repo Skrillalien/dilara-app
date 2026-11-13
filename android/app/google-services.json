@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1047372766813:android:943a5f3e6dc0448c7937b4",
+        "android_client_info": {
+          "package_name": "com.kalpkalbe.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqm9nRVGAgSR9mRgIEuU6WWoS0B2XWSfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1047372766813:android:19e088048f6bf5517937b4",
         "android_client_info": {
           "package_name": "com.berkanddilara.app"
