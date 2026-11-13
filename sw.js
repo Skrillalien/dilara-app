@@ -60,7 +60,7 @@ firebase.initializeApp({
 
 firebase.messaging();
 
-const CACHE_NAME = "kalpkalbe-v0.8.1";
+const CACHE_NAME = "kalpkalbe-v0.8.2";
 
 const FILES_TO_CACHE = [
   "./",
@@ -68,6 +68,8 @@ const FILES_TO_CACHE = [
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
+  "./apple-touch-icon.png",
+  "./icons/kalp-kalbe.svg",
 ];
 
 // Kurulum
