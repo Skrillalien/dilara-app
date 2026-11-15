@@ -199,6 +199,9 @@ function checkUserSelection() {
 
             hideSplash();
 
+            // İlk kez açan kişiye kısa tanıtım
+            if (shouldShowOnboarding()) showOnboarding();
+
             applyPendingInvite();
 
             return;

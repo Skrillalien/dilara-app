@@ -5424,3 +5424,195 @@ margin-bottom:14px;
 .verify-row-btn{
     align-self:flex-start;
 }
+
+/* ── İlk açılış rehberi (js/onboarding.js) ─────────────────── */
+.onboarding{
+    position:fixed;
+    inset:0;
+    z-index:20000;
+    display:flex;
+    flex-direction:column;
+    background:
+        radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
+        var(--bg);
+    color:var(--text);
+    opacity:0;
+    transition:opacity .3s ease;
+    padding-top:env(safe-area-inset-top);
+}
+
+.onboarding.show{ opacity:1; }
+.onboarding.hide{ opacity:0; pointer-events:none; }
+
+.ob-skip{
+    position:absolute;
+    top:calc(14px + env(safe-area-inset-top));
+    right:14px;
+    z-index:2;
+    padding:8px 14px;
+    border:none;
+    border-radius:20px;
+    background:transparent;
+    color:var(--muted);
+    font-family:inherit;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.ob-track{
+    flex:1;
+    display:flex;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+}
+
+.ob-track::-webkit-scrollbar{ display:none; }
+
+.ob-slide{
+    flex:0 0 100%;
+    scroll-snap-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 32px 10px;
+    text-align:center;
+    box-sizing:border-box;
+}
+
+.ob-art{
+    width:220px;
+    height:220px;
+    margin-bottom:34px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%);
+}
+
+.ob-title{
+    margin:0 0 12px;
+    font-family:'Playfair Display', serif;
+    font-size:28px;
+    font-weight:600;
+    line-height:1.2;
+}
+
+.ob-text{
+    margin:0;
+    max-width:320px;
+    font-size:15.5px;
+    line-height:1.55;
+    color:var(--muted);
+}
+
+.ob-art-logo .brand-mark{
+    width:120px;
+    height:120px;
+    filter:drop-shadow(0 12px 30px color-mix(in srgb, var(--accent2) 40%, transparent));
+}
+
+.ob-art-stack{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+}
+
+.ob-chip-row{
+    display:flex;
+    gap:8px;
+}
+
+.ob-chip{
+    padding:9px 14px;
+    border-radius:16px;
+    font-size:13.5px;
+    white-space:nowrap;
+    background:var(--surface);
+    border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+}
+
+.ob-chip-big{
+    font-size:16px;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    border:none;
+}
+
+.ob-chip-soft{
+    max-width:230px;
+    white-space:normal;
+    font-size:12.5px;
+    line-height:1.35;
+    color:var(--muted);
+}
+
+.ob-art-letter{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+}
+
+.ob-art-letter svg{
+    width:170px;
+    height:auto;
+    filter:drop-shadow(0 12px 26px rgba(0,0,0,.25));
+}
+
+.ob-env{ fill:#fff8fb; }
+.ob-env-line{ fill:none; stroke:#f2c6d8; stroke-width:5; stroke-linejoin:round; stroke-linecap:round; }
+.ob-seal{ fill:var(--accent2); }
+.ob-seal-heart{ fill:#fff; opacity:.9; }
+
+.ob-footer{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    padding:10px 24px calc(28px + env(safe-area-inset-bottom));
+}
+
+.ob-dots{
+    display:flex;
+    gap:8px;
+}
+
+.ob-dot{
+    width:8px;
+    height:8px;
+    border-radius:4px;
+    background:color-mix(in srgb, var(--text) 25%, transparent);
+    transition:width .25s ease, background .25s ease;
+    cursor:pointer;
+}
+
+.ob-dot.active{
+    width:24px;
+    background:var(--accent);
+}
+
+.ob-next{
+    width:100%;
+    max-width:360px;
+    height:54px;
+    border:none;
+    border-radius:18px;
+    font-family:inherit;
+    font-size:16px;
+    font-weight:600;
+    color:#fff;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow:0 10px 26px color-mix(in srgb, var(--accent) 35%, transparent);
+    cursor:pointer;
+    transition:transform .15s ease;
+}
+
+.ob-next:active{ transform:scale(.98); }
