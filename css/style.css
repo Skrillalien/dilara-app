@@ -47,6 +47,10 @@ body::before {
   --muted: #8b7aaa;
   --border: rgba(192, 132, 252, 0.15);
   --glow: rgba(192, 132, 252, 0.08);
+  --accent-rgb: 192, 132, 252;
+  --accent2-rgb: 244, 114, 182;
+  --text-rgb: 241, 233, 255;
+  --bg-rgb: 13, 7, 32;
 }
 
 [data-theme="bordo"] {
@@ -59,6 +63,10 @@ body::before {
   --muted: #a06070;
   --border: rgba(224, 85, 128, 0.15);
   --glow: rgba(224, 85, 128, 0.08);
+  --accent-rgb: 224, 85, 128;
+  --accent2-rgb: 244, 160, 184;
+  --text-rgb: 255, 238, 243;
+  --bg-rgb: 15, 5, 8;
 }
 
 [data-theme="gri"] {
@@ -71,6 +79,10 @@ body::before {
   --muted: #707070;
   --border: rgba(192, 192, 192, 0.15);
   --glow: rgba(192, 192, 192, 0.08);
+  --accent-rgb: 192, 192, 192;
+  --accent2-rgb: 232, 224, 216;
+  --text-rgb: 240, 240, 240;
+  --bg-rgb: 10, 10, 10;
 }
 
 [data-theme="gs"] {
@@ -83,6 +95,10 @@ body::before {
   --muted: #a07840;
   --border: rgba(232, 160, 0, 0.18);
   --glow: rgba(232, 160, 0, 0.08);
+  --accent-rgb: 232, 160, 0;
+  --accent2-rgb: 232, 32, 32;
+  --text-rgb: 255, 248, 238;
+  --bg-rgb: 10, 5, 0;
 }
 
 [data-theme="bjk"] {
@@ -95,6 +111,10 @@ body::before {
   --muted: #606060;
   --border: rgba(240, 240, 240, 0.15);
   --glow: rgba(240, 240, 240, 0.06);
+  --accent-rgb: 240, 240, 240;
+  --accent2-rgb: 176, 176, 176;
+  --text-rgb: 255, 255, 255;
+  --bg-rgb: 5, 5, 5;
 }
 
 /* ===== GLOBAL LAYOUT ===== */
@@ -512,6 +532,7 @@ margin-bottom:14px;
   transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
+  background: rgba(var(--bg-rgb), 0.85);
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -1577,6 +1598,7 @@ margin-bottom:14px;
 }
 
 .song-card:hover{
+    border-color:rgba(var(--accent-rgb), 0.35);
     border-color:color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
@@ -2177,6 +2199,7 @@ margin-bottom:14px;
     padding: 13px 16px;
     margin: 10px 0 14px;
 
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
     border: 1px solid color-mix(
         in srgb,
         var(--accent) 25%,
@@ -2185,6 +2208,7 @@ margin-bottom:14px;
 
     border-radius: 14px;
 
+    background: rgba(var(--accent-rgb), 0.08);
     background: color-mix(
         in srgb,
         var(--accent) 8%,
@@ -2203,6 +2227,7 @@ margin-bottom:14px;
 .invite-change-btn:active {
     transform: scale(0.98);
 
+    background: rgba(var(--accent-rgb), 0.14);
     background: color-mix(
         in srgb,
         var(--accent) 14%,
@@ -2219,8 +2244,12 @@ margin-bottom:14px;
     gap:14px;
     border-radius:20px;
     background:
+        radial-gradient(120% 140% at 0% 0%, rgba(var(--accent2-rgb), 0.16) 0%, transparent 55%),
+        var(--surface);
+    background:
         radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent2) 16%, transparent) 0%, transparent 55%),
         var(--surface);
+    border:1px solid rgba(var(--accent2-rgb), 0.28);
     border:1px solid color-mix(in srgb, var(--accent2) 28%, var(--border));
 }
 
@@ -2233,6 +2262,7 @@ margin-bottom:14px;
     justify-content:center;
     font-size:30px;
     border-radius:16px;
+    background:rgba(var(--accent2-rgb), 0.14);
     background:color-mix(in srgb, var(--accent2) 14%, var(--surface2));
     animation:streak-flicker 2.4s ease-in-out infinite;
 }
@@ -2240,6 +2270,7 @@ margin-bottom:14px;
 /* Seviye yükseldikçe ikon daha canlı parlar */
 .streak-card[data-level="2"] .streak-flame,
 .streak-card[data-level="3"] .streak-flame{
+    box-shadow:0 0 18px rgba(255, 122, 61, 0.35);
     box-shadow:0 0 18px color-mix(in srgb, #ff7a3d 35%, transparent);
 }
 
@@ -2248,6 +2279,7 @@ margin-bottom:14px;
 .streak-card[data-level="6"] .streak-flame,
 .streak-card[data-level="7"] .streak-flame,
 .streak-card[data-level="8"] .streak-flame{
+    box-shadow:0 0 22px rgba(var(--accent2-rgb), 0.55);
     box-shadow:0 0 22px color-mix(in srgb, var(--accent2) 55%, transparent);
 }
 
@@ -2757,9 +2789,11 @@ margin-bottom:14px;
     gap:12px;
     padding:12px 14px;
     border-radius:20px;
+    background:var(--surface2);
     background:color-mix(in srgb, var(--surface2) 88%, transparent);
     backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(var(--accent-rgb), 0.3);
     border:1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
     box-shadow:0 12px 32px rgba(0,0,0,.45);
     z-index:10002;
@@ -2790,6 +2824,9 @@ margin-bottom:14px;
     justify-content:center;
     font-size:21px;
     border-radius:12px;
+    background:linear-gradient(135deg,
+        rgba(var(--accent-rgb), 0.35),
+        rgba(var(--accent2-rgb), 0.35));
     background:linear-gradient(135deg,
         color-mix(in srgb, var(--accent) 35%, transparent),
         color-mix(in srgb, var(--accent2) 35%, transparent));
@@ -3893,6 +3930,10 @@ margin-bottom:14px;
   --border: rgba(217, 70, 127, 0.16);
   --glow: rgba(217, 70, 127, 0.08);
   color-scheme: light;
+  --accent-rgb: 217, 70, 127;
+  --accent2-rgb: 240, 128, 168;
+  --text-rgb: 59, 29, 42;
+  --bg-rgb: 255, 244, 247;
 }
 
 .theme-btn .swatch-pembe {
@@ -5038,7 +5079,9 @@ margin-bottom:14px;
     font-size:13.5px;
     line-height:1.45;
     color:var(--text);
+    background:rgba(var(--accent-rgb), 0.14);
     background:color-mix(in srgb, var(--accent) 14%, transparent);
+    border:1px solid rgba(var(--accent-rgb), 0.35);
     border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
@@ -5049,6 +5092,7 @@ margin-bottom:14px;
 
 .invite-code-input.invite-prefilled{
     border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(var(--accent-rgb), 0.25);
     box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
@@ -5058,7 +5102,8 @@ margin-bottom:14px;
 
 @keyframes invitePulse{
     0%,100%{ transform:scale(1); }
-    50%{ transform:scale(1.03); box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent); }
+    50%{ transform:scale(1.03); box-shadow:0 0 0 6px rgba(var(--accent-rgb), 0.22);
+ box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent); }
 }
 
 .invite-help{
@@ -5152,7 +5197,9 @@ margin-bottom:14px;
     margin:0 20px 16px;
     padding:14px 40px 14px 14px;
     border-radius:18px;
+    background:rgba(var(--accent-rgb), 0.12);
     background:color-mix(in srgb, var(--accent) 12%, var(--surface));
+    border:1px solid rgba(var(--accent-rgb), 0.3);
     border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
@@ -5213,7 +5260,9 @@ margin-bottom:14px;
     margin-bottom:12px;
     padding:12px 14px;
     border-radius:14px;
+    background:rgba(var(--accent-rgb), 0.1);
     background:color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border:1px solid rgba(var(--accent-rgb), 0.28);
     border:1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
@@ -5242,6 +5291,9 @@ margin-bottom:14px;
     z-index:20000;
     display:flex;
     flex-direction:column;
+    background:
+        radial-gradient(120% 70% at 50% 0%, rgba(var(--accent-rgb), 0.22), transparent 60%),
+        var(--bg);
     background:
         radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
         var(--bg);
@@ -5301,6 +5353,7 @@ margin-bottom:14px;
     display:flex;
     align-items:center;
     justify-content:center;
+    background:radial-gradient(circle, rgba(var(--accent-rgb), 0.2), transparent 70%);
     background:radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%);
 }
 
@@ -5323,6 +5376,7 @@ margin-bottom:14px;
 .ob-art-logo .brand-mark{
     width:120px;
     height:120px;
+    filter:drop-shadow(0 12px 30px rgba(var(--accent2-rgb), 0.4));
     filter:drop-shadow(0 12px 30px color-mix(in srgb, var(--accent2) 40%, transparent));
 }
 
@@ -5344,6 +5398,7 @@ margin-bottom:14px;
     font-size:13.5px;
     white-space:nowrap;
     background:var(--surface);
+    border:1px solid rgba(var(--accent-rgb), 0.25);
     border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);
     box-shadow:0 8px 20px rgba(0,0,0,.18);
 }
@@ -5399,6 +5454,7 @@ margin-bottom:14px;
     width:8px;
     height:8px;
     border-radius:4px;
+    background:rgba(var(--text-rgb), 0.25);
     background:color-mix(in srgb, var(--text) 25%, transparent);
     transition:width .25s ease, background .25s ease;
     cursor:pointer;
@@ -5420,6 +5476,7 @@ margin-bottom:14px;
     font-weight:600;
     color:#fff;
     background:linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow:0 10px 26px rgba(var(--accent-rgb), 0.35);
     box-shadow:0 10px 26px color-mix(in srgb, var(--accent) 35%, transparent);
     cursor:pointer;
     transition:transform .15s ease;
@@ -5542,6 +5599,7 @@ html.sheet-open .page{
     padding:6px 12px 6px 6px;
     border:1px solid rgba(255,255,255,.18);
     border-radius:999px;
+    background:rgba(var(--accent-rgb), 0.55);
     background:color-mix(in srgb, var(--accent) 55%, rgba(20,10,35,.55));
     backdrop-filter:blur(12px);
     -webkit-backdrop-filter:blur(12px);
@@ -5679,6 +5737,7 @@ html.sheet-open .page{
 
 /* Şarkılarımız sayfasındaki buton */
 .np-add-card{
+    background:linear-gradient(135deg, rgba(var(--accent-rgb), 0.22), rgba(var(--accent2-rgb), 0.18));
     background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), color-mix(in srgb, var(--accent2) 18%, var(--surface)));
 }
 
@@ -5752,6 +5811,7 @@ html.sheet-open .page{
     margin:4px 0 12px;
     padding:10px;
     border-radius:14px;
+    background:rgba(var(--accent-rgb), 0.1);
     background:color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
@@ -5873,6 +5933,7 @@ html.sheet-open .page{
     height:26px;
     margin:0;
     border-radius:13px;
+    background:rgba(var(--text-rgb), 0.18);
     background:color-mix(in srgb, var(--text) 18%, transparent);
     transition:background .2s ease;
     cursor:pointer;
@@ -5924,6 +5985,7 @@ html.sheet-open .page{
     align-items:center;
     justify-content:center;
     font-size:19px;
+    background:rgba(var(--accent-rgb), 0.12);
     background:color-mix(in srgb, var(--accent) 12%, transparent);
     overflow:hidden;
 }
@@ -5946,6 +6008,7 @@ html.sheet-open .page{
     margin-top:3px;
     font-size:13.5px;
     line-height:1.45;
+    color:rgba(var(--text-rgb), 0.78);
     color:color-mix(in srgb, var(--text) 78%, transparent);
     white-space:normal;
     overflow-wrap:anywhere;
@@ -5974,6 +6037,7 @@ html.sheet-open .page{
     margin-top:4px;
     padding:0;
     border-radius:50%;
+    border:2px solid rgba(var(--accent-rgb), 0.45);
     border:2px solid color-mix(in srgb, var(--accent) 45%, transparent);
     background:transparent;
     color:transparent;
@@ -6009,7 +6073,11 @@ html.sheet-open .page{
 }
 
 .dream-card.done{
+    border-color:rgba(var(--accent-rgb), 0.4);
     border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+    background:linear-gradient(135deg,
+        rgba(var(--accent-rgb), 0.13),
+        rgba(var(--accent2-rgb), 0.07));
     background:linear-gradient(135deg,
         color-mix(in srgb, var(--accent) 13%, var(--surface)),
         color-mix(in srgb, var(--accent2) 7%, var(--surface)));
@@ -6019,10 +6087,14 @@ html.sheet-open .page{
     border-color:transparent;
     background:linear-gradient(135deg, var(--accent), var(--accent2));
     color:#fff;
+    box-shadow:0 4px 12px rgba(var(--accent-rgb), 0.35);
     box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .dream-card.done .dream-emoji{
+    background:linear-gradient(135deg,
+        rgba(var(--accent-rgb), 0.3),
+        rgba(var(--accent2-rgb), 0.22));
     background:linear-gradient(135deg,
         color-mix(in srgb, var(--accent) 30%, transparent),
         color-mix(in srgb, var(--accent2) 22%, transparent));
@@ -6040,4 +6112,19 @@ html.sheet-open .page{
     letter-spacing:1.2px;
     text-transform:uppercase;
     color:var(--muted);
+}
+
+/* Birden fazla emoji: tek satırda, küçülterek */
+.dream-emoji{
+    white-space:nowrap;
+    letter-spacing:-1px;
+}
+
+.dream-emoji.two{
+    font-size:14px;
+}
+
+.dream-emoji.many{
+    font-size:10.5px;
+    letter-spacing:-1.5px;
 }
