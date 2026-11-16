@@ -1,7 +1,7 @@
 const COMPLETED_MESSAGES = [
     "✨ Birlikte Yaptık",
     "🌿 Bir Hayal Daha Gerçek Oldu",
-    "💚 Anılarımıza Eklendi"
+    "💜 Anılarımıza Eklendi"
 ];
 
 let currentDreams = [];
@@ -50,77 +50,87 @@ function loadDreams() {
 
         }
 
-        list.innerHTML = dreams.map(dream => {
+        const open = dreams.filter(d => !d.completed);
 
-            return `
+        const done = dreams
+            .filter(d => d.completed)
+            .sort((x, y) => dreamDoneMs(y) - dreamDoneMs(x));
 
-                <div
-                    class="event-card ${dream.completed ? 'dream-completed' : ''}"
-                    onclick="toggleDreamCompleted('${dream.id}', ${!dream.completed})">
-
-                    <div class="event-icon">
-
-                        ${dream.emoji || "✨"}
-
-                    </div>
-
-                    <button
-                        class="photo-menu-btn"
-                        onclick="openDreamMenu(event, '${dream.id}')">
-
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="currentColor">
-
-                            <circle cx="12" cy="5" r="1.8"/>
-                            <circle cx="12" cy="12" r="1.8"/>
-                            <circle cx="12" cy="19" r="1.8"/>
-
-                        </svg>
-
-                    </button>
-
-                    <div class="event-info">
-
-                        <div class="event-name">
-
-                            ${dream.title}
-
-                        </div>
-
-                        <div class="event-date">
-
-                            ${escapeInboxHtml(authorInfo(dream).label)}
-
-                        </div>
-
-                        ${dream.note
-                        ? `<div class="dream-note">${formatMemoryText(dream.note)}</div>`
-                        : ""
-                    }
-
-                    <div class="dream-status">
-
-                        ${
-                            dream.completed
-                                ? dream.completedMessage
-                                : "💭 Hayalini Kuruyoruz"
-                        }
-
-                    </div>
-
-                </div>
-
-                </div>
-
-            `;
-
-        }).join("");
+        list.innerHTML =
+            open.map(renderDreamCard).join("") +
+            (done.length
+                ? `<div class="dream-section-title">Gerçekleşenler · ${done.length}</div>` +
+                  done.map(renderDreamCard).join("")
+                : "");
 
     });
 
+}
+
+function dreamDoneMs(dream) {
+    return dream.completedAt?.toMillis?.() || dream.createdAt?.toMillis?.() || 0;
+}
+
+function escapeDream(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function dreamDateText(ms) {
+    if (!ms) return "";
+    return new Date(ms).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// Kompakt kart: emoji · başlık + not · işaret düğmesi
+function renderDreamCard(dream) {
+
+    const done = !!dream.completed;
+    const note = String(dream.note || "").trim();
+
+    const who = escapeInboxHtml(authorInfo(dream).label);
+
+    const meta = done
+        ? `${escapeDream(dream.completedMessage || "✨ Birlikte yaptık")}${dream.completedAt ? " · " + dreamDateText(dream.completedAt.toMillis?.()) : ""}`
+        : who;
+
+    return `
+        <div class="dream-card${done ? " done" : ""}" onclick="toggleDreamNote(this)">
+
+            <div class="dream-emoji">${escapeDream(dream.emoji || "✨")}</div>
+
+            <div class="dream-body">
+                <div class="dream-title">${escapeDream(dream.title)}</div>
+                ${note ? `<div class="dream-note">${formatMemoryText(escapeDream(note))}</div>` : ""}
+                <div class="dream-meta">${meta}</div>
+            </div>
+
+            <button
+                class="dream-check"
+                type="button"
+                aria-label="${done ? "Gerçekleşmedi olarak işaretle" : "Gerçekleşti olarak işaretle"}"
+                onclick="event.stopPropagation(); toggleDreamCompleted('${dream.id}', ${!done})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </button>
+
+            <button
+                class="dream-more"
+                type="button"
+                aria-label="Seçenekler"
+                onclick="openDreamMenu(event, '${dream.id}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+            </button>
+
+        </div>
+    `;
+
+}
+
+// Uzun not iki satırda kısalır; karta dokununca tamamı açılır
+function toggleDreamNote(card) {
+    if (card.querySelector(".dream-note")) card.classList.toggle("expanded");
 }
 
 function openDreamForm() {
@@ -203,7 +213,8 @@ async function saveDream() {
 async function toggleDreamCompleted(id, completed) {
 
     let data = {
-        completed
+        completed,
+        completedAt: completed ? new Date() : null
     };
 
     if (completed) {
@@ -216,6 +227,8 @@ async function toggleDreamCompleted(id, completed) {
             ];
 
         data.completedMessage = message;
+
+        showToast("🎉 Bir hayal daha gerçek oldu!");
 
     } else {
 

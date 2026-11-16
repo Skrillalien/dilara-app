@@ -5898,3 +5898,146 @@ html.sheet-open .page{
 .notify-switch:checked::after{
     transform:translateX(18px);
 }
+
+/* ── Hayallerimiz: kompakt kart (js/dreams.js) ─────────────── */
+.dream-card{
+    position:relative;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:8px;
+    padding:11px 8px 11px 12px;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    cursor:pointer;
+    transition:background .25s ease, border-color .25s ease;
+    -webkit-tap-highlight-color:transparent;
+}
+
+.dream-emoji{
+    flex:0 0 auto;
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:19px;
+    background:color-mix(in srgb, var(--accent) 12%, transparent);
+    overflow:hidden;
+}
+
+.dream-body{
+    flex:1;
+    min-width:0;
+    padding-top:1px;
+}
+
+.dream-title{
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.3;
+    color:var(--text);
+    overflow-wrap:anywhere;
+}
+
+.dream-card .dream-note{
+    margin-top:3px;
+    font-size:13.5px;
+    line-height:1.45;
+    color:color-mix(in srgb, var(--text) 78%, transparent);
+    white-space:normal;
+    overflow-wrap:anywhere;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.dream-card.expanded .dream-note{
+    -webkit-line-clamp:unset;
+    display:block;
+}
+
+.dream-meta{
+    margin-top:4px;
+    font-size:11.5px;
+    color:var(--muted);
+}
+
+/* Gerçekleşti düğmesi: boş halka → temanın renginde dolu tik */
+.dream-check{
+    flex:0 0 auto;
+    width:30px;
+    height:30px;
+    margin-top:4px;
+    padding:0;
+    border-radius:50%;
+    border:2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    background:transparent;
+    color:transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .25s ease, border-color .25s ease, color .25s ease, transform .2s ease;
+}
+
+.dream-check svg{
+    width:16px;
+    height:16px;
+}
+
+.dream-check:active{
+    transform:scale(.88);
+}
+
+.dream-more{
+    flex:0 0 auto;
+    width:24px;
+    height:30px;
+    margin-top:4px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.dream-card.done{
+    border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+    background:linear-gradient(135deg,
+        color-mix(in srgb, var(--accent) 13%, var(--surface)),
+        color-mix(in srgb, var(--accent2) 7%, var(--surface)));
+}
+
+.dream-card.done .dream-check{
+    border-color:transparent;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#fff;
+    box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.dream-card.done .dream-emoji{
+    background:linear-gradient(135deg,
+        color-mix(in srgb, var(--accent) 30%, transparent),
+        color-mix(in srgb, var(--accent2) 22%, transparent));
+}
+
+.dream-card.done .dream-meta{
+    color:var(--accent);
+    font-weight:500;
+}
+
+.dream-section-title{
+    margin:18px 4px 8px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--muted);
+}
