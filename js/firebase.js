@@ -1940,6 +1940,46 @@ function listenCouple(callback) {
 
 }
 
+// ── Premium (yönetici: hediye) ─────────────────────────────
+
+async function amIAdmin() {
+
+    if (!auth.currentUser) return false;
+
+    try {
+        const result = await httpsCallable(functions, "amIAdmin")({});
+        return !!result.data?.admin;
+    } catch {
+        return false;
+    }
+
+}
+
+async function callAdmin(name, data) {
+
+    try {
+        const result = await httpsCallable(functions, name)(data);
+        return result.data;
+    } catch (error) {
+        // functions → HttpsError mesajı: USER_NOT_FOUND, NO_COUPLE…
+        throw new Error(error?.message || "ADMIN_FAILED");
+    }
+
+}
+
+async function adminGrantPremium({ email, days, note }) {
+    return callAdmin("adminGrantPremium", { email, days, note });
+}
+
+async function adminRevokePremium({ email }) {
+    return callAdmin("adminRevokePremium", { email });
+}
+
+async function adminListPremium() {
+    const data = await callAdmin("adminListPremium", {});
+    return data?.rows || [];
+}
+
 async function setProximityOptIn(enabled) {
 
     const user = auth.currentUser;
@@ -2240,6 +2280,10 @@ window.firebase = {
     sendPasswordReset,
     deleteMyAccount,
     listenCouple,
+    amIAdmin,
+    adminGrantPremium,
+    adminRevokePremium,
+    adminListPremium,
     setProximityOptIn,
     reportPresence,
     listenTogetherMonth,

@@ -89,7 +89,7 @@ function startProximity() {
         const wasOn = proximityMyOptIn();
 
         proximityCouple = couple;
-        proximityPlan = isPremiumPlan(couple.plan) ? "premium" : "free";
+        proximityPlan = isPremiumPlan(couple) ? "premium" : "free";
 
         renderProximity();
 
@@ -308,8 +308,9 @@ async function toggleProximity() {
 
 async function openTogetherStats() {
 
-    if (!isPremiumPlan(proximityCouple.plan)) {
-        showToast("👑 Yan yana istatistikleri Premium özelliği");
+    if (!isPremiumPlan(proximityCouple)) {
+        if (typeof openPremium === "function") openPremium();
+        else showToast("👑 Yan yana istatistikleri Premium özelliği");
         return;
     }
 

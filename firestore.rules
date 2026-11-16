@@ -92,13 +92,15 @@ service cloud.firestore {
 
       // Yeni çift: sadece kendini ekleyerek kurabilirsin
       allow create: if signedIn()
-        && request.resource.data.members == [me()];
+        && request.resource.data.members == [me()]
+        && !('premium' in request.resource.data)
+        && request.resource.data.get('plan', 'free') == 'free';
 
       // Üyeler çift bilgilerini (başlangıç tarihi, seri…) değiştirebilir
       // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue', 'together'])
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'premium', 'questionCursor', 'customQueue', 'together'])
         // Yakınlık izni: herkes sadece kendi iznini değiştirebilir
         && (!('proximityOptIn' in changes())
             || request.resource.data.proximityOptIn

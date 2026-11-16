@@ -6,14 +6,23 @@ let coupleNames = {
 // ─────────────────────────────────────────────────────────────
 // PREMIUM
 // false: Premium özellikleri herkese açık (👑 işareti yine görünür).
-// true:  sadece couples.plan == "premium" olan çiftlere açık.
+// true:  sadece Premium'u olan çiftlere açık (hediye ya da abonelik).
 // Sunucudaki eşi: functions/index.js → PREMIUM_ENFORCED (ikisi aynı olmalı)
 // ─────────────────────────────────────────────────────────────
 const PREMIUM_ENFORCED = false;
 
-function isPremiumPlan(plan) {
+// Çift kaydı (couples/{id}) ya da eski usul plan adı ("premium")
+function isPremiumPlan(coupleOrPlan) {
 
-    return !PREMIUM_ENFORCED || plan === "premium";
+    if (!PREMIUM_ENFORCED) return true;
+
+    if (typeof coupleOrPlan === "string") return coupleOrPlan === "premium";
+
+    const premium = coupleOrPlan?.premium || {};
+
+    const active = part => !!part && (part.until === null || (part.until?.toMillis?.() || 0) > Date.now());
+
+    return active(premium.gift) || active(premium.store) || coupleOrPlan?.plan === "premium";
 
 }
 
@@ -301,6 +310,8 @@ function checkUserSelection() {
             startBattery();
 
             startNowPlaying();
+
+            startPremium();
 
             initNotifyPrefs();
 

@@ -13,7 +13,7 @@
 const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
@@ -30,7 +30,11 @@ const PREMIUM_ENFORCED = false;
 
 function isPremiumCouple(couple) {
 
-    return !PREMIUM_ENFORCED || couple?.get?.("plan") === "premium";
+    if (!PREMIUM_ENFORCED) return true;
+
+    const data = typeof couple?.data === "function" ? couple.data() : couple;
+
+    return premiumActive(data?.premium) || data?.plan === "premium";
 
 }
 
@@ -2261,5 +2265,281 @@ exports.eveningReminders = onSchedule({
         }
 
     });
+
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// Premium
+//
+// Premium çift başınadır: biri alınca ikisi de kullanır.
+// couples/{id}.premium = {
+//   gift:  { until: Timestamp | null, grantedAt, note }   (hediye; null = süresiz)
+//   store: { until: Timestamp, productId, store, buyerUid } (mağaza aboneliği)
+// }
+// couples/{id}.plan = "premium" | "free"  (ikisinden biri geçerliyse premium)
+//
+// • Hediye: sadece yöneticiler (admins/{uid} belgesi olanlar) verebilir
+// • Mağaza: RevenueCat webhook'u (revenuecatWebhook) yazar
+// • Süresi dolanlar her gece "free" olur (expirePremiums)
+// ─────────────────────────────────────────────────────────────
+
+function premiumPartActive(part, now = Date.now()) {
+
+    if (!part) return false;
+
+    if (part.until === null) return true;          // süresiz hediye
+
+    const ms = part.until?.toMillis?.() ?? (typeof part.until === "number" ? part.until : 0);
+
+    return ms > now;
+
+}
+
+function premiumActive(premium, now = Date.now()) {
+    return premiumPartActive(premium?.gift, now) || premiumPartActive(premium?.store, now);
+}
+
+// premium haritasını yaz ve plan alanını ona göre ayarla
+async function writeCouplePremium(coupleRef, mutate) {
+
+    return db.runTransaction(async tx => {
+
+        const snap = await tx.get(coupleRef);
+
+        if (!snap.exists) throw new HttpsError("not-found", "COUPLE_NOT_FOUND");
+
+        const premium = { ...(snap.get("premium") || {}) };
+
+        mutate(premium);
+
+        Object.keys(premium).forEach(k => premium[k] === undefined && delete premium[k]);
+
+        tx.update(coupleRef, {
+            premium,
+            plan: premiumActive(premium) ? "premium" : "free"
+        });
+
+        return premium;
+
+    });
+
+}
+
+async function requireAdmin(request) {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "NOT_SIGNED_IN");
+
+    const adminDoc = await db.doc(`admins/${uid}`).get();
+
+    if (!adminDoc.exists) throw new HttpsError("permission-denied", "NOT_ADMIN");
+
+    return uid;
+
+}
+
+async function coupleRefForEmail(email) {
+
+    let user;
+
+    try {
+        user = await admin.auth().getUserByEmail(String(email || "").trim().toLowerCase());
+    } catch {
+        throw new HttpsError("not-found", "USER_NOT_FOUND");
+    }
+
+    const coupleId = (await db.doc(`users/${user.uid}`).get()).get("coupleId");
+
+    if (!coupleId) throw new HttpsError("failed-precondition", "NO_COUPLE");
+
+    return { user, coupleRef: db.doc(`couples/${coupleId}`) };
+
+}
+
+// Ayarlar'da yönetici bölümünü göstermek için
+exports.amIAdmin = onCall(async (request) => {
+
+    if (!request.auth?.uid) return { admin: false };
+
+    return { admin: (await db.doc(`admins/${request.auth.uid}`).get()).exists };
+
+});
+
+// Hediye Premium ver: { email, days } (days boş/0 = süresiz)
+exports.adminGrantPremium = onCall(async (request) => {
+
+    const adminUid = await requireAdmin(request);
+
+    const days = Number(request.data?.days) || 0;
+
+    if (days < 0 || days > 3650) throw new HttpsError("invalid-argument", "BAD_DAYS");
+
+    const { user, coupleRef } = await coupleRefForEmail(request.data?.email);
+
+    const until = days ? admin.firestore.Timestamp.fromMillis(Date.now() + days * 86400000) : null;
+
+    await writeCouplePremium(coupleRef, premium => {
+        premium.gift = {
+            until,
+            grantedAt: admin.firestore.Timestamp.now(),
+            grantedBy: adminUid,
+            note: String(request.data?.note || "").slice(0, 80)
+        };
+    });
+
+    logger.info("Hediye Premium verildi", { coupleId: coupleRef.id, days });
+
+    // Çiftin ikisine de haber ver
+    const members = (await coupleRef.get()).get("members") || [];
+
+    await Promise.all(members.map(uid => sendPushToUser(uid, {
+        title: "👑 Premium hediyen var!",
+        body: days ? `Kalp Kalbe Premium ${days} gün boyunca açık 💜` : "Kalp Kalbe Premium artık sizde 💜",
+        data: { page: "home", type: "premium" }
+    }).catch(() => {})));
+
+    return { ok: true, coupleId: coupleRef.id, user: user.email, until: until ? until.toMillis() : null };
+
+});
+
+exports.adminRevokePremium = onCall(async (request) => {
+
+    await requireAdmin(request);
+
+    const { coupleRef } = await coupleRefForEmail(request.data?.email);
+
+    await writeCouplePremium(coupleRef, premium => { delete premium.gift; });
+
+    return { ok: true };
+
+});
+
+// Hediye Premium listesi (yönetici ekranı)
+exports.adminListPremium = onCall(async (request) => {
+
+    await requireAdmin(request);
+
+    const snap = await db.collection("couples").where("plan", "==", "premium").get();
+
+    const rows = [];
+
+    for (const couple of snap.docs) {
+
+        const premium = couple.get("premium") || {};
+
+        if (!premium.gift) continue;
+
+        const emails = [];
+
+        for (const uid of couple.get("members") || []) {
+            try { emails.push((await admin.auth().getUser(uid)).email); } catch {}
+        }
+
+        rows.push({
+            coupleId: couple.id,
+            emails,
+            until: premium.gift.until ? premium.gift.until.toMillis() : null,
+            note: premium.gift.note || "",
+            store: premiumPartActive(premium.store)
+        });
+
+    }
+
+    return { rows };
+
+});
+
+// Süresi dolan hediye / abonelikleri kapat
+exports.expirePremiums = onSchedule({ schedule: "15 3 * * *", timeZone: OTD_TIMEZONE, maxInstances: 1 }, async () => {
+
+    const snap = await db.collection("couples").where("plan", "==", "premium").get();
+
+    let expired = 0;
+
+    for (const couple of snap.docs) {
+
+        if (premiumActive(couple.get("premium"))) continue;
+
+        await couple.ref.update({ plan: "free" });
+        expired++;
+
+    }
+
+    if (expired) logger.info("Süresi dolan Premium kapatıldı", { expired });
+
+});
+
+// ── Mağaza satın alımları (RevenueCat) ──────────────────────
+//
+// RevenueCat → Project settings → Integrations → Webhooks:
+//   URL:  https://europe-west1-<proje>.cloudfunctions.net/revenuecatWebhook
+//   Authorization header: functions/.env içindeki REVENUECAT_WEBHOOK_AUTH
+// Uygulamada RevenueCat kullanıcı kimliği = Firebase uid.
+// Ayar yapılmadıysa webhook hiçbir şeyi değiştirmez.
+
+const RC_ACTIVE_EVENTS = ["INITIAL_PURCHASE", "RENEWAL", "PRODUCT_CHANGE", "UNCANCELLATION", "NON_RENEWING_PURCHASE", "SUBSCRIPTION_EXTENDED", "TEMPORARY_ENTITLEMENT_GRANT"];
+const RC_END_EVENTS = ["EXPIRATION"];
+
+exports.revenuecatWebhook = onRequest(async (req, res) => {
+
+    const secret = process.env.REVENUECAT_WEBHOOK_AUTH;
+
+    if (!secret) {
+        res.status(503).send("not configured");
+        return;
+    }
+
+    if (req.method !== "POST" || req.get("Authorization") !== secret) {
+        res.status(401).send("unauthorized");
+        return;
+    }
+
+    const event = req.body?.event || {};
+    const type = event.type;
+    const uid = event.app_user_id;
+
+    if (!uid || (!RC_ACTIVE_EVENTS.includes(type) && !RC_END_EVENTS.includes(type))) {
+        res.status(200).send("ignored");
+        return;
+    }
+
+    try {
+
+        const coupleId = (await db.doc(`users/${uid}`).get()).get("coupleId");
+
+        if (!coupleId) {
+            logger.warn("RevenueCat: kullanıcının çifti yok", { uid, type });
+            res.status(200).send("no couple");
+            return;
+        }
+
+        await writeCouplePremium(db.doc(`couples/${coupleId}`), premium => {
+
+            if (RC_END_EVENTS.includes(type)) {
+                delete premium.store;
+                return;
+            }
+
+            premium.store = {
+                until: admin.firestore.Timestamp.fromMillis(Number(event.expiration_at_ms) || Date.now() + 86400000),
+                productId: event.product_id || null,
+                store: event.store || null,
+                buyerUid: uid
+            };
+
+        });
+
+        logger.info("RevenueCat olayı işlendi", { type, coupleId });
+
+        res.status(200).send("ok");
+
+    } catch (error) {
+
+        logger.error("RevenueCat webhook hatası", { error: error.message, type });
+        res.status(500).send("error");
+
+    }
 
 });
