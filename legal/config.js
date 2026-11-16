@@ -17,7 +17,7 @@ window.LEGAL = {
     contactEmail: "kalpkalbe.app@gmail.com",
 
     // Metinlerin son güncellenme tarihi
-    updated: "13 Kasım 2026",
+    updated: "16 Kasım 2026",
 
     // Metin sürümü (değiştikçe artır; kullanıcı onayları bu sürümle kaydedilir)
     version: 1

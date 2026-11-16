@@ -204,6 +204,25 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Partner pili ────────────────────────────────────────
+    // Herkes sadece kendi pilini yazar; çiftteki iki kişi okur.
+    match /battery/{uid} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow create, update: if signedIn()
+        && uid == me()
+        && request.resource.data.uid == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.level is number
+        && request.resource.data.level >= 0
+        && request.resource.data.level <= 100
+        && request.resource.data.charging is bool
+        && request.resource.data.keys().hasOnly(["uid", "coupleId", "level", "charging", "at"]);
+
+      allow delete: if signedIn() && uid == me();
+    }
+
     // ── Bildirim token'ları ─────────────────────────────────
     // Her telefon kendi token'ını kendi adına kaydeder.
     // Okumayı sadece sunucu (Cloud Function) yapar.

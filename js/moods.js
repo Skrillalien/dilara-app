@@ -162,6 +162,9 @@ function renderMoodCard() {
     mine.innerHTML = moodChipHtml(moodsCurrent[moodMyUid()], "Sen", "Bugün nasılsın?");
     theirs.innerHTML = moodChipHtml(partnerUid ? moodsCurrent[partnerUid] : null, partner, "Henüz paylaşmadı");
 
+    // Partnerin pili köşede (js/battery.js)
+    if (typeof renderPartnerBattery === "function") renderPartnerBattery();
+
     document.getElementById("moodCard").style.display = "grid";
 
 }
@@ -302,6 +305,9 @@ function renderPartnerMood() {
         <div class="partner-mood-title">${escapeMood(partner)} henüz ruh halini paylaşmadı</div>
         <div class="partner-mood-time">Bir sarılma göndermenin her zaman tam zamanı 💜</div>
     `;
+
+
+    if (typeof renderPartnerBatteryDetail === "function") renderPartnerBatteryDetail();
 
 }
 

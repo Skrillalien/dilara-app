@@ -298,6 +298,8 @@ function checkUserSelection() {
 
             checkEmailVerification();
 
+            startBattery();
+
             const streakLoad = checkStreak();
             startMissYou();
             startLetters();

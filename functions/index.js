@@ -1818,6 +1818,7 @@ exports.deleteAccount = onCall(async (request) => {
     await Promise.all([
         db.doc(`presence/${uid}`).delete().catch(() => {}),
         db.doc(`moodNotify/${uid}`).delete().catch(() => {}),
+        db.doc(`battery/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 

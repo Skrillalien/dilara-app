@@ -1981,6 +1981,67 @@ async function sendPasswordReset(email) {
 
 }
 
+// ── Partner pili (js/battery.js) ────────────────────────────
+
+async function saveMyBattery({ level, charging }) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return;
+
+    await setDoc(doc(db, "battery", user.uid), {
+        uid: user.uid,
+        coupleId,
+        level: Math.max(0, Math.min(100, Math.round(level))),
+        charging: !!charging,
+        at: serverTimestamp()
+    });
+
+}
+
+async function deleteMyBattery() {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await deleteDoc(doc(db, "battery", user.uid)).catch(() => {});
+
+}
+
+function listenCoupleBattery(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        const q = query(collection(db, "battery"), where("coupleId", "==", coupleId));
+
+        unsubscribe = onSnapshot(q, snapshot => {
+
+            const map = {};
+
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                map[data.uid || d.id] = {
+                    ...data,
+                    at: data.at?.toMillis?.() || Date.now()
+                };
+            });
+
+            callback(map);
+
+        }, error => console.warn("Pil bilgisi dinlenemedi:", error));
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
 // ── E-posta doğrulama (js/verify.js) ────────────────────────
 
 async function sendVerificationEmail() {
@@ -2042,6 +2103,9 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    saveMyBattery,
+    deleteMyBattery,
+    listenCoupleBattery,
     sendVerificationEmail,
     refreshEmailVerified,
     saveConsent,

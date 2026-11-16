@@ -5616,3 +5616,88 @@ margin-bottom:14px;
 }
 
 .ob-next:active{ transform:scale(.98); }
+
+/* ── Partner pili (js/battery.js) ──────────────────────────── */
+#moodTheirs{
+    position:relative;
+}
+
+.batt{
+    position:absolute;
+    top:8px;
+    right:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    font-weight:600;
+    line-height:1;
+    color:var(--muted);
+    pointer-events:none;
+    transition:opacity .3s ease;
+}
+
+.batt.stale{
+    opacity:.5;
+}
+
+.batt.low{
+    color:#f87171;
+}
+
+.batt-bolt{
+    font-size:10px;
+}
+
+.batt-icon{
+    position:relative;
+    display:inline-block;
+    width:19px;
+    height:10px;
+    box-sizing:border-box;
+    border:1.5px solid currentColor;
+    border-radius:3px;
+    padding:1px;
+}
+
+.batt-icon::after{
+    content:"";
+    position:absolute;
+    right:-3.5px;
+    top:2.5px;
+    width:2px;
+    height:3px;
+    border-radius:0 1px 1px 0;
+    background:currentColor;
+}
+
+.batt-icon b{
+    display:block;
+    height:100%;
+    border-radius:1px;
+    background:#4ade80;
+}
+
+.batt.low .batt-icon b,
+.partner-batt.low .batt-icon b{
+    background:#f87171;
+}
+
+.partner-batt{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:16px;
+    font-size:13px;
+    color:var(--muted);
+}
+
+/* Rozet varken isim satırı rozetin altına girmesin */
+#moodTheirs.has-batt .mood-chip-who{
+    display:block;
+    padding-right:56px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
