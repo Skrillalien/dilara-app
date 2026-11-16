@@ -5963,3 +5963,73 @@ html.sheet-open .page{
     font-size:10.5px;
     letter-spacing:-1.5px;
 }
+
+/* ── Hayal işaretleme animasyonu (js/dreams.js) ────────────── */
+.dream-card{
+    transition:background .3s ease, border-color .3s ease, box-shadow .3s ease;
+    will-change:transform;
+}
+
+.dream-check{
+    transition:background .25s ease, border-color .25s ease, color .2s ease, box-shadow .3s ease, transform .2s ease;
+}
+
+.dream-check svg path{
+    stroke-dasharray:22;
+    stroke-dashoffset:0;
+}
+
+/* Dokununca: halka küçülüp büyüyerek dolar, tik çizilir */
+.dream-card.just-done .dream-check{
+    animation:dreamPop .38s cubic-bezier(.3,1.6,.5,1);
+}
+
+.dream-card.just-done .dream-check svg path{
+    animation:dreamTick .3s ease-out .06s both;
+}
+
+.dream-card.just-done .dream-emoji{
+    animation:dreamEmoji .45s cubic-bezier(.3,1.5,.5,1);
+}
+
+.dream-card.just-undone .dream-check{
+    animation:dreamUnpop .25s ease;
+}
+
+/* Yeni yerine akan kart kısa bir an öne çıksın */
+.dream-card.moved{
+    position:relative;
+    z-index:2;
+    box-shadow:0 10px 26px rgba(0,0,0,.22);
+}
+
+@keyframes dreamPop{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(.82); }
+    70%{ transform:scale(1.14); }
+    100%{ transform:scale(1); }
+}
+
+@keyframes dreamUnpop{
+    0%{ transform:scale(1); }
+    50%{ transform:scale(.85); }
+    100%{ transform:scale(1); }
+}
+
+@keyframes dreamTick{
+    from{ stroke-dashoffset:22; }
+    to{ stroke-dashoffset:0; }
+}
+
+@keyframes dreamEmoji{
+    0%{ transform:scale(1) rotate(0); }
+    40%{ transform:scale(1.18) rotate(-8deg); }
+    100%{ transform:scale(1) rotate(0); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .dream-card.just-done .dream-check,
+    .dream-card.just-done .dream-check svg path,
+    .dream-card.just-done .dream-emoji,
+    .dream-card.just-undone .dream-check{ animation:none; }
+}
