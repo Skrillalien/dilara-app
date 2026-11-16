@@ -24,6 +24,20 @@ window.appHaptics = {
 
 window.appNotifications = {
 
+    // Eskiden telefonda kurulan özel gün hatırlatmaları artık sunucudan
+    // geliyor; çift bildirim olmasın diye bekleyenleri iptal et
+    async cancelAllScheduled() {
+
+        const pending = await LocalNotifications.getPending();
+
+        if (pending.notifications?.length) {
+            await LocalNotifications.cancel({
+                notifications: pending.notifications.map(n => ({ id: n.id }))
+            });
+        }
+
+    },
+
     async requestPermission() {
 
         const result =
