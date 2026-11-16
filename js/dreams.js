@@ -99,7 +99,7 @@ function renderDreamCard(dream) {
     return `
         <div class="dream-card${done ? " done" : ""}" onclick="toggleDreamNote(this)">
 
-            <div class="dream-emoji">${escapeDream(dream.emoji || "✨")}</div>
+            <div class="dream-emoji${emojiCountClass(dream.emoji)}">${escapeDream(dream.emoji || "✨")}</div>
 
             <div class="dream-body">
                 <div class="dream-title">${escapeDream(dream.title)}</div>
@@ -125,6 +125,22 @@ function renderDreamCard(dream) {
 
         </div>
     `;
+
+}
+
+// Birden fazla emoji yazıldıysa kutuya sığsın diye küçült
+function emojiCountClass(emoji) {
+
+    const text = String(emoji || "");
+
+    const count = typeof Intl !== "undefined" && Intl.Segmenter
+        ? [...new Intl.Segmenter("tr", { granularity: "grapheme" }).segment(text)].length
+        : Array.from(text).length;
+
+    if (count >= 3) return " many";
+    if (count === 2) return " two";
+
+    return "";
 
 }
 
