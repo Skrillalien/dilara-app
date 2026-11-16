@@ -2022,6 +2022,20 @@ async function sendPasswordReset(email) {
 
 }
 
+// ── Bildirim türleri (js/notifications.js) ──────────────────
+
+async function setNotifyPref(key, value) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), {
+        [`notifyPrefs.${key}`]: !!value
+    });
+
+}
+
 // ── Şu an dinliyorum (js/nowplaying.js) ─────────────────────
 // Tek belge: nowPlaying/{uid}. 5 dakika sonra görünmez olur,
 // sunucu da süresi geçenleri siler.
@@ -2213,6 +2227,7 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    setNotifyPref,
     shareNowPlaying,
     stopNowPlaying,
     listenNowPlaying,

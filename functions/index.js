@@ -42,21 +42,25 @@ setGlobalOptions({ region: "europe-west1", maxInstances: 5 });
 
 const TYPES = {
     memories: {
+        category: "content",
         page: "our-memories",
         icon: "💌",
         body: (d) => withPreview("Sana yeni bir not bıraktı", d.text || ((d.imageUrl || d.image) ? "📷 Fotoğraf" : ""))
     },
     songs: {
+        category: "content",
         page: "our-songs",
         icon: "🎵",
         body: (d) => withPreview("Sana bir şarkı bıraktı", [d.title, d.artist].filter(Boolean).join(" · "))
     },
     dreams: {
+        category: "content",
         page: "our-dreams",
         icon: "✨",
         body: (d) => withPreview("Yeni bir hayal ekledi", d.title)
     },
     misses: {
+        category: "love",
         page: "miss",
         icon: "💗",
         // Aynı etiketli bildirimler telefonda üst üste yığılmaz, yenisi eskisinin yerine geçer
@@ -90,12 +94,22 @@ function withPreview(text, preview) {
 }
 
 // Bir kullanıcının bütün telefonlarına bildirim gönder
-async function sendPushToUser(uid, { title, body, data = {}, tag = null }) {
+// Bildirim türleri (Ayarlar → Bildirimler). Kategorisiz bildirimler
+// (ör. partnerin katıldı, hesap silindi) her zaman gider.
+const NOTIFY_CATEGORIES = ["love", "content", "letters", "questions", "reminders", "music"];
+
+async function sendPushToUser(uid, { title, body, data = {}, tag = null, category = null }) {
 
     const userRef = db.doc(`users/${uid}`);
+    const userSnap = await userRef.get();
+
+    if (category && userSnap.get(`notifyPrefs.${category}`) === false) {
+        logger.info("Bildirim türü kapalı, gönderilmedi", { uid, category });
+        return;
+    }
 
     const tokenSnap = await db.collection("pushTokens").where("uid", "==", uid).get();
-    const legacy = (await userRef.get()).get("fcmTokens") || [];
+    const legacy = userSnap.get("fcmTokens") || [];
 
     const tokens = [...new Set([
         ...tokenSnap.docs.map(d => d.id),
@@ -202,7 +216,8 @@ async function notifyPartner(type, event) {
             title: `${t.icon} ${authorName}`,
             body: t.body(data),
             data: { page: t.page, type, id: event.params.id },
-            tag: t.tag || null
+            tag: t.tag || null,
+            category: t.category || null
         });
 
     }
@@ -245,6 +260,8 @@ exports.joinCouple = onCall(async (request) => {
     const coupleRef = found.docs[0].ref;
     const userRef = db.doc(`users/${uid}`);
 
+    let waiting = [];
+
     const coupleId = await db.runTransaction(async tx => {
 
         const couple = await tx.get(coupleRef);
@@ -282,11 +299,26 @@ exports.joinCouple = onCall(async (request) => {
 
         tx.set(userRef, { coupleId: coupleRef.id }, { merge: true });
 
+        waiting = members.filter(m => m !== uid);
+
         return coupleRef.id;
 
     });
 
     logger.info("Çifte katıldı", { uid, coupleId });
+
+    // Davet edene haber ver
+    if (waiting.length) {
+
+        const name = await userName(uid, "Partnerin");
+
+        await Promise.all(waiting.map(to => sendPushToUser(to, {
+            title: `💞 ${name} sana katıldı!`,
+            body: "Artık bağlısınız. İlk notunu bırakmaya ne dersin? 💜",
+            data: { page: "home", type: "joined" }
+        }).catch(error => logger.warn("Katılma bildirimi gönderilemedi", { error: error.message }))));
+
+    }
 
     return { coupleId };
 
@@ -551,7 +583,8 @@ exports.sealLetter = onCall(async (request) => {
         body: hideDate
             ? "Sana mühürlü bir mektup bıraktı. Ne zaman açılacağı sürpriz 🤫"
             : `Sana mühürlü bir mektup bıraktı · ${relativeOpenText(openAtMs)} açılacak`,
-        data: { page: "our-letters", type: "letters", id }
+        data: { page: "our-letters", type: "letters", id },
+        category: "letters"
     });
 
     logger.info("Mektup mühürlendi", { id, coupleId, hideDate, hasPhoto });
@@ -751,15 +784,12 @@ async function openLetter(id) {
         await sendPushToUser(partnerId, {
             title: "💌 Mühürlü mektubun açıldı",
             body: `${authorName} sana yazmıştı, şimdi okuyabilirsin`,
-            data
+            data,
+            category: "letters"
         });
     }
 
-    await sendPushToUser(authorId, {
-        title: "💌 Mektubun açıldı",
-        body: `${partnerName} artık mektubunu okuyabilir`,
-        data
-    });
+    // Yazana sadece "okundu" bildirimi gider (onLetterRead)
 
     logger.info("Mektup açıldı", { id, coupleId });
 
@@ -820,7 +850,8 @@ exports.onLetterRead = onDocumentUpdated("letters/{id}", async (event) => {
     await sendPushToUser(after.authorId, {
         title: "💜 Mektubun okundu",
         body: `${await userName(readerId)} mektubunu okudu`,
-        data: { page: "our-letters", type: "letters", id: event.params.id }
+        data: { page: "our-letters", type: "letters", id: event.params.id },
+        category: "letters"
     });
 
 });
@@ -1012,7 +1043,8 @@ exports.answerQuestion = onCall(async (request) => {
                 title: "💬 Cevaplarınız açıldı",
                 body: `${name} de günün sorusunu cevapladı. Gel bak ne yazmış!`,
                 data,
-                tag: `question-${day}`
+                tag: `question-${day}`,
+                category: "questions"
             });
 
         } else if (result.firstTime) {
@@ -1021,7 +1053,8 @@ exports.answerQuestion = onCall(async (request) => {
                 title: `💬 ${name} günün sorusunu cevapladı`,
                 body: "Seninkini bekliyor 👀 Sen de cevaplayınca ikiniz de görebileceksiniz.",
                 data,
-                tag: `question-${day}`
+                tag: `question-${day}`,
+                category: "questions"
             });
 
         }
@@ -1086,7 +1119,8 @@ exports.onQuestionReaction = onDocumentUpdated("dailyQuestions/{id}", async (eve
             title: `${emoji} ${await userName(reactorId)}`,
             body: "Günün sorusundaki cevabına tepki bıraktı",
             data: { page: "our-questions", type: "question", day: after.day },
-            tag: `question-reaction-${after.day}`
+            tag: `question-reaction-${after.day}`,
+            category: "questions"
         });
 
     }
@@ -1169,7 +1203,8 @@ exports.onMoodLogged = onDocumentCreated("moodLogs/{id}", async (event) => {
         title: `${mood.emoji} ${name}: ${mood.label}`,
         body: note ? `“${note.slice(0, 100)}”` : "Bugün biraz desteğe ihtiyacı olabilir 💜",
         data: { page: "mood", type: "mood" },
-        tag: "mood"
+        tag: "mood",
+        category: "love"
     });
 
 });
@@ -1194,7 +1229,8 @@ exports.onNudge = onDocumentCreated("nudges/{id}", async (event) => {
             ? `${label.replace(/ bugün$/, "")}ki bir anınızı hatırladı`
             : "Eski bir anınızı hatırladı"),
         data: { page: nudge.page || "mood", type: "nudge" },
-        tag: nudge.page ? "remember" : "nudge"
+        tag: nudge.page ? "remember" : "nudge",
+        category: "love"
     });
 
 });
@@ -1506,7 +1542,8 @@ exports.notifyOnThisDay = onSchedule({
                 title: `📅 ${doc.get("label")}`,
                 body: count > 1 ? `${count} anınız var 💜` : "Bir anınız var 💜",
                 data: { page: "onthisday", type: "onthisday" },
-                tag: "onthisday"
+                tag: "onthisday",
+                category: "reminders"
             }).catch(error => logger.warn("Bildirim gönderilemedi", { uid, error: error.message }));
 
         }
@@ -1820,6 +1857,7 @@ exports.deleteAccount = onCall(async (request) => {
         db.doc(`moodNotify/${uid}`).delete().catch(() => {}),
         db.doc(`battery/${uid}`).delete().catch(() => {}),
         db.doc(`nowPlaying/${uid}`).delete().catch(() => {}),
+        db.doc(`photoNotify/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 
@@ -1953,7 +1991,8 @@ exports.onNowPlaying = onDocumentWritten("nowPlaying/{uid}", async (event) => {
             title: `🎧 ${name} şu an dinliyor`,
             body: song,
             data: { page: "nowplaying", type: "nowPlaying" },
-            tag: "nowplaying"
+            tag: "nowplaying",
+            category: "music"
         });
     }
 
@@ -1968,5 +2007,259 @@ exports.cleanupNowPlaying = onSchedule({ schedule: "every 10 minutes", maxInstan
     await Promise.all(expired.docs.map(d => d.ref.delete().catch(() => {})));
 
     if (expired.size) logger.info("Süresi geçen 'şu an dinliyorum' silindi", { count: expired.size });
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// Fotoğraf bildirimi (toplu)
+//
+// Arka arkaya birkaç fotoğraf eklenirse tek bildirim gider:
+// "Berk 4 fotoğraf ekledi". Her fotoğraf sayacı artırır, 40 sn
+// bekler; o sürede yenisi gelmediyse bildirimi o gönderir.
+// ─────────────────────────────────────────────────────────────
+
+const PHOTO_BATCH_WAIT_MS = 40 * 1000;
+
+exports.onPhotoCreated = onDocumentCreated({ document: "photos/{id}", timeoutSeconds: 120 }, async (event) => {
+
+    const data = event.data?.data();
+    const { coupleId, authorId } = data || {};
+
+    if (!coupleId || !authorId) return;
+
+    const stateRef = db.doc(`photoNotify/${authorId}`);
+    const stamp = Date.now();
+
+    await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        const fresh = !state.exists || stamp - (state.get("lastAt") || 0) > 10 * 60 * 1000;
+        tx.set(stateRef, {
+            coupleId,
+            count: fresh ? 1 : (state.get("count") || 0) + 1,
+            lastAt: stamp
+        });
+    });
+
+    await new Promise(resolve => setTimeout(resolve, PHOTO_BATCH_WAIT_MS));
+
+    // Sırası gelen son fotoğraf mı? Öyleyse sayacı sıfırla ve gönder
+    const count = await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        if (!state.exists || state.get("lastAt") !== stamp) return 0;
+        tx.delete(stateRef);
+        return state.get("count") || 1;
+    });
+
+    if (!count) return;
+
+    const couple = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (couple.get("members") || []).filter(m => m !== authorId);
+
+    if (!recipients.length) return;
+
+    const name = await userName(authorId);
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `📷 ${name}`,
+            body: count > 1 ? `${count} yeni fotoğraf ekledi 💜` : "Yeni bir fotoğraf ekledi 💜",
+            data: { page: "our-photos", type: "photos" },
+            tag: "photos",
+            category: "content"
+        });
+    }
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// Hatırlatmalar
+//
+// 09:00  Özel günler (bugün) + ilişki dönüm noktaları
+//        (her ayın yıldönümü, yıl dönümü, her 100. gün)
+// 21:00  Yarınki özel günler + seri tehlikede uyarısı
+//
+// Özel gün hatırlatmaları eskiden sadece Android telefonda yerel
+// olarak kuruluyordu; artık sunucudan herkese gidiyor.
+// ─────────────────────────────────────────────────────────────
+
+function istanbulParts(date) {
+
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+        timeZone: OTD_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(date).map(p => [p.type, p.value]));
+
+    return { y: Number(parts.year), m: Number(parts.month), d: Number(parts.day) };
+
+}
+
+function daysInMonth(y, m) {
+    return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+// startDate "YYYY-MM-DD" → bugünkü dönüm noktası metni ya da null
+function milestoneText(startDate, today) {
+
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(startDate || ""));
+
+    if (!m) return null;
+
+    const start = { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
+
+    const startUtc = Date.UTC(start.y, start.m - 1, start.d);
+    const todayUtc = Date.UTC(today.y, today.m - 1, today.d);
+
+    if (todayUtc <= startUtc) return null;
+
+    const days = Math.round((todayUtc - startUtc) / 86400000);
+
+    // Ay yıldönümü: 31'inde başlayanlar için kısa aylarda ayın son günü
+    const anniversaryDay = Math.min(start.d, daysInMonth(today.y, today.m));
+    const months = (today.y - start.y) * 12 + (today.m - start.m);
+
+    const texts = [];
+
+    if (today.d === anniversaryDay && months > 0) {
+        if (months % 12 === 0) texts.push(`🎉 Bugün ${months / 12}. yılınız!`);
+        else texts.push(`💜 Bugün ${months}. ayınız!`);
+    }
+
+    if (days % 100 === 0) texts.push(`✨ Birlikte ${days}. gününüz`);
+
+    return texts.length ? texts : null;
+
+}
+
+async function forEachCouple(handler) {
+
+    const couples = await db.collection("couples").get();
+
+    for (const couple of couples.docs) {
+
+        const members = couple.get("members") || [];
+
+        if (members.length < 2 || couple.get("partnerLeft")) continue;
+
+        try {
+            await handler(couple, members);
+        } catch (error) {
+            logger.warn("Hatırlatma hatası", { coupleId: couple.id, error: error.message });
+        }
+
+    }
+
+}
+
+async function eventsOn(coupleId, month, day) {
+
+    const snap = await db.collection("events").where("coupleId", "==", coupleId).get();
+
+    return snap.docs
+        .map(d => d.data())
+        .filter(e => Number(e.month) === month && Number(e.day) === day && e.name);
+
+}
+
+exports.morningReminders = onSchedule({
+    schedule: "0 9 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const today = istanbulParts(new Date());
+
+    await forEachCouple(async (couple, members) => {
+
+        for (const e of await eventsOn(couple.id, today.m, today.d)) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: `${e.emoji || "📅"} Bugün ${e.name}!`,
+                    body: "Unutmayın 💜",
+                    data: { page: "our-calendar", type: "event" },
+                    tag: `event-${today.m}-${today.d}`,
+                    category: "reminders"
+                });
+            }
+        }
+
+        const milestone = milestoneText(couple.get("startDate"), today);
+
+        if (milestone) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: milestone[0],
+                    body: milestone[1] || "Nice güzel günlere 💜",
+                    data: { page: "home", type: "milestone" },
+                    tag: "milestone",
+                    category: "reminders"
+                });
+            }
+        }
+
+    });
+
+});
+
+exports.eveningReminders = onSchedule({
+    schedule: "0 21 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const now = new Date();
+    const today = istanbulParts(now);
+    const tomorrow = istanbulParts(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+    const todayKey = `${today.y}-${String(today.m).padStart(2, "0")}-${String(today.d).padStart(2, "0")}`;
+
+    await forEachCouple(async (couple, members) => {
+
+        // Yarınki özel günler
+        for (const e of await eventsOn(couple.id, tomorrow.m, tomorrow.d)) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: `${e.emoji || "📅"} Yarın ${e.name}`,
+                    body: "Hazırlık için hâlâ vakit var 😉",
+                    data: { page: "our-calendar", type: "event" },
+                    tag: `event-${tomorrow.m}-${tomorrow.d}`,
+                    category: "reminders"
+                });
+            }
+        }
+
+        // Seri: bugün henüz tamamlanmadıysa, uğramayanlara hatırlat
+        const streak = couple.get("streak");
+        const count = streak?.count || 0;
+
+        if (count < 2 || !streak.lastCountedDay || streak.lastCountedDay >= todayKey) return;
+
+        const visited = uid => {
+            const day = streak.visits?.[uid];
+            return !!day && day > streak.lastCountedDay;
+        };
+
+        const missing = members.filter(uid => !visited(uid));
+
+        if (!missing.length) return;
+
+        for (const uid of missing) {
+
+            const partnerId = members.find(m => m !== uid);
+            const partnerCame = partnerId && visited(partnerId);
+            const partnerName = partnerCame ? await userName(partnerId) : "";
+
+            await sendPushToUser(uid, {
+                title: `🔥 ${count} günlük seriniz bozulmasın`,
+                body: partnerCame
+                    ? `${partnerName} bugün uğradı, senin de girmen yeterli 💗`
+                    : "Bugün ikiniz de uygulamaya bir uğrayın 💗",
+                data: { page: "home", type: "streak" },
+                tag: "streak",
+                category: "reminders"
+            });
+
+        }
+
+    });
 
 });

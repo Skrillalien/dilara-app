@@ -77,108 +77,84 @@ async function requestNotification() {
 }
 
 
+// Özel gün hatırlatmaları artık sunucudan geliyor (functions →
+// morningReminders / eveningReminders). Telefonda eskiden kurulmuş
+// yerel hatırlatmaları temizle.
 async function scheduleNotifications() {
 
-    if (!window.appNotifications) return;
-
-    const now = new Date();
-
-    const upcomingEvents = EVENTS.filter(event => {
-
-        const eventDate = new Date(
-            now.getFullYear(),
-            event.month - 1,
-            event.day,
-            9,
-            0,
-            0,
-            0
-        );
-
-        const dayBefore = new Date(eventDate);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-
-        return eventDate > now || dayBefore > now;
-
-    });
-
-    for (const event of upcomingEvents) {
-
-        const eventDate = new Date(
-            now.getFullYear(),
-            event.month - 1,
-            event.day,
-            9,
-            0,
-            0,
-            0
-        );
-
-        const dayBefore = new Date(eventDate);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-
-
-        // 1 gün önce
-        if (dayBefore > now) {
-
-            await window.appNotifications.schedule({
-
-                id: event.month * 1000 + event.day * 2,
-
-                title: `Yarın ${event.name} ${event.emoji}`,
-
-                body: `Yarın ${event.name}! 💜`,
-
-                smallIcon: "ic_launcher",
-
-                schedule: {
-                    at: dayBefore
-                },
-
-                extra: {
-                    type: "event",
-                    reminder: "day-before",
-                    month: event.month,
-                    day: event.day
-                }
-
-            });
-
-        }
-
-
-        // Etkinlik günü
-        if (eventDate > now) {
-
-            await window.appNotifications.schedule({
-
-                id: event.month * 1000 + event.day * 2 + 1,
-
-                title: `${event.name} ${event.emoji}`,
-
-                body: `Bugün ${event.name}! 💜`,
-
-                smallIcon: "ic_launcher",
-
-                schedule: {
-                    at: eventDate
-                },
-
-                extra: {
-                    type: "event",
-                    reminder: "today",
-                    month: event.month,
-                    day: event.day
-                }
-
-            });
-
-        }
-
+    try {
+        await window.appNotifications?.cancelAllScheduled?.();
+    } catch (error) {
+        console.warn("Eski yerel hatırlatmalar silinemedi:", error);
     }
 
 }
 
+// ── Bildirim türleri (Ayarlar → Bildirimler) ────────────────
+
+const NOTIFY_TYPES = [
+    { key: "love",      icon: "💗", title: "Özledim, sarılma, ruh hali" },
+    { key: "content",   icon: "📷", title: "Yeni not, fotoğraf, şarkı, hayal" },
+    { key: "letters",   icon: "💌", title: "Mühürlü mektuplar" },
+    { key: "questions", icon: "💬", title: "Günün Sorusu" },
+    { key: "reminders", icon: "📅", title: "Hatırlatmalar", hint: "Özel günler, ay dönümleri, bugün geçen yıl, seri" },
+    { key: "music",     icon: "🎧", title: "Şu an dinliyorum" }
+];
+
+let notifyPrefs = {};
+
+async function initNotifyPrefs() {
+
+    const box = document.getElementById("notifyPrefs");
+
+    if (!box) return;
+
+    try {
+        notifyPrefs = (await window.firebase.getUserProfile())?.notifyPrefs || {};
+    } catch {
+        notifyPrefs = {};
+    }
+
+    box.innerHTML = NOTIFY_TYPES.map(t => `
+        <label class="notify-row">
+            <span class="notify-row-icon">${t.icon}</span>
+            <span class="notify-row-text">
+                <b>${t.title}</b>
+                ${t.hint ? `<span>${t.hint}</span>` : ""}
+            </span>
+            <input type="checkbox" class="notify-switch" data-key="${t.key}"
+                ${notifyPrefs[t.key] === false ? "" : "checked"}>
+        </label>
+    `).join("");
+
+    box.querySelectorAll(".notify-switch").forEach(input => {
+        input.addEventListener("change", () => saveNotifyPref(input));
+    });
+
+}
+
+async function saveNotifyPref(input) {
+
+    const key = input.dataset.key;
+    const value = input.checked;
+
+    try {
+
+        await window.firebase.setNotifyPref(key, value);
+
+        notifyPrefs[key] = value;
+
+    } catch (error) {
+
+        console.error("Bildirim ayarı kaydedilemedi:", error);
+
+        input.checked = !value;
+
+        showToast("Kaydedilemedi, tekrar dene.");
+
+    }
+
+}
 
 function registerServiceWorker() {
 

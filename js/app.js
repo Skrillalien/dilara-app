@@ -302,6 +302,8 @@ function checkUserSelection() {
 
             startNowPlaying();
 
+            initNotifyPrefs();
+
             const streakLoad = checkStreak();
             startMissYou();
             startLetters();
