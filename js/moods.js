@@ -116,7 +116,7 @@ function startMoods() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        moodPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
+        moodPlan = isPremiumPlan(couple) ? "premium" : "free";
     }).catch(() => {});
 
 }
@@ -357,7 +357,8 @@ function moodLeaveNote() {
 async function openMoodHistory(whose) {
 
     if (moodPlan !== "premium") {
-        showToast("👑 Ruh hali takvimi Premium özelliği");
+        if (typeof openPremium === "function") openPremium();
+        else showToast("👑 Ruh hali takvimi Premium özelliği");
         return;
     }
 

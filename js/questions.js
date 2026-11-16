@@ -147,7 +147,7 @@ function startQuestions() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        questionPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
+        questionPlan = isPremiumPlan(couple) ? "premium" : "free";
     }).catch(() => {});
 
     // Uygulama gece yarısını geçerek açık kaldıysa yeni günün sorusu
@@ -566,7 +566,8 @@ function closeQuestionModal() {
 function openCustomQuestion() {
 
     if (questionPlan !== "premium") {
-        showToast("👑 Kendi sorularınızı eklemek Premium özelliği");
+        if (typeof openPremium === "function") openPremium();
+        else showToast("👑 Kendi sorularınızı eklemek Premium özelliği");
         return;
     }
 
