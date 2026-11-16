@@ -300,6 +300,8 @@ function checkUserSelection() {
 
             startBattery();
 
+            startNowPlaying();
+
             const streakLoad = checkStreak();
             startMissYou();
             startLetters();

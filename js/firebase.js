@@ -13,6 +13,7 @@ import {
     where,
     onSnapshot,
     serverTimestamp,
+    Timestamp,
     arrayUnion,
     arrayRemove,
     getDoc,
@@ -532,6 +533,27 @@ async function addMemory(text, image = null) {
     });
 }
 
+// Aynı şarkıyı tanımak için anahtar: Spotify parça kimliği,
+// YouTube video kimliği ya da sorgusuz adres
+function songKey(link) {
+
+    const raw = String(link || "").trim();
+
+    const spotify = raw.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/i);
+    if (spotify) return "spotify:" + spotify[1];
+
+    const yt = raw.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+    if (yt) return "youtube:" + yt[1];
+
+    try {
+        const u = new URL(raw);
+        return (u.host + u.pathname).toLowerCase().replace(/\/+$/, "");
+    } catch {
+        return raw.toLowerCase();
+    }
+
+}
+
 async function addSong(link, title, artist, note, platform = null, cover = null) {
     const coupleId = await getMyCouple();
 
@@ -543,6 +565,25 @@ async function addSong(link, title, artist, note, platform = null, cover = null)
 
     if (!profile) {
         throw new Error("USER_PROFILE_NOT_FOUND");
+    }
+
+    // Aynı şarkı daha önce eklendiyse eskisini kaldır;
+    // yenisi listenin en başına gelir
+    try {
+
+        const key = songKey(link);
+
+        const existing = await getDocs(query(
+            collection(db, "songs"),
+            where("coupleId", "==", coupleId)
+        ));
+
+        await Promise.all(existing.docs
+            .filter(d => songKey(d.get("link")) === key)
+            .map(d => deleteDoc(d.ref)));
+
+    } catch (error) {
+        console.warn("Eski kopya silinemedi:", error);
     }
 
     await addDoc(collection(db, "songs"), {
@@ -1981,6 +2022,75 @@ async function sendPasswordReset(email) {
 
 }
 
+// ── Şu an dinliyorum (js/nowplaying.js) ─────────────────────
+// Tek belge: nowPlaying/{uid}. 5 dakika sonra görünmez olur,
+// sunucu da süresi geçenleri siler.
+
+const NOW_PLAYING_MS = 5 * 60 * 1000;
+
+async function shareNowPlaying({ link, platform, title, artist, cover }) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const clip = (v, n) => (v ? String(v).slice(0, n) : "");
+
+    await setDoc(doc(db, "nowPlaying", user.uid), {
+        uid: user.uid,
+        coupleId,
+        link: clip(link, 480),
+        platform: platform || null,
+        title: clip(title, 200),
+        artist: clip(artist, 200),
+        cover: cover ? clip(cover, 480) : null,
+        shareId: Math.random().toString(36).slice(2, 12),
+        sharedAt: serverTimestamp(),
+        expiresAt: Timestamp.fromMillis(Date.now() + NOW_PLAYING_MS)
+    });
+
+}
+
+async function stopNowPlaying() {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await deleteDoc(doc(db, "nowPlaying", user.uid)).catch(() => {});
+
+}
+
+function listenNowPlaying(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        const q = query(collection(db, "nowPlaying"), where("coupleId", "==", coupleId));
+
+        unsubscribe = onSnapshot(q, snapshot => {
+
+            callback(snapshot.docs.map(d => {
+                const data = d.data();
+                return {
+                    ...data,
+                    uid: data.uid || d.id,
+                    expiresAt: data.expiresAt?.toMillis?.() || 0
+                };
+            }));
+
+        }, error => console.warn("Şu an dinlenen alınamadı:", error));
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
 // ── Partner pili (js/battery.js) ────────────────────────────
 
 async function saveMyBattery({ level, charging }) {
@@ -2103,6 +2213,9 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    shareNowPlaying,
+    stopNowPlaying,
+    listenNowPlaying,
     saveMyBattery,
     deleteMyBattery,
     listenCoupleBattery,

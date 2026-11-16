@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=23">
+  <link rel="stylesheet" href="css/style.css?v=24">
   
   <link
     rel="stylesheet"
@@ -200,6 +200,9 @@
       </div>
 
       <div class="header-fade"></div>
+
+      <!-- Şu an dinliyorum (js/nowplaying.js) -->
+      <button class="now-playing" id="nowPlaying" type="button" onclick="onNowPlayingTap(event)"></button>
 
       <div class="header-content">
         <span class="header-emoji"><svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg></span>
@@ -505,6 +508,16 @@
             </svg>
 
             <span>Yeni Şarkı Bırak</span>
+
+        </div>
+
+        <div
+            class="song-add-card np-add-card"
+            onclick="openNowPlayingSheet()">
+
+            <span class="np-add-icon" aria-hidden="true">🎧</span>
+
+            <span>Şu an dinliyorum</span>
 
         </div>
 
@@ -1811,7 +1824,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=18"></script>
+    <script type="module" src="js/firebase.js?v=19"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
@@ -1828,7 +1841,7 @@
 
 
 
-    <script src="js/ui.js?v=13"></script>
+    <script src="js/ui.js?v=14"></script>
 
     <script src="js/slider.js?v=2"></script>
 
@@ -1849,7 +1862,8 @@
     <script src="js/verify.js?v=1"></script>
     <script src="js/onboarding.js?v=1"></script>
     <script src="js/battery.js?v=1"></script>
-    <script src="js/app.js?v=20"></script>
+    <script src="js/nowplaying.js?v=1"></script>
+    <script src="js/app.js?v=21"></script>
   
 </body>
 </html>

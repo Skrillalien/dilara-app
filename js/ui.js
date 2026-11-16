@@ -144,6 +144,33 @@ function initSheetDrag(id, zoneHeight = 76) {
 
 }
 
+// Panel açıkken arkadaki sayfa kaymasın / dokunulmasın
+function updateSheetScrollLock() {
+
+    const anyOpen = Object.keys(SHEETS).some(isSheetOpen);
+
+    document.documentElement.classList.toggle("sheet-open", anyOpen);
+
+}
+
+let sheetLockReady = false;
+
+function initSheetScrollLock() {
+
+    if (sheetLockReady) return;
+    sheetLockReady = true;
+
+    const observer = new MutationObserver(updateSheetScrollLock);
+
+    for (const id of Object.keys(SHEETS)) {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+    }
+
+    updateSheetScrollLock();
+
+}
+
 function initSheetDrags() {
 
     initSheetDrag("bnyPanel");
@@ -184,6 +211,12 @@ function openAppTarget(target) {
             document.getElementById("questionCard")
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
+        return;
+    }
+
+    // Şu an dinliyorum bildirimi: ana sayfanın üstünde görünüyor
+    if (target === "nowplaying") {
+        showPage("home");
         return;
     }
 
@@ -519,3 +552,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (img.complete && img.naturalWidth) markImageLoaded(img);
     });
 });
+
+// Panel kilidi girişten bağımsız, sayfa yüklenir yüklenmez kurulur
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initSheetScrollLock);
+else initSheetScrollLock();
