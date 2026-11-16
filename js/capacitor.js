@@ -181,6 +181,8 @@ function closeTopLayer() {
         return el && getComputedStyle(el).display !== "none";
     };
 
+    if (typeof onboardingBack === "function" && onboardingBack()) return true;
+
     if (visible("imageViewer")) { closeImage(); return true; }
 
     if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }
