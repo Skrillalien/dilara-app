@@ -183,6 +183,8 @@ function closeTopLayer() {
 
     if (typeof onboardingBack === "function" && onboardingBack()) return true;
 
+    if (typeof closeNowPlayingSheet === "function" && closeNowPlayingSheet()) return true;
+
     if (visible("imageViewer")) { closeImage(); return true; }
 
     if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }

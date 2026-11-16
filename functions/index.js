@@ -10,7 +10,7 @@
 // Eski sürümün users/{uid}.fcmTokens dizisi de okunur.
 // ─────────────────────────────────────────────────────────────
 
-const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -1819,6 +1819,7 @@ exports.deleteAccount = onCall(async (request) => {
         db.doc(`presence/${uid}`).delete().catch(() => {}),
         db.doc(`moodNotify/${uid}`).delete().catch(() => {}),
         db.doc(`battery/${uid}`).delete().catch(() => {}),
+        db.doc(`nowPlaying/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 
@@ -1828,5 +1829,144 @@ exports.deleteAccount = onCall(async (request) => {
     logger.info("Hesap silindi", { uid });
 
     return { ok: true };
+
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// Şu an dinliyorum
+//
+// nowPlaying/{uid}: kişi bir şarkıyı 5 dakikalığına paylaşır.
+// • Spotify bağlantılarında sanatçı adı istemcide alınamıyor;
+//   burada şarkı sayfasından eklenir
+// • Partnere bildirim gider
+// • Süresi geçen kayıtlar 10 dakikada bir silinir
+// ─────────────────────────────────────────────────────────────
+
+function decodeHtml(text) {
+    return String(text || "")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;|&#39;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">");
+}
+
+async function spotifyTrackMeta(link) {
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+
+    try {
+
+        const res = await fetch(link, {
+            signal: controller.signal,
+            redirect: "follow",
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; KalpKalbe/1.0)", "Accept-Language": "tr,en" }
+        });
+
+        if (!res.ok) return {};
+
+        const html = await res.text();
+
+        const meta = name => {
+            const m = html.match(new RegExp(`<meta[^>]+(?:property|name)="${name}"[^>]+content="([^"]*)"`, "i"))
+                || html.match(new RegExp(`<meta[^>]+content="([^"]*)"[^>]+(?:property|name)="${name}"`, "i"));
+            return m ? decodeHtml(m[1]).trim() : "";
+        };
+
+        // Sayfa başlığı: "Cambaz - song and lyrics by Mor ve Ötesi | Spotify"
+        // ya da "Şarkı - Song, Lyrics, and Music Video by Sanatçı | Spotify"
+        const pageTitle = decodeHtml((html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || "");
+        const fromTitle = pageTitle.match(/^(.*?)\s+-\s+.*?\bby\s+(.+?)\s*\|\s*Spotify/i);
+
+        // og:description: "Sanatçı · Albüm · Song · 2004"
+        const description = meta("og:description");
+
+        const artist = meta("music:musician_description")
+            || (fromTitle ? fromTitle[2] : "")
+            || (description.includes(" · ") ? description.split(" · ")[0] : "");
+
+        return {
+            title: meta("og:title") || (fromTitle ? fromTitle[1] : ""),
+            artist: artist.length < 120 ? artist : "",
+            cover: meta("og:image")
+        };
+
+    } catch (error) {
+
+        logger.warn("Spotify bilgisi alınamadı", { error: error.message });
+        return {};
+
+    } finally {
+
+        clearTimeout(timer);
+
+    }
+
+}
+
+exports.onNowPlaying = onDocumentWritten("nowPlaying/{uid}", async (event) => {
+
+    const after = event.data?.after;
+
+    if (!after?.exists) return;
+
+    const data = after.data();
+    const before = event.data.before?.exists ? event.data.before.data() : null;
+
+    // Sunucunun kendi güncellemesi ya da aynı paylaşım: tekrar işleme
+    if (before && before.shareId === data.shareId) return;
+
+    const { coupleId, uid } = data;
+
+    if (!coupleId || !uid) return;
+
+    let { title, artist, cover } = data;
+
+    if (data.platform === "spotify" && (!artist || !title)) {
+
+        const meta = await spotifyTrackMeta(data.link);
+
+        const update = {};
+
+        if (!title && meta.title) update.title = title = meta.title.slice(0, 200);
+        if (!artist && meta.artist) update.artist = artist = meta.artist.slice(0, 200);
+        if (!cover && meta.cover) update.cover = cover = meta.cover.slice(0, 480);
+
+        if (Object.keys(update).length) {
+            await after.ref.update(update).catch(() => {});
+        }
+
+    }
+
+    const coupleSnap = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (coupleSnap.get("members") || []).filter(m => m !== uid);
+
+    if (recipients.length === 0) return;
+
+    const name = await userName(uid);
+    const song = [title, artist].filter(Boolean).join(" · ") || "Bir şarkı";
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `🎧 ${name} şu an dinliyor`,
+            body: song,
+            data: { page: "nowplaying", type: "nowPlaying" },
+            tag: "nowplaying"
+        });
+    }
+
+});
+
+exports.cleanupNowPlaying = onSchedule({ schedule: "every 10 minutes", maxInstances: 1 }, async () => {
+
+    const expired = await db.collection("nowPlaying")
+        .where("expiresAt", "<", admin.firestore.Timestamp.now())
+        .get();
+
+    await Promise.all(expired.docs.map(d => d.ref.delete().catch(() => {})));
+
+    if (expired.size) logger.info("Süresi geçen 'şu an dinliyorum' silindi", { count: expired.size });
 
 });

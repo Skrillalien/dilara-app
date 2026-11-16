@@ -204,6 +204,29 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Şu an dinliyorum ────────────────────────────────────
+    // Herkes kendi belgesini yazar; çiftteki iki kişi okur.
+    // Sanatçı adını sunucu sonradan ekleyebilir.
+    match /nowPlaying/{uid} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow create, update: if signedIn()
+        && uid == me()
+        && request.resource.data.uid == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.link is string
+        && request.resource.data.link.size() > 0
+        && request.resource.data.link.size() <= 480
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.keys().hasOnly([
+             "uid", "coupleId", "link", "platform", "title", "artist",
+             "cover", "shareId", "sharedAt", "expiresAt"
+           ]);
+
+      allow delete: if signedIn() && uid == me();
+    }
+
     // ── Partner pili ────────────────────────────────────────
     // Herkes sadece kendi pilini yazar; çiftteki iki kişi okur.
     match /battery/{uid} {
