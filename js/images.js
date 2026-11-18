@@ -56,6 +56,9 @@ function showInViewer(item) {
 
     if (!img || !item) return;
 
+    // İndir düğmesi için (download.js)
+    if (typeof viewerItem !== "undefined") viewerItem = item;
+
     const thumb = imageSrc(item, "thumb");
     const full = imageSrc(item, "full");
 
