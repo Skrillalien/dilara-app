@@ -50,6 +50,9 @@ body::before {
   --accent2-rgb: 244, 114, 182;
   --text-rgb: 241, 233, 255;
   --bg-rgb: 13, 7, 32;
+  /* Onay / tamamlandı rengi (açık temalarda koyulaşır) */
+  --success: #86efac;
+  --success-rgb: 134, 239, 172;
 }
 
 [data-theme="bordo"] {
@@ -1917,7 +1920,7 @@ margin-bottom:14px;
 
 .dream-completed{
 
-    border:1px solid rgba(74, 222, 128, .45);
+    border:1px solid rgba(var(--success-rgb), .45);
     background:linear-gradient(
         135deg,
         rgba(34,197,94,.12),
@@ -2357,7 +2360,7 @@ margin-bottom:14px;
 }
 
 .streak-status.is-done{
-    color:#6ee7a8;
+    color:var(--success);
 }
 
 /* ═════════════════════════════════════════════════════════
@@ -2923,7 +2926,7 @@ margin-bottom:14px;
     color:var(--text);
 }
 
-.miss-status.sent{ color:#86efac; }
+.miss-status.sent{ color:var(--success); }
 .miss-status.error{ color:#fca5a5; }
 .miss-status.incoming{ color:var(--accent2); font-weight:600; }
 
@@ -3267,7 +3270,7 @@ margin-bottom:14px;
 
 .letter-read{
     font-size:12px;
-    color:#86efac;
+    color:var(--success);
 }
 
 .letter-tag{
@@ -3768,8 +3771,8 @@ margin-bottom:14px;
 }
 
 .question-chip.open{
-    color:#86efac;
-    border-color:rgba(134,239,172,.3);
+    color:var(--success);
+    border-color:rgba(var(--success-rgb), .35);
 }
 
 .question-chip.waiting{
@@ -3800,6 +3803,8 @@ margin-bottom:14px;
   --accent2-rgb: 240, 128, 168;
   --text-rgb: 59, 29, 42;
   --bg-rgb: 255, 244, 247;
+  --success: #15803d;
+  --success-rgb: 21, 128, 61;
 }
 
 .theme-btn .swatch-pembe {
@@ -6727,8 +6732,8 @@ html.sheet-open .page{
 .guide-step.done .guide-text{ text-decoration:line-through; }
 
 .guide-step.done .guide-ic{
-    background:rgba(74, 222, 128, .15);
-    color:#4ade80;
+    background:rgba(var(--success-rgb), .15);
+    color:var(--success);
     font-weight:800;
 }
 
@@ -6870,8 +6875,8 @@ html.sheet-open .page{
 }
 
 .cal-sugg-btn.added{
-    background:rgba(74, 222, 128, .15);
-    color:#4ade80;
+    background:rgba(var(--success-rgb), .15);
+    color:var(--success);
 }
 
 .cal-sugg-btn:disabled{ opacity:.5; }
@@ -6910,8 +6915,8 @@ html.sheet-open .page{
 }
 
 .biz-card-badge.green{
-    background:rgba(74, 222, 128, .14);
-    color:#4ade80;
+    background:rgba(var(--success-rgb), .14);
+    color:var(--success);
 }
 
 .biz-card-badge.lock{
