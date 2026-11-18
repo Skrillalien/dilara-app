@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Temalar
 //
-// • Klasik: Mor, Bordo, Gri, Pembe (açık), Kahve-Krem (açık)
+// • Klasik: Mor, Bordo, Gri, Pembe (açık), Kahve-Krem (açık / koyu)
 // • Takım: Sarı-Kırmızı, Siyah-Beyaz, Sarı-Lacivert
 // • Hareketli (👑 Premium): Kar Tanesi, Gece Mavisi, Gün Batımı,
 //   Sakura, Orman — arkada kar, yıldız, yaprak, ateş böceği…
@@ -15,7 +15,8 @@ const THEMES = [
   { id: 'bordo',     name: 'Bordo',          group: 'Klasik', color: '#0f0508' },
   { id: 'gri',       name: 'Gri',            group: 'Klasik', color: '#0a0a0a' },
   { id: 'pembe',     name: 'Pembe (açık)',   group: 'Klasik', color: '#fff4f7', light: true },
-  { id: 'kahve',     name: 'Kahve-Krem',     group: 'Klasik', color: '#f6efe6', light: true },
+  { id: 'kahve',     name: 'Kahve-Krem (açık)', group: 'Klasik', color: '#f6efe6', light: true },
+  { id: 'kahvekoyu', name: 'Kahve-Krem (koyu)', group: 'Klasik', color: '#17100b' },
   { id: 'gs',        name: 'Sarı-Kırmızı',   group: 'Takım',  color: '#0a0500' },
   { id: 'bjk',       name: 'Siyah-Beyaz',    group: 'Takım',  color: '#050505' },
   { id: 'fb',        name: 'Sarı-Lacivert',  group: 'Takım',  color: '#0b1a3f', fx: 'plain' },
