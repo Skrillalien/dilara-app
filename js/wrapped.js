@@ -212,7 +212,7 @@ function buildWrappedCards(d) {
             kicker: "Seri",
             big: d.streakBest,
             suffix: "günlük en uzun seriniz",
-            lines: ["Her gün birbirinize uğradınız"]
+            lines: [`Tam ${wNum(d.streakBest)} gün boyunca bir gün bile birbirinizden kopmadınız 💜`]
         });
     }
 
