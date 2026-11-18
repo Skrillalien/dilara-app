@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=33">
+  <link rel="stylesheet" href="css/style.css?v=35">
   
   <link
     rel="stylesheet"
@@ -205,6 +205,9 @@
 
       <div class="header-fade"></div>
 
+      <!-- Kapak fotoğrafı yoksa (js/guide.js) -->
+      <button class="cover-add-btn" id="coverAddBtn" type="button" style="display:none;" onclick="pickCoverPhoto()">🖼️ Kapak fotoğrafı ekle</button>
+
       <!-- Şu an dinliyorum (js/nowplaying.js) -->
       <button class="now-playing" id="nowPlaying" type="button" onclick="onNowPlayingTap(event)"></button>
 
@@ -214,6 +217,15 @@
         <div class="together-badge" id="togetherBadge" style="display:none;">💞 Şu an birliktesiniz</div>
       </div>
 
+    </div>
+
+    <!-- Partner henüz katılmadı (js/guide.js) -->
+    <div class="invite-home" id="inviteHomeCard" style="display:none;">
+      <div class="invite-home-tag">İLK ADIM</div>
+      <div class="invite-home-title">💌 Partnerini davet et</div>
+      <div class="invite-home-text">Kalp Kalbe ikiniz için. Bağlantıyı gönder, katıldığı an her şey ortak olsun.</div>
+      <div class="invite-home-code"><span>Davet kodun</span><b id="inviteHomeCode"></b></div>
+      <button class="invite-home-btn" id="inviteHomeShare" type="button" onclick="shareInviteLink(this)">Bağlantıyı paylaş</button>
     </div>
 
     <!-- Main counter -->
@@ -230,6 +242,9 @@
         <div class="counter-together" id="togetherMonth" style="display:none;"></div>
       </div>
     </div>
+
+    <!-- İlk adımlar (js/guide.js) -->
+    <div class="guide-card" id="guideCard" style="display:none;"></div>
 
     <!-- E-posta doğrulama hatırlatması (js/verify.js) -->
     <div class="verify-card" id="verifyCard" style="display:none;">
@@ -360,17 +375,18 @@
         <div class="biz-card-icon">
 
             <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
 
-                <path d="M4 6h16v12H4z"/>
-                <path d="M4 7l8 6 8-6"/>
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+            <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5z"/>
+            <path d="M9 8h7"/>
 
-            </svg>
+        </svg>
 
         </div>
 
@@ -708,9 +724,10 @@
         <div class="photos-header">
 
             <div class="biz-card-icon">
-
-                <!-- Aynı SVG -->
-
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3C12.7 6.7 14.3 8.3 18 9C14.3 9.7 12.7 11.3 12 15C11.3 11.3 9.7 9.7 6 9C9.7 8.3 11.3 6.7 12 3Z"/>
+                    <path d="M18 15.5c.3 1.5.9 2.1 2.4 2.4c-1.5.3-2.1.9-2.4 2.4c-.3-1.5-.9-2.1-2.4-2.4c1.5-.3 2.1-.9 2.4-2.4Z"/>
+                </svg>
             </div>
 
             <div class="header-title">
@@ -895,8 +912,9 @@
             stroke-linecap="round"
             stroke-linejoin="round">
 
-            <path d="M4 6h16v12H4z"/>
-            <path d="M4 7l8 6 8-6"/>
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+            <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5z"/>
+            <path d="M9 8h7"/>
 
         </svg>
 
@@ -1263,6 +1281,10 @@
     <div class="settings-label" style="margin-top:24px;">
         Hakkında
     </div>
+
+    <button class="theme-btn notif-btn guide-again-btn" onclick="showGettingStartedAgain()">
+        🧭 Uygulama rehberini göster
+    </button>
 
     <div class="legal-links">
         <button class="theme-btn" onclick="openLegal('privacy')">🔒 Gizlilik Politikası</button>
@@ -1848,26 +1870,26 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=20"></script>
+    <script type="module" src="js/firebase.js?v=21"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=3"></script>
-    <script src="js/events.js?v=9"></script>
+    <script src="js/events.js?v=11"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
     <script src="js/notifications.js?v=4"></script>
     <script src="js/images.js?v=4"></script>
-    <script src="js/memories.js?v=8"></script>
-    <script src="js/photos.js?v=5"></script>
-    <script src="js/songs.js?v=3"></script>
-    <script src="js/dreams.js?v=5"></script>
+    <script src="js/memories.js?v=9"></script>
+    <script src="js/photos.js?v=6"></script>
+    <script src="js/songs.js?v=4"></script>
+    <script src="js/dreams.js?v=6"></script>
 
 
 
-    <script src="js/ui.js?v=16"></script>
+    <script src="js/ui.js?v=17"></script>
 
-    <script src="js/slider.js?v=2"></script>
+    <script src="js/slider.js?v=3"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
@@ -1880,7 +1902,7 @@
     <script src="js/letters.js?v=5"></script>
     <script src="js/missyou.js?v=4"></script>
 
-    <script src="js/inbox.js?v=7"></script>
+    <script src="js/inbox.js?v=8"></script>
 
     <script src="js/invite.js?v=1"></script>
     <script src="js/verify.js?v=1"></script>
@@ -1889,7 +1911,8 @@
     <script src="js/nowplaying.js?v=1"></script>
     <script src="js/premium.js?v=1"></script>
     <script src="js/download.js?v=1"></script>
-    <script src="js/app.js?v=23"></script>
+    <script src="js/guide.js?v=1"></script>
+    <script src="js/app.js?v=24"></script>
   
 </body>
 </html>

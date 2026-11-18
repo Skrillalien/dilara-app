@@ -286,11 +286,8 @@ function checkUserSelection() {
                 document.getElementById("inviteCodeDisplay").textContent =
                     couple.inviteCode;
 
-                document.getElementById("inviteOverlay")
-                    .classList.add("active");
-
-                document.getElementById("invitePopup")
-                    .classList.add("active");
+                // Davet kartı ana sayfada (js/guide.js); partner katılınca yenilenir
+                startGuideWaiting(couple.inviteCode);
 
                 hideSplash();
 
@@ -312,6 +309,8 @@ function checkUserSelection() {
             startNowPlaying();
 
             startPremium();
+
+            startGuide();
 
             initNotifyPrefs();
 

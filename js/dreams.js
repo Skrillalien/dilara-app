@@ -30,21 +30,18 @@ function loadDreams() {
 
         currentDreams = dreams;
 
+        // Boşken üstteki "Yeni …" düğmesi gizlenir, boş ekranın düğmesi yeter
+        document.getElementById("page-our-dreams")?.classList.toggle("page-empty", dreams.length === 0);
+
+        if (typeof renderBizInfo === "function" && typeof guideSummary !== "undefined" && guideSummary) {
+            guideSummary.dreams = dreams.length;
+            guideSummary.dreamsDone = dreams.filter(d => d.completed).length;
+            renderBizInfo();
+        }
+
         if (dreams.length === 0) {
 
-            list.innerHTML = `
-                <div class="memories-empty">
-
-                    ✨
-                    <br><br>
-
-                    Henüz hiç hayal eklenmedi.
-                    <br>
-
-                    İlk hayali sen ekle 💜
-
-                </div>
-            `;
+            list.innerHTML = emptyDreamsHtml();
 
             return;
 

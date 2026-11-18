@@ -258,7 +258,8 @@ function showPage(page) {
     el.classList.add('active');
     el.scrollTop = 0;
 
-    document.getElementById('nav-' + page)?.classList.add('active');
+    // Alt sayfalar (Anılarımız, Fotoğraflarımız…) Biz sekmesinin altında
+    document.getElementById('nav-' + (page.startsWith('our-') ? 'us' : page))?.classList.add('active');
 
     if (page === 'our-memories') {
 
@@ -291,6 +292,8 @@ function showPage(page) {
     }
 
     if (typeof updateMissButton === "function") updateMissButton();
+
+    if (typeof guideOnPage === "function") guideOnPage(page);
 
     if (fab) {
         if (page === "home") {
@@ -576,3 +579,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // Panel kilidi girişten bağımsız, sayfa yüklenir yüklenmez kurulur
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initSheetScrollLock);
 else initSheetScrollLock();
+
+
+// Alt sayfaların başlığına geri oku (Biz'e döner)
+function initPageBackButtons() {
+
+    document.querySelectorAll('.page[id^="page-our-"] .photos-header').forEach(header => {
+
+        if (header.querySelector(".page-back")) return;
+
+        const back = document.createElement("button");
+
+        back.type = "button";
+        back.className = "page-back";
+        back.setAttribute("aria-label", "Biz'e dön");
+        back.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        back.addEventListener("click", () => showPage("us"));
+
+        header.prepend(back);
+
+    });
+
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPageBackButtons);
+else initPageBackButtons();
