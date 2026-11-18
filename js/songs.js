@@ -226,7 +226,7 @@ function renderSongCard(song) {
 
     const author = authorInfo(song);
     const authorName = author.name;
-    const authorEmoji = author.emoji || "💗";
+    const authorEmoji = author.emoji || coupleHearts.partner;
 
     const title = song.title || "İsimsiz şarkı";
 

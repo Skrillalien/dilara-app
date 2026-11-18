@@ -8105,3 +8105,31 @@ html.sheet-open .page{
 @media (prefers-reduced-motion: reduce){
     .theme-fx i, .fx-sunset{ animation:none !important; }
 }
+
+/* ─── Ayarlar: Kalbim ─────────────────────────────────────── */
+.heart-picker{
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:6px;
+    margin-bottom:8px;
+}
+
+.heart-choice{
+    aspect-ratio:1;
+    padding:0;
+    border:2px solid var(--border);
+    border-radius:14px;
+    background:var(--surface2);
+    font-size:20px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .12s ease, border-color .15s ease;
+}
+
+.heart-choice.active{
+    border-color:var(--accent);
+    background:rgba(var(--accent-rgb), .14);
+    transform:scale(1.06);
+}
+
+.heart-choice:active{ transform:scale(.92); }

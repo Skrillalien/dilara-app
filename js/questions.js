@@ -281,12 +281,12 @@ function questionBodyHtml(q, ctx) {
             ${head}
             <div class="question-answers">
                 <div class="question-answer mine">
-                    <div class="question-answer-name">💙 ${escapeQuestion(me)}</div>
+                    <div class="question-answer-name">${coupleHearts.me} ${escapeQuestion(me)}</div>
                     <div class="question-answer-text">${questionTextHtml(answers[myUid]?.text || mine?.text || "")}</div>
                     ${theirReaction ? `<div class="question-answer-reaction">${theirReaction}</div>` : ""}
                 </div>
                 <div class="question-answer theirs">
-                    <div class="question-answer-name">💗 ${escapeQuestion(partner)}</div>
+                    <div class="question-answer-name">${coupleHearts.partner} ${escapeQuestion(partner)}</div>
                     <div class="question-answer-text">${questionTextHtml(partnerId ? answers[partnerId]?.text : "")}</div>
                     ${myReaction ? `<div class="question-answer-reaction">${myReaction}</div>` : ""}
                 </div>

@@ -2127,6 +2127,17 @@ async function sendPasswordReset(email) {
 
 // ── Bildirim türleri (js/notifications.js) ──────────────────
 
+// Kalbim (app.js → HEART_CHOICES)
+async function setMyHeart(heart) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), { heart });
+
+}
+
 async function setNotifyPref(key, value) {
 
     const user = auth.currentUser;
@@ -2344,6 +2355,7 @@ window.firebase = {
     deleteMyAccount,
     listenCouple,
     getCoupleSummary,
+    setMyHeart,
     getWrapped,
     reorderSliderImages,
     amIAdmin,
