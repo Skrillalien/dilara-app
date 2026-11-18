@@ -504,7 +504,8 @@ function renderCalendarEvents(){
                 </div>
 
                 <button
-                    class="photo-menu-btn"
+                    class="event-menu-btn"
+                    aria-label="Seçenekler"
                     onclick="event.stopPropagation(); openEventMenu('${event.id}')">
 
                     <svg

@@ -6461,3 +6461,80 @@ html.sheet-open .page{
     width:22px;
     height:22px;
 }
+
+/* ─── Tasarım düzeltmeleri ────────────────────────────────── */
+
+/* Alt sayfa başlığı: geri oku */
+.page-back{
+    flex-shrink:0;
+    width:36px;
+    height:36px;
+    margin-right:-4px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--text);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .1s ease, background .15s ease;
+}
+
+.page-back svg{
+    width:20px;
+    height:20px;
+}
+
+.page-back:active{
+    transform:scale(.92);
+    background:var(--surface2);
+}
+
+/* ⋮ düğmeleri: kartların içinde hep aynı görünüm
+   (fotoğrafların üstündeki koyu yuvarlak düğme olduğu gibi kalır) */
+.memory-menu-btn,
+.song-card .song-menu-btn,
+.dream-more,
+.event-menu-btn{
+    width:30px;
+    height:30px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    border:none;
+    border-radius:10px;
+    background:transparent;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    color:var(--muted);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s ease, transform .1s ease;
+}
+
+.memory-menu-btn:active,
+.song-card .song-menu-btn:active,
+.dream-more:active,
+.event-menu-btn:active{
+    background:var(--surface2);
+    transform:scale(.92);
+}
+
+.dream-more{
+    margin-top:0;
+}
+
+/* Takvim: ⋮ artık "gün kaldı" yazısının üstüne binmez */
+.event-card .event-menu-btn{
+    position:static;
+    margin-right:-8px;
+}
+
+.event-card .event-countdown{
+    padding-right:0;
+}
