@@ -2127,6 +2127,21 @@ async function sendPasswordReset(email) {
 
 // ── Bildirim türleri (js/notifications.js) ──────────────────
 
+// Günün Sorusu: cevapları açılan ve okunan günler (js/questions.js)
+async function markQuestionSeen(days) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    const list = (Array.isArray(days) ? days : [days]).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+
+    if (!list.length) return;
+
+    await updateDoc(doc(db, "users", user.uid), { questionSeen: arrayUnion(...list) });
+
+}
+
 // Kalbim (app.js → HEART_CHOICES)
 async function setMyHeart(heart) {
 
@@ -2356,6 +2371,7 @@ window.firebase = {
     listenCouple,
     getCoupleSummary,
     setMyHeart,
+    markQuestionSeen,
     getWrapped,
     reorderSliderImages,
     amIAdmin,
