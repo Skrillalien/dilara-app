@@ -6422,3 +6422,14 @@ html.sheet-open .page{
     font-size:12.5px;
     color:var(--muted);
 }
+
+/* Fotoğraf görüntüleyici açıkken arka sayfa kaymasın */
+#imageViewer{
+    overscroll-behavior:none;
+    touch-action:none;
+}
+
+.modal-overlay,
+.pm-wrap{
+    overscroll-behavior:none;
+}

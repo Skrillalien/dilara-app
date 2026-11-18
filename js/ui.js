@@ -147,7 +147,15 @@ function initSheetDrag(id, zoneHeight = 76) {
 // Panel açıkken arkadaki sayfa kaymasın / dokunulmasın
 function updateSheetScrollLock() {
 
-    const anyOpen = Object.keys(SHEETS).some(isSheetOpen);
+    const viewer = document.getElementById("imageViewer");
+
+    const anyOpen = Object.keys(SHEETS).some(isSheetOpen)
+        // Fotoğraf görüntüleyici (fotoğraflar, anılar, mektuplar)
+        || (!!viewer && viewer.style.display !== "none" && viewer.style.display !== "")
+        // Ortadaki pencereler (mektup, soru, takvim…)
+        || !!document.getElementById("modalOverlay")?.classList.contains("active")
+        // Sonradan eklenen pencereler (Premium, şu an dinliyorum)
+        || !!document.querySelector("body > .pm-wrap, body > .np-sheet-wrap");
 
     document.documentElement.classList.toggle("sheet-open", anyOpen);
 
@@ -162,10 +170,15 @@ function initSheetScrollLock() {
 
     const observer = new MutationObserver(updateSheetScrollLock);
 
-    for (const id of Object.keys(SHEETS)) {
+    for (const id of [...Object.keys(SHEETS), "modalOverlay"]) {
         const el = document.getElementById(id);
         if (el) observer.observe(el, { attributes: true, attributeFilter: ["class"] });
     }
+
+    const viewer = document.getElementById("imageViewer");
+    if (viewer) observer.observe(viewer, { attributes: true, attributeFilter: ["style"] });
+
+    observer.observe(document.body, { childList: true });
 
     updateSheetScrollLock();
 
