@@ -370,6 +370,13 @@ function openActionMenu(type, id) {
     currentActionType = type;
     currentActionId = id;
 
+    // "İndir" sadece fotoğrafı olan kayıtlarda (download.js)
+    const download = document.getElementById("actionDownloadBtn");
+    if (download) {
+        download.style.display =
+            typeof actionImageItem === "function" && actionImageItem(type, id) ? "" : "none";
+    }
+
     document.getElementById("actionOverlay").classList.add("active");
     document.getElementById("actionSheet").classList.add("active");
 

@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=32">
+  <link rel="stylesheet" href="css/style.css?v=33">
   
   <link
     rel="stylesheet"
@@ -82,6 +82,10 @@
 
 
   <div id="imageViewer" onclick="closeImage()">
+
+    <button class="viewer-download" type="button" aria-label="Fotoğrafı indir" onclick="downloadViewerImage(event)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
 
     <img
         id="viewerImage"
@@ -1278,6 +1282,16 @@
 <div class="action-sheet" id="actionSheet">
 
     <button
+        id="actionDownloadBtn"
+        class="action-btn"
+        style="display:none;"
+        onclick="performDownloadAction()">
+
+        📥 İndir
+
+    </button>
+
+    <button
         id="actionDeleteBtn"
         class="action-btn action-danger"
         onclick="performDeleteAction()">
@@ -1843,7 +1857,7 @@
     <script type="module" src="js/capacitor.js"></script>
 
     <script src="js/notifications.js?v=4"></script>
-    <script src="js/images.js?v=3"></script>
+    <script src="js/images.js?v=4"></script>
     <script src="js/memories.js?v=8"></script>
     <script src="js/photos.js?v=5"></script>
     <script src="js/songs.js?v=3"></script>
@@ -1851,7 +1865,7 @@
 
 
 
-    <script src="js/ui.js?v=15"></script>
+    <script src="js/ui.js?v=16"></script>
 
     <script src="js/slider.js?v=2"></script>
 
@@ -1874,6 +1888,7 @@
     <script src="js/battery.js?v=1"></script>
     <script src="js/nowplaying.js?v=1"></script>
     <script src="js/premium.js?v=1"></script>
+    <script src="js/download.js?v=1"></script>
     <script src="js/app.js?v=23"></script>
   
 </body>

@@ -2,6 +2,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { Purchases } from "@revenuecat/purchases-capacitor";
+import { Media } from "@capacitor-community/media";
 
 window.appHaptics = {
 
@@ -403,6 +404,40 @@ window.appPurchases = {
         purchasesUid = null;
 
         try { await Purchases.logOut(); } catch {}
+
+    }
+
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// Fotoğrafı galeriye kaydet (js/download.js)
+// Android: "Kalp Kalbe" albümüne. iPhone: Fotoğraflar'a (sadece ekleme izni).
+// ─────────────────────────────────────────────────────────────
+
+const MEDIA_ALBUM = "Kalp Kalbe";
+
+async function androidAlbumId() {
+
+    const { path } = await Media.getAlbumsPath();
+
+    // Zaten varsa "Album already exists" der; sorun değil
+    try { await Media.createAlbum({ name: MEDIA_ALBUM }); } catch {}
+
+    return `${path}/${MEDIA_ALBUM}`;
+
+}
+
+window.appMedia = {
+
+    async saveToGallery(url, fileName) {
+
+        if (window.Capacitor?.getPlatform?.() === "android") {
+            await Media.savePhoto({ path: url, albumIdentifier: await androidAlbumId(), fileName });
+            return;
+        }
+
+        await Media.savePhoto({ path: url });
 
     }
 

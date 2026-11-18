@@ -6433,3 +6433,31 @@ html.sheet-open .page{
 .pm-wrap{
     overscroll-behavior:none;
 }
+
+/* Görüntüleyici: indir düğmesi */
+.viewer-download{
+    position:absolute;
+    top:calc(14px + env(safe-area-inset-top));
+    right:14px;
+    z-index:2;
+    width:44px;
+    height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.14);
+    color:#fff;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
+.viewer-download:active{
+    background:rgba(255,255,255,.26);
+}
+
+.viewer-download svg{
+    width:22px;
+    height:22px;
+}
