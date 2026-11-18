@@ -8133,3 +8133,40 @@ html.sheet-open .page{
 }
 
 .heart-choice:active{ transform:scale(.92); }
+
+/* Son Not: henüz anı yokken */
+.last-memory-empty{ color:var(--muted); }
+
+.last-memory-cta{
+    display:block;
+    margin-top:10px;
+    padding:0;
+    border:none;
+    background:none;
+    color:var(--accent);
+    font:inherit;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+/* Ana sayfa: özel gün yokken */
+.home-events-empty{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border:1px dashed rgba(var(--accent-rgb), .35);
+    border-radius:18px;
+    background:var(--surface);
+    color:var(--text);
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+
+.home-events-empty > span:first-child{ font-size:22px; }
+.home-events-empty b{ display:block; font-size:14.5px; }
+.home-events-empty small{ display:block; margin-top:2px; font-size:12.5px; color:var(--muted); }
+.home-events-go{ margin-left:auto; color:var(--muted); font-size:20px; }
