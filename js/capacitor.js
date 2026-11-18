@@ -3,6 +3,8 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { Purchases } from "@revenuecat/purchases-capacitor";
 import { Media } from "@capacitor-community/media";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 window.appHaptics = {
 
@@ -204,6 +206,8 @@ function closeTopLayer() {
     if (typeof closePremium === "function" && closePremium()) return true;
 
     if (typeof closeSliderManager === "function" && closeSliderManager()) return true;
+
+    if (typeof closeWrapped === "function" && closeWrapped()) return true;
 
     if (visible("imageViewer")) { closeImage(); return true; }
 
@@ -442,5 +446,25 @@ window.appMedia = {
         await Media.savePhoto({ path: url });
 
     }
+
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// Görsel paylaş (Yılımız kartları: js/wrapped.js)
+// Görsel önbelleğe yazılır, paylaş menüsü açılır.
+// ─────────────────────────────────────────────────────────────
+
+window.appShareImage = async function (dataUrl, fileName, text = "") {
+
+    const base64 = String(dataUrl).split(",")[1];
+
+    const { uri } = await Filesystem.writeFile({
+        path: `${fileName}.png`,
+        data: base64,
+        directory: Directory.Cache
+    });
+
+    await Share.share({ files: [uri], text, dialogTitle: "Paylaş" });
 
 };

@@ -312,6 +312,8 @@ function checkUserSelection() {
 
             startGuide();
 
+            startWrapped();
+
             initNotifyPrefs();
 
             const streakLoad = checkStreak();

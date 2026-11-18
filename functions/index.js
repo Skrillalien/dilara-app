@@ -1867,7 +1867,7 @@ exports.deleteAccount = onCall(async (request) => {
             // Çiftte kimse kalmadı: ortak alanın tamamını sil
             for (const name of [
                 ...AUTHORED_COLLECTIONS, "dailyQuestions",
-                "onThisDay", "togetherDays"
+                "onThisDay", "togetherDays", "songPlays", "wrapped"
             ]) {
                 const rest = await db.collection(name).where("coupleId", "==", coupleId).get();
                 await deleteQueryInBatches(rest.docs);
@@ -2038,6 +2038,10 @@ exports.onNowPlaying = onDocumentWritten("nowPlaying/{uid}", async (event) => {
         }
 
     }
+
+    // Yılımız için: hangi şarkı kaç kere paylaşıldı (sadece sayı ve şarkı adı)
+    await countSongPlay(coupleId, uid, { link: data.link, title, artist, cover })
+        .catch(error => logger.warn("Şarkı paylaşımı sayılamadı", { error: error.message }));
 
     const coupleSnap = await db.doc(`couples/${coupleId}`).get();
     const recipients = (coupleSnap.get("members") || []).filter(m => m !== uid);
@@ -2598,5 +2602,300 @@ exports.revenuecatWebhook = onRequest(async (req, res) => {
         res.status(500).send("error");
 
     }
+
+});
+
+
+// ═════════════════════════════════════════════════════════════
+// YILIMIZ (yıl sonu özeti)
+//
+//   songPlays/{coupleId}_{yıl}  "şu an dinliyorum" paylaşım sayıları
+//   wrapped/{coupleId}_{yıl}    hesaplanmış özet (6 saat önbellek)
+//
+// İkisi de sadece sunucudan okunur/yazılır. Özet; anılar, fotoğraflar,
+// şarkılar, özledimler, yan yana günler, seri, ruh hali, Günün Sorusu,
+// mektuplar ve hayallerden hesaplanır.
+// ═════════════════════════════════════════════════════════════
+
+const WRAPPED_CACHE_MS = 6 * 60 * 60 * 1000;
+
+function songPlayKey(link) {
+
+    const url = String(link || "");
+
+    const spotify = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+    if (spotify) return "sp_" + spotify[1];
+
+    const youtube = url.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+    if (youtube) return "yt_" + youtube[1];
+
+    return "h_" + require("crypto").createHash("sha1").update(url).digest("hex").slice(0, 16);
+
+}
+
+async function countSongPlay(coupleId, uid, song) {
+
+    if (!song.link) return;
+
+    const year = istanbulDayKey(new Date()).slice(0, 4);
+    const key = songPlayKey(song.link);
+    const ref = db.doc(`songPlays/${coupleId}_${year}`);
+    const inc = admin.firestore.FieldValue.increment(1);
+
+    await ref.set({
+        coupleId,
+        year: Number(year),
+        total: inc,
+        perUser: { [uid]: inc },
+        songs: {
+            [key]: {
+                count: inc,
+                title: String(song.title || "").slice(0, 200),
+                artist: String(song.artist || "").slice(0, 200),
+                cover: String(song.cover || "").slice(0, 480),
+                link: String(song.link).slice(0, 480)
+            }
+        }
+    }, { merge: true });
+
+}
+
+function tsMillis(value) {
+    if (!value) return 0;
+    if (typeof value.toMillis === "function") return value.toMillis();
+    if (value instanceof Date) return value.getTime();
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function topEntry(map) {
+    let best = null;
+    for (const [key, value] of Object.entries(map)) {
+        if (!best || value > best[1]) best = [key, value];
+    }
+    return best;
+}
+
+async function computeWrapped(coupleId, couple, year) {
+
+    const members = couple.members || [];
+    const yearStr = String(year);
+
+    // Yıl sınırları (İstanbul, UTC+3)
+    const startMs = Date.parse(`${year}-01-01T00:00:00+03:00`);
+    const endMs = Date.parse(`${year + 1}-01-01T00:00:00+03:00`);
+    const inYear = ms => ms >= startMs && ms < endMs;
+    const monthOf = ms => Number(istanbulDayKey(new Date(ms)).slice(5, 7));
+
+    const byCouple = name => db.collection(name).where("coupleId", "==", coupleId).get();
+
+    const [memSnap, photoSnap, songSnap, missSnap, moodSnap, questionSnap, letterSnap, dreamSnap, playSnap, togetherSnap] = await Promise.all([
+        byCouple("memories"), byCouple("photos"), byCouple("songs"), byCouple("misses"),
+        byCouple("moodLogs"), byCouple("dailyQuestions"), byCouple("letters"), byCouple("dreams"),
+        db.doc(`songPlays/${coupleId}_${year}`).get(),
+        byCouple("togetherDays")
+    ]);
+
+    const names = {};
+    for (const uid of members) names[uid] = await userName(uid, "");
+
+    const perAuthor = () => Object.fromEntries(members.map(uid => [uid, 0]));
+
+    // Birlikte geçen gün (yıl içinde, başlangıç tarihinden sonra)
+    const coupleStart = couple.startDate ? Date.parse(`${couple.startDate}T00:00:00+03:00`) : startMs;
+    const from = Math.max(startMs, coupleStart || startMs);
+    const to = Math.min(Date.now(), endMs);
+    const daysTogether = Math.max(0, Math.floor((to - from) / 86400000));
+    const startedThisYear = coupleStart >= startMs && coupleStart < endMs;
+
+    // Anılar
+    const memories = memSnap.docs.map(d => d.data()).filter(m => inYear(tsMillis(m.createdAt)));
+    const memMonths = {};
+    const tags = {};
+    const memAuthors = perAuthor();
+    for (const m of memories) {
+        const month = monthOf(tsMillis(m.createdAt));
+        memMonths[month] = (memMonths[month] || 0) + 1;
+        if (m.authorId in memAuthors) memAuthors[m.authorId]++;
+        for (const tag of String(m.text || "").match(/#[\p{L}\p{N}_]+/gu) || []) {
+            const t = tag.toLocaleLowerCase("tr-TR");
+            tags[t] = (tags[t] || 0) + 1;
+        }
+    }
+    const firstMemory = memories.sort((a, b) => tsMillis(a.createdAt) - tsMillis(b.createdAt))[0] || null;
+
+    // Fotoğraflar (anılardaki fotoğraflar dahil)
+    const photoTimes = [
+        ...photoSnap.docs.map(d => tsMillis(d.get("createdAt"))),
+        ...memories.filter(m => m.imageUrl || m.thumbUrl || m.image).map(m => tsMillis(m.createdAt))
+    ].filter(inYear);
+    const photoMonths = {};
+    for (const ms of photoTimes) photoMonths[monthOf(ms)] = (photoMonths[monthOf(ms)] || 0) + 1;
+
+    // Şarkılar
+    const songs = songSnap.docs.map(d => d.data()).filter(x => inYear(tsMillis(x.createdAt)))
+        .sort((a, b) => tsMillis(a.createdAt) - tsMillis(b.createdAt));
+    const songAuthors = perAuthor();
+    const artists = {};
+    const artistLabel = {};
+    for (const x of songs) {
+        if (x.authorId in songAuthors) songAuthors[x.authorId]++;
+        const artist = String(x.artist || "").trim();
+        if (artist) {
+            const key = artist.toLocaleLowerCase("tr-TR");
+            artists[key] = (artists[key] || 0) + 1;
+            artistLabel[key] = artistLabel[key] || artist;
+        }
+    }
+    const topArtist = topEntry(artists);
+    const firstSong = songs[0] || null;
+
+    const plays = playSnap.exists ? playSnap.data() : null;
+    const topPlays = plays
+        ? Object.values(plays.songs || {}).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 3)
+        : [];
+
+    // Özledim
+    const missAuthors = perAuthor();
+    let missTotal = 0;
+    let missMax = null;
+    for (const d of missSnap.docs) {
+        const m = d.data();
+        const ms = tsMillis(m.createdAt) || Number(m.clientAt) || 0;
+        if (!inYear(ms)) continue;
+        const n = Math.max(1, Math.floor(Number(m.count) || 1));
+        missTotal += n;
+        if (m.authorId in missAuthors) missAuthors[m.authorId] += n;
+        if (!missMax || n > missMax.count) missMax = { count: n, authorId: m.authorId, at: ms };
+    }
+
+    // Yan yana
+    let togetherTotal = 0;
+    const togetherMonths = {};
+    for (const d of togetherSnap.docs) {
+        const t = d.data();
+        if (String(t.month || "").slice(0, 4) !== yearStr) continue;
+        const n = (t.days || []).length;
+        togetherTotal += n;
+        togetherMonths[Number(String(t.month).slice(5, 7))] = n;
+    }
+
+    // Ruh hali (kişi başı en sık)
+    const moodCounts = Object.fromEntries(members.map(uid => [uid, {}]));
+    for (const d of moodSnap.docs) {
+        const m = d.data();
+        const ms = tsMillis(m.createdAt) || Date.parse(`${m.day}T12:00:00+03:00`) || 0;
+        if (!inYear(ms) || !moodCounts[m.authorId] || !m.mood) continue;
+        moodCounts[m.authorId][m.mood] = (moodCounts[m.authorId][m.mood] || 0) + 1;
+    }
+    const topMoods = Object.fromEntries(Object.entries(moodCounts).map(([uid, counts]) => {
+        const top = topEntry(counts);
+        return [uid, top ? { mood: top[0], count: top[1] } : null];
+    }));
+
+    // Günün Sorusu
+    let questionsBoth = 0;
+    const questionAuthors = perAuthor();
+    for (const d of questionSnap.docs) {
+        const q = d.data();
+        if (String(q.day || "").slice(0, 4) !== yearStr) continue;
+        const answered = Object.keys(q.answers || {});
+        for (const uid of answered) if (uid in questionAuthors) questionAuthors[uid]++;
+        if (q.revealed) questionsBoth++;
+    }
+
+    // Mektuplar
+    const letters = letterSnap.docs.map(d => d.data()).filter(l => inYear(tsMillis(l.createdAt)));
+
+    // Hayaller
+    const dreams = dreamSnap.docs.map(d => d.data());
+    const dreamsDone = dreams.filter(x => x.completed && inYear(tsMillis(x.completedAt)))
+        .sort((a, b) => tsMillis(a.completedAt) - tsMillis(b.completedAt));
+    const dreamsAdded = dreams.filter(x => inYear(tsMillis(x.createdAt))).length;
+
+    const monthTop = map => {
+        const top = topEntry(map);
+        return top ? { month: Number(top[0]), count: top[1] } : null;
+    };
+
+    return {
+        year,
+        members,
+        names,
+        startDate: couple.startDate || null,
+        startedThisYear,
+        daysTogether,
+        memories: {
+            count: memories.length,
+            perAuthor: memAuthors,
+            topMonth: monthTop(memMonths),
+            topTag: topEntry(tags) && topEntry(tags)[1] >= 2 ? { tag: topEntry(tags)[0], count: topEntry(tags)[1] } : null,
+            first: firstMemory ? {
+                text: String(firstMemory.text || "").slice(0, 160),
+                at: tsMillis(firstMemory.createdAt),
+                authorId: firstMemory.authorId || null
+            } : null
+        },
+        photos: { count: photoTimes.length, topMonth: monthTop(photoMonths) },
+        songs: {
+            count: songs.length,
+            perAuthor: songAuthors,
+            topArtist: topArtist && topArtist[1] >= 2 ? { artist: artistLabel[topArtist[0]], count: topArtist[1] } : null,
+            first: firstSong ? {
+                title: firstSong.title || "", artist: firstSong.artist || "",
+                cover: firstSong.cover || "", authorId: firstSong.authorId || null
+            } : null,
+            playsTotal: plays?.total || 0,
+            topPlays: topPlays.map(p => ({ title: p.title, artist: p.artist, cover: p.cover, count: p.count || 0 }))
+        },
+        misses: { total: missTotal, perAuthor: missAuthors, max: missMax },
+        together: { days: togetherTotal, topMonth: monthTop(togetherMonths) },
+        streakBest: couple.streak?.best || 0,
+        moods: topMoods,
+        questions: { both: questionsBoth, perAuthor: questionAuthors },
+        letters: { count: letters.length },
+        dreams: {
+            added: dreamsAdded,
+            done: dreamsDone.length,
+            doneList: dreamsDone.slice(0, 5).map(x => ({ emoji: x.emoji || "✨", title: String(x.title || "").slice(0, 80) }))
+        },
+        computedAt: Date.now()
+    };
+
+}
+
+// Yılımız özeti: { year?, refresh? }
+exports.getWrapped = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (request) => {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "NOT_SIGNED_IN");
+
+    const coupleId = (await db.doc(`users/${uid}`).get()).get("coupleId");
+
+    if (!coupleId) throw new HttpsError("failed-precondition", "NO_COUPLE");
+
+    const coupleSnap = await db.doc(`couples/${coupleId}`).get();
+    const couple = coupleSnap.data() || {};
+
+    if (!(couple.members || []).includes(uid)) throw new HttpsError("permission-denied", "NOT_MEMBER");
+
+    const thisYear = Number(istanbulDayKey(new Date()).slice(0, 4));
+    let year = Number(request.data?.year) || thisYear;
+    if (year > thisYear || year < 2020) year = thisYear;
+
+    const cacheRef = db.doc(`wrapped/${coupleId}_${year}`);
+    const cached = await cacheRef.get();
+
+    // Geçmiş yıllar değişmez; bu yıl 6 saatte bir tazelenir
+    const fresh = cached.exists && (year < thisYear || Date.now() - (cached.get("computedAt") || 0) < WRAPPED_CACHE_MS);
+
+    if (fresh && !request.data?.refresh) return cached.get("data");
+
+    const data = await computeWrapped(coupleId, couple, year);
+
+    await cacheRef.set({ coupleId, year, computedAt: data.computedAt, data });
+
+    return data;
 
 });
