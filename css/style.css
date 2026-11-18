@@ -6735,7 +6735,7 @@ html.sheet-open .page{
 .guide-step.next .guide-ic{ background:rgba(var(--accent-rgb), .22); }
 .guide-step.next .guide-text{ font-weight:600; }
 
-.guide-again-btn{ margin-top:24px; }
+.guide-again-btn{ margin-bottom:10px; }
 
 /* Boş sayfalar */
 .empty-guide{

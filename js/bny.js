@@ -15,14 +15,14 @@ const ACTIVITIES = {
     { emoji: '💆', text: 'Masaj yap' },
     { emoji: '🎮', text: 'Oyun oynayın' },
     { emoji: '🎵', text: 'Şarkı dinleyin' },
-    { emoji: '🛋️', text: 'Evde yaramazlık' },
+    { emoji: '🛋️', text: 'Evde yaramazlık', spicy: true },
     { emoji: '🛏️', text: 'Yastık savaşı' },
-    { emoji: '💋', text: 'Öpüşmek...' },
+    { emoji: '💋', text: 'Öpüşmek...', spicy: true },
     { emoji: '🫂', text: 'Sarılmak' },
-    { emoji: '👋🏼', text: 'Popoya vurmak' },
+    { emoji: '👋🏼', text: 'Popoya vurmak', spicy: true },
     { emoji: '🐼', text: 'Panda ile oynamak' },
-    { emoji: '🍻', text: 'Alkol içmek' },
-    { emoji: '🛁', text: 'Birlikte duş' },
+    { emoji: '🍻', text: 'Alkol içmek', spicy: true },
+    { emoji: '🛁', text: 'Birlikte duş', spicy: true },
     { emoji: '🍕', text: 'Pizza yap birlikte' },
     { emoji: '🍨', text: 'Dondurma yap' },
     { emoji: '🍹', text: 'Kokteyl hazırla' },
@@ -47,7 +47,7 @@ const ACTIVITIES = {
     { emoji: '☕', text: 'Gece kahvesi için' },
     { emoji: '🌙', text: 'Gece sohbeti yapın' },
     { emoji: '💞', text: '10 dakika sadece sarılın' },
-    { emoji: '😘', text: 'Öpücük yarışması yapın' },
+    { emoji: '😘', text: 'Öpücük yarışması yapın', spicy: true },
     { emoji: '❤️', text: 'Birbirinize 5 güzel özellik söyleyin' },
     { emoji: '👀', text: '1 dakika göz göze bakın' },
     { emoji: '💌', text: 'Aşk notu yazın' },
@@ -64,9 +64,9 @@ const ACTIVITIES = {
     { emoji: '🏛️', text: 'Müze gezisi' },
     { emoji: '🍦', text: 'Dondurma ye' },
     { emoji: '🫂', text: 'Sarılmak' },
-    { emoji: '💋', text: 'Öpüşmek...' },
-    { emoji: '🚒', text: 'Arabada yaramazlık' },
-    { emoji: '🍻', text: 'Alkol içmek' },
+    { emoji: '💋', text: 'Öpüşmek...', spicy: true },
+    { emoji: '🚒', text: 'Arabada yaramazlık', spicy: true },
+    { emoji: '🍻', text: 'Alkol içmek', spicy: true },
     { emoji: '🍱', text: 'Sushi ye' },
     { emoji: '🎡', text: 'Lunapark' },
     { emoji: '🏎️', text: 'Go-kart' },
@@ -135,11 +135,58 @@ const ACTIVITIES = {
 };
 
 const SECRET_BNY_ACTIVITIES = [
-    { emoji: '🛋️', text: 'Evde yaramazlık' },
-    { emoji: '💋', text: 'Öpüşmek...' },
-    { emoji: '👋🏼', text: 'Popoya vurmak' },
-    { emoji: '🚒', text: 'Arabada yaramazlık' },
+    { emoji: '🛋️', text: 'Evde yaramazlık', spicy: true },
+    { emoji: '💋', text: 'Öpüşmek...', spicy: true },
+    { emoji: '👋🏼', text: 'Popoya vurmak', spicy: true },
+    { emoji: '🚒', text: 'Arabada yaramazlık', spicy: true },
 ];
+
+// ── Cilveli öneriler ────────────────────────────────────────
+// spicy: true olanlar (öpüşmek, birlikte duş, alkol…) sadece
+// Ayarlar'da "Cilveli öneriler" açıkken çıkar. Varsayılan: kapalı.
+const BNY_SPICY_KEY = "bnySpicy";
+
+function isBnySpicyOn() {
+  try {
+    return localStorage.getItem(BNY_SPICY_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function bnyActivities(cat) {
+  const spicy = isBnySpicyOn();
+  return ACTIVITIES[cat].filter(a => spicy || !a.spicy);
+}
+
+function toggleBnySpicy() {
+  const on = !isBnySpicyOn();
+  try { localStorage.setItem(BNY_SPICY_KEY, on ? "1" : "0"); } catch {}
+  // Karışık havuzu sıfırla ki ayar hemen geçerli olsun
+  remainingPool.ev = [];
+  remainingPool.disari = [];
+  if (!on) {
+    secretBNYMode = false;
+    document.getElementById("bnySpinBtn")?.classList.remove("secret-mode");
+  }
+  renderBnySpicySetting();
+  showToast(on ? "🔥 Cilveli öneriler açıldı" : "Cilveli öneriler kapatıldı");
+}
+
+function renderBnySpicySetting() {
+  const btn = document.getElementById("bnySpicyBtn");
+  const hint = document.getElementById("bnySpicyStatus");
+  if (!btn || !hint) return;
+  const on = isBnySpicyOn();
+  btn.textContent = on ? "🔥 Cilveli önerileri kapat" : "🔥 Cilveli önerileri aç";
+  btn.classList.toggle("active", on);
+  hint.textContent = on
+    ? "Bugün Ne Yapsak'ta öpüşmek, birlikte duş gibi çiftlere özel öneriler de çıkıyor."
+    : "Bugün Ne Yapsak'ta sadece herkese uygun öneriler çıkıyor. Açarsan öpüşmek, birlikte duş gibi çiftlere özel öneriler de gelir.";
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderBnySpicySetting);
+else renderBnySpicySetting();
 
 let selectedCategory = null;
 let lastActivity = null;
@@ -176,7 +223,7 @@ function selectCategory(cat) {
 function getNextActivity(cat) {
   // Havuz bittiyse yeniden doldur (hepsini karıştır)
   if (remainingPool[cat].length === 0) {
-    remainingPool[cat] = [...ACTIVITIES[cat]].sort(() => Math.random() - 0.5);
+    remainingPool[cat] = [...bnyActivities(cat)].sort(() => Math.random() - 0.5);
   }
   // Havuzdan bir sonraki aktiviteyi al
   return remainingPool[cat].pop();
@@ -184,14 +231,14 @@ function getNextActivity(cat) {
 
 function spinActivity() {
   if (!selectedCategory) return;
-  const list = ACTIVITIES[selectedCategory];
+  const list = bnyActivities(selectedCategory);
   const btn = document.getElementById('bnySpinBtn');
   const result = document.getElementById('bnyResult');
 
   // Havuzdan adil şekilde seç
   const normalPick  = getNextActivity(selectedCategory);
 
-  const secretPick = secretBNYMode
+  const secretPick = secretBNYMode && isBnySpicyOn()
   ? SECRET_BNY_ACTIVITIES[
       Math.floor(Math.random() * SECRET_BNY_ACTIVITIES.length)
     ]
@@ -261,6 +308,9 @@ function handleSecretDiceTap() {
 }
 
 function activateSecretBNY() {
+
+    // Gizli mod da cilveli öneri: ayar kapalıysa çalışmaz
+    if (!isBnySpicyOn()) return;
 
     secretBNYMode = true;
 

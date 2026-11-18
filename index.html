@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=37">
+  <link rel="stylesheet" href="css/style.css?v=38">
   
   <link
     rel="stylesheet"
@@ -1275,6 +1275,16 @@
     <div class="settings-hint" id="batteryStatus"></div>
 
     <div class="settings-label" style="margin-top:24px;">
+        Bugün Ne Yapsak
+    </div>
+
+    <button class="theme-btn notif-btn" id="bnySpicyBtn" onclick="toggleBnySpicy()">
+      🔥 Cilveli önerileri aç
+    </button>
+
+    <div class="settings-hint" id="bnySpicyStatus"></div>
+
+    <div class="settings-label" style="margin-top:24px;">
         Hesap
     </div>
 
@@ -1285,6 +1295,15 @@
         </div>
         <button class="verify-row-btn" onclick="resendVerification(this)">Tekrar gönder</button>
     </div>
+
+    <button
+        class="theme-btn guide-again-btn"
+        style="width:100%; color:var(--text);"
+        onclick="showGettingStartedAgain()">
+
+        🧭 Uygulama rehberini göster
+
+    </button>
 
     <button
         class="theme-btn"
@@ -1298,10 +1317,6 @@
     <div class="settings-label" style="margin-top:24px;">
         Hakkında
     </div>
-
-    <button class="theme-btn notif-btn guide-again-btn" onclick="showGettingStartedAgain()">
-        🧭 Uygulama rehberini göster
-    </button>
 
     <div class="legal-links">
         <button class="theme-btn" onclick="openLegal('privacy')">🔒 Gizlilik Politikası</button>
@@ -1890,7 +1905,7 @@
     <script type="module" src="js/firebase.js?v=21"></script>
     
     <script src="js/theme.js?v=4"></script>
-    <script src="js/bny.js?v=3"></script>
+    <script src="js/bny.js?v=4"></script>
     <script src="js/events.js?v=11"></script>
 
     <script type="module" src="js/capacitor.js"></script>
