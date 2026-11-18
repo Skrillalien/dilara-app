@@ -214,10 +214,23 @@ async function loadLastMemory() {
     await loadCoupleMemberProfiles();
 
     window.firebase.listenMemories((memories) => {
-        if (memories.length === 0) return;
+
+        const author = document.getElementById('lastMemoryAuthor');
+
+        // Hiç anı yoksa: tire yerine yönlendiren bir cümle
+        if (memories.length === 0) {
+            author.style.display = 'none';
+            document.getElementById('lastMemoryDate').textContent = '';
+            document.getElementById('lastMemoryText').innerHTML =
+                `<span class="last-memory-empty">Henüz not yok.</span>
+                 <button class="last-memory-cta" type="button" onclick="showPage('our-memories'); openMemoryComposer();">＋ İlk anını yaz</button>`;
+            return;
+        }
+
         const last = memories[0];
 
-        document.getElementById('lastMemoryAuthor').textContent =
+        author.style.display = '';
+        author.textContent =
             authorInfo(last).label
         document.getElementById('lastMemoryText').innerHTML =
             formatMemoryText(last.text);

@@ -94,6 +94,17 @@ function renderEvents() {
     return { ...e, next, days };
   }).sort((a, b) => a.days - b.days);
 
+  // Hiç özel gün yoksa boş başlık kalmasın
+  if (!sorted.length) {
+    list.innerHTML = `
+      <button class="home-events-empty" type="button" onclick="openCard('our-calendar')">
+        <span>📅</span>
+        <span><b>Önemli günlerinizi ekleyin</b><small>Yıldönümü, doğum günleri… yaklaşınca hatırlatalım.</small></span>
+        <span class="home-events-go">›</span>
+      </button>`;
+    return;
+  }
+
   // Ana sayfada sadece en yakın 3 gün; tamamı Takvim sayfasında
   list.innerHTML = sorted.slice(0, 3).map(e => {
     const isToday = e.days === 0;

@@ -227,6 +227,38 @@ async function loadCoupleNames() {
 
 }
 
+// Partner henüz katılmadı: davet kartı ve kendi başına kullanılabilen
+// her şey (anılar, fotoğraflar, şarkılar, hayaller, takvim, kapak…)
+let waitingStarted = false;
+
+function startWaitingApp(inviteCode) {
+
+    startGuideWaiting(inviteCode);
+
+    if (waitingStarted) return;
+
+    waitingStarted = true;
+
+    checkEmailVerification();
+    startPremium();
+    initNotifyPrefs();
+
+    loadLastMemory();
+    loadNextEvent();
+    updateMemoryAuthorInfo();
+    loadDreams();
+    initSlider();
+    loadSliderImagesList();
+    initEvents();
+
+    setTimeout(checkLegalConsent, 2500);
+
+    // Partner katılınca bildirim gelebilsin
+    window.appReady = true;
+    setTimeout(() => window.appPush?.syncToken?.(), 4000);
+
+}
+
 function checkUserSelection() {
 
     const overlay =
@@ -321,7 +353,7 @@ function checkUserSelection() {
                     couple.inviteCode;
 
                 // Davet kartı ana sayfada (js/guide.js); partner katılınca yenilenir
-                startGuideWaiting(couple.inviteCode);
+                startWaitingApp(couple.inviteCode);
 
                 hideSplash();
 
@@ -469,11 +501,11 @@ function updateCoupleNameDisplay() {
         return;
     }
 
-    // Kendi adı varsa ama partnerin adı yoksa
+    // Kendi adı varsa ama partner henüz katılmadıysa
     if (myName !== "Sen" && partnerName === "Ben") {
 
         element.textContent =
-            `${myName} & Sen`;
+            `${myName} & …`;
 
         return;
     }
@@ -830,14 +862,14 @@ async function createMyCouple() {
             document.getElementById("inviteCodeDisplay").textContent =
                 result.inviteCode;
 
-            document.getElementById("inviteOverlay")
-                .classList.add("active");
-
-            document.getElementById("invitePopup")
-                .classList.add("active");
-
             document.getElementById("userSelectOverlay")
                 .style.display = "none";
+
+            await loadCoupleNames();
+            updateCoupleNameDisplay();
+
+            // Açılır pencere yerine ana sayfadaki davet kartı + rehber
+            startWaitingApp(result.inviteCode);
 
         } catch (error) {
 
