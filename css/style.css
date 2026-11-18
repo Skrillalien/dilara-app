@@ -6918,3 +6918,31 @@ html.sheet-open .page{
     background:rgba(250, 204, 21, .14);
     color:#facc15;
 }
+
+/* Anılar: "Yeni Anı Yaz" ile açılan yazma kutusu */
+.memory-composer{
+    animation:memoryComposerIn .22s ease-out;
+}
+
+@keyframes memoryComposerIn{
+    from{ opacity:0; transform:translateY(-6px); }
+    to{ opacity:1; transform:none; }
+}
+
+.memory-cancel-btn{
+    margin-left:auto;
+    padding:8px 14px;
+    border:none;
+    border-radius:20px;
+    background:transparent;
+    color:var(--muted);
+    font:inherit;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.memory-cancel-btn:active{
+    background:var(--surface2);
+}
+
+.memory-composer .memory-actions{ width:100%; }
