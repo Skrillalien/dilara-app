@@ -155,7 +155,7 @@ function updateSheetScrollLock() {
         // Ortadaki pencereler (mektup, soru, takvim…)
         || !!document.getElementById("modalOverlay")?.classList.contains("active")
         // Sonradan eklenen pencereler (Premium, şu an dinliyorum)
-        || !!document.querySelector("body > .pm-wrap, body > .np-sheet-wrap");
+        || !!document.querySelector("body > .pm-wrap, body > .np-sheet-wrap, body > .sm-wrap");
 
     document.documentElement.classList.toggle("sheet-open", anyOpen);
 

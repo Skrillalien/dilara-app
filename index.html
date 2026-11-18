@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=38">
+  <link rel="stylesheet" href="css/style.css?v=39">
   
   <link
     rel="stylesheet"
@@ -1229,20 +1229,13 @@
       onchange="previewSliderPhoto(event)"
       hidden>
 
-    <button
-      class="theme-btn"
-      style="width:100%;"
-      onclick="document.getElementById('sliderPhotoInput').click()">
-
-      🖼️ Slider Fotoğrafı Ekle
-
-    </button>
-
-    <div class="settings-label" style="margin-top:24px;">
-        Slider Fotoğrafları
+    <div class="settings-label settings-label-row" style="margin-top:24px;">
+        <span>Kapak Fotoğrafları <span class="settings-count" id="sliderCount"></span></span>
+        <button class="settings-all-btn" id="sliderAllBtn" type="button" onclick="openSliderManager()" style="display:none;">Tümü →</button>
     </div>
 
-    <div id="sliderImagesList"></div>
+    <!-- İlk 3 fotoğraf + ekle (js/slider.js) -->
+    <div class="slider-strip" id="sliderImagesList"></div>
 
     <div class="settings-label" style="margin-top:24px;">
         Bildirimler
@@ -1902,7 +1895,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=21"></script>
+    <script type="module" src="js/firebase.js?v=22"></script>
     
     <script src="js/theme.js?v=4"></script>
     <script src="js/bny.js?v=4"></script>
@@ -1919,9 +1912,9 @@
 
 
 
-    <script src="js/ui.js?v=17"></script>
+    <script src="js/ui.js?v=18"></script>
 
-    <script src="js/slider.js?v=3"></script>
+    <script src="js/slider.js?v=4"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
