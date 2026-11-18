@@ -295,6 +295,15 @@ async function getMyCouple() {
 
 }
 
+// Yılımız özeti (sunucuda hesaplanır, js/wrapped.js)
+async function getWrapped(year, refresh = false) {
+
+    const result = await httpsCallable(functions, "getWrapped")({ year, refresh });
+
+    return result.data;
+
+}
+
 // İlk adımlar kartı ve Biz sayfası için sayılar (guide.js).
 // Sayım sorguları belge okumaz: 1000 kayıt başına 1 okuma sayılır.
 async function getCoupleSummary() {
@@ -2335,6 +2344,7 @@ window.firebase = {
     deleteMyAccount,
     listenCouple,
     getCoupleSummary,
+    getWrapped,
     reorderSliderImages,
     amIAdmin,
     adminGrantPremium,
