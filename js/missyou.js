@@ -2,17 +2,18 @@
 // Özledim
 //
 // • Sol alttaki kalp butonu bir panel açar.
-// • Paneldeki büyük kalbe art arda (aralarında 1 saniyeden az)
+// • Paneldeki büyük kalbe art arda (aralarında 3 saniyeden az)
 //   basınca sayaç x1, x2, x3… diye artar, kalp dolar.
 // • 10, 25, 50, 100… gibi eşiklerde kalp patlaması çıkar;
 //   x100 ve üstünde ekranı kaplayan kocaman bir kalp.
-// • 1 saniye basılmazsa seri biter ve tek bir kayıt olarak
-//   gönderilir (misses koleksiyonu). Sunucu partnere
+// • 3 saniye basılmazsa (ya da uygulama kapanırsa) seri biter ve
+//   tek bir kayıt olarak gönderilir (misses koleksiyonu). Sunucu
+//   art arda gelen serileri toplar, bir süre yeni seri gelmezse partnere
 //   "X seni 100 kere özledi" bildirimi atar.
 // • İsimler çiftin veritabanındaki isimlerinden gelir.
 // ─────────────────────────────────────────────────────────────
 
-const MISS_COMBO_GAP_MS = 1000;
+const MISS_COMBO_GAP_MS = 3000;
 const MISS_MILESTONES = [10, 25, 50, 100, 250, 500, 1000];
 const MISS_LAST_SEEN_KEY = "missLastSeen";
 
@@ -301,7 +302,7 @@ async function finishMissCombo() {
 
         await window.firebase.addMiss(count);
 
-        setMissStatus(`💌 Gönderildi · x${count} · ${partner} şimdi görecek`, "sent");
+        setMissStatus(`💌 Gönderildi · x${count} · ${partner} birazdan görecek`, "sent");
 
     } catch (error) {
 

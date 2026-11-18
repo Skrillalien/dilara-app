@@ -231,7 +231,63 @@ async function notifyPartner(type, event) {
 exports.onMemoryCreated = onDocumentCreated("memories/{id}", (event) => notifyPartner("memories", event));
 exports.onSongCreated = onDocumentCreated("songs/{id}", (event) => notifyPartner("songs", event));
 exports.onDreamCreated = onDocumentCreated("dreams/{id}", (event) => notifyPartner("dreams", event));
-exports.onMissCreated = onDocumentCreated("misses/{id}", (event) => notifyPartner("misses", event));
+// Özledim: art arda gelen serileri topla, bir süre yeni seri gelmezse
+// tek bildirim gönder ("Seni 1000 kere özledi"). Fotoğraflardaki gibi.
+const MISS_BATCH_WAIT_MS = 20 * 1000;
+const MISS_BATCH_RESET_MS = 10 * 60 * 1000;
+
+exports.onMissCreated = onDocumentCreated({ document: "misses/{id}", timeoutSeconds: 120 }, async (event) => {
+
+    const data = event.data?.data();
+    const { coupleId, authorId } = data || {};
+
+    if (!coupleId || !authorId) return;
+
+    const add = Math.max(1, Math.floor(Number(data.count) || 1));
+    const stateRef = db.doc(`missNotify/${authorId}`);
+    const stamp = Date.now();
+
+    await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        const fresh = !state.exists || stamp - (state.get("lastAt") || 0) > MISS_BATCH_RESET_MS;
+        tx.set(stateRef, {
+            coupleId,
+            count: fresh ? add : (state.get("count") || 0) + add,
+            lastAt: stamp
+        });
+    });
+
+    await new Promise(resolve => setTimeout(resolve, MISS_BATCH_WAIT_MS));
+
+    // Bu arada yeni seri geldiyse bildirimi o gönderecek
+    const count = await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        if (!state.exists || state.get("lastAt") !== stamp) return 0;
+        tx.delete(stateRef);
+        return state.get("count") || add;
+    });
+
+    if (!count) return;
+
+    const couple = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (couple.get("members") || []).filter(m => m !== authorId);
+
+    if (!recipients.length) return;
+
+    const name = await userName(authorId);
+    const t = TYPES.misses;
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `${t.icon} ${name}`,
+            body: t.body({ count }),
+            data: { page: t.page, type: "misses", id: event.params.id },
+            tag: t.tag,
+            category: t.category
+        });
+    }
+
+});
 
 
 // ─────────────────────────────────────────────────────────────
@@ -1862,6 +1918,7 @@ exports.deleteAccount = onCall(async (request) => {
         db.doc(`battery/${uid}`).delete().catch(() => {}),
         db.doc(`nowPlaying/${uid}`).delete().catch(() => {}),
         db.doc(`photoNotify/${uid}`).delete().catch(() => {}),
+        db.doc(`missNotify/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 
