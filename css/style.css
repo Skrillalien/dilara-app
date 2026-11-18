@@ -139,6 +139,23 @@ body::before {
   color-scheme: light;
 }
 
+/* Kahve-Krem (koyu) */
+[data-theme="kahvekoyu"] {
+  --bg: #17100b;
+  --surface: #261a12;
+  --surface2: #322318;
+  --accent: #ecd3ad;
+  --accent2: #c48a55;
+  --text: #f7ede0;
+  --muted: #a68b74;
+  --border: rgba(236, 211, 173, 0.15);
+  --glow: rgba(236, 211, 173, 0.07);
+  --accent-rgb: 236, 211, 173;
+  --accent2-rgb: 196, 138, 85;
+  --text-rgb: 247, 237, 224;
+  --bg-rgb: 23, 16, 11;
+}
+
 /* Sarı-Lacivert */
 [data-theme="fb"] {
   --bg: #071230;
@@ -857,6 +874,7 @@ margin-bottom:14px;
 .theme-btn .swatch {
   width: 36px; height: 36px;
   border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
   display: flex; align-items: center; justify-content: center;
   font-size: 16px;
 }
@@ -3943,7 +3961,6 @@ margin-bottom:14px;
 
 .theme-btn .swatch-pembe {
   background: linear-gradient(135deg, #ffffff, #f080a8);
-  border: 1px solid rgba(217, 70, 127, 0.25);
 }
 
 /* Koyu temalara göre yazılmış sabit renkler */
@@ -7819,12 +7836,13 @@ html.sheet-open .page{
 }
 
 /* Renk örnekleri */
-.theme-btn .swatch-kahve{ background:linear-gradient(135deg, #f3e6d3 0 45%, #7b4b2a 55% 100%); border:1px solid rgba(123,75,42,.25); }
+.theme-btn .swatch-kahve{ background:linear-gradient(135deg, #f6eadb, #c48a55 55%, #7b4b2a); }
+.theme-btn .swatch-kahvekoyu{ background:linear-gradient(135deg, #f3e2c6, #a8703f 50%, #24170f); }
 .theme-btn .swatch-fb{ background:linear-gradient(135deg, #ffcf1f 0 48%, #1a3a8f 52% 100%); }
-.theme-btn .swatch-kis{ background:radial-gradient(circle at 35% 35%, #fff 0 30%, transparent 31%), linear-gradient(135deg, #ffffff, #e8727a); border:1px solid rgba(207,67,78,.25); }
+.theme-btn .swatch-kis{ background:radial-gradient(circle at 35% 35%, #fff 0 30%, transparent 31%), linear-gradient(135deg, #ffffff, #e8727a); }
 .theme-btn .swatch-gece{ background:radial-gradient(circle at 68% 30%, #f3d58a 0 12%, transparent 13%), radial-gradient(circle at 30% 65%, #fff 0 5%, transparent 6%), linear-gradient(160deg, #1b2c7a, #040820); }
 .theme-btn .swatch-gunbatimi{ background:linear-gradient(180deg, #3b1450, #a33f5a 55%, #ffb36b); }
-.theme-btn .swatch-sakura{ background:radial-gradient(circle at 60% 40%, #f2a3c1 0 22%, transparent 23%), linear-gradient(135deg, #ffffff, #f7c6d8); border:1px solid rgba(217,100,154,.25); }
+.theme-btn .swatch-sakura{ background:radial-gradient(circle at 60% 40%, #f2a3c1 0 22%, transparent 23%), linear-gradient(135deg, #ffffff, #f7c6d8); }
 .theme-btn .swatch-orman{ background:radial-gradient(circle at 65% 35%, #e3ff8a 0 9%, transparent 10%), radial-gradient(circle at 30% 70%, #e3ff8a 0 6%, transparent 7%), linear-gradient(160deg, #1d4a30, #06100c); }
 
 .swatch-all{
