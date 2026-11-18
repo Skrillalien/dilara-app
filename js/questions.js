@@ -123,6 +123,8 @@ function startQuestions() {
 
     questionsStarted = true;
 
+    syncQuestionSeen();
+
     let firstLoad = true;
 
     window.firebase.listenQuestions(items => {
@@ -207,13 +209,53 @@ function questionSeenDays() {
 
 }
 
+function saveQuestionSeenLocal(days) {
+    try { localStorage.setItem(QUESTION_SEEN_KEY, JSON.stringify([...days].sort().slice(-60))); } catch {}
+}
+
+// Okunanlar hesapta da tutulur (users/{uid}.questionSeen): çıkış yapıp
+// girince, başka telefonda ya da uygulama verisi silinince kaybolmasın
 function markQuestionRevealSeen(day) {
 
-    const days = [...questionSeenDays(), day].slice(-60);
+    const seen = questionSeenDays();
+    const isNew = !seen.has(day);
 
-    try { localStorage.setItem(QUESTION_SEEN_KEY, JSON.stringify(days)); } catch {}
+    seen.add(day);
+    saveQuestionSeenLocal(seen);
+
+    if (isNew) {
+        window.firebase?.markQuestionSeen?.(day).catch(error =>
+            console.warn("Okundu bilgisi kaydedilemedi:", error));
+    }
 
     if (typeof renderInboxCard === "function") renderInboxCard();
+
+}
+
+// Açılışta: hesaptaki okunanları bu telefondakilerle birleştir
+async function syncQuestionSeen() {
+
+    try {
+
+        const profile = await window.firebase.getUserProfile();
+        const remote = Array.isArray(profile?.questionSeen) ? profile.questionSeen : [];
+
+        const seen = questionSeenDays();
+        const localOnly = [...seen].filter(day => !remote.includes(day));
+
+        remote.forEach(day => seen.add(day));
+        saveQuestionSeenLocal(seen);
+
+        // Eski sürümde sadece bu telefonda tutulanları hesaba da yaz
+        if (localOnly.length) {
+            window.firebase.markQuestionSeen(localOnly).catch(() => {});
+        }
+
+        if (typeof renderInboxCard === "function") renderInboxCard();
+
+    } catch (error) {
+        console.warn("Okunan sorular alınamadı:", error);
+    }
 
 }
 
