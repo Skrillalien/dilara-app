@@ -126,6 +126,8 @@ function onInboxSnapshot(type, items) {
 
     renderInboxCard();
 
+    if (typeof renderBizInfo === "function") renderBizInfo();
+
     // Üç dinleyicinin ilk cevabını bekleyip tek bir şerit göster
     clearTimeout(inboxEvaluateTimer);
     inboxEvaluateTimer = setTimeout(maybeShowInboxBanner, 500);

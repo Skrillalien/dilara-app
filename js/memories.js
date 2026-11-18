@@ -120,7 +120,7 @@ async function loadMemories() {
     window.firebase.listenMemories((memories) => {
         currentMemories = memories;
         if (memories.length === 0) {
-            list.innerHTML = '<div class="memories-empty">Henüz anı yok 💜<br>İlk anıyı sen ekle!</div>';
+            list.innerHTML = emptyMemoriesHtml();
             return;
         }
         list.innerHTML = memories.map(m => {

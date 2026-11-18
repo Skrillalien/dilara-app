@@ -21,6 +21,8 @@ async function initSlider() {
 
     const photos = await window.firebase.getSliderImages();
 
+    if (typeof renderCoverPlaceholder === "function") renderCoverPlaceholder(photos.length > 0);
+
     photos.forEach(photo => {
 
         wrapper.innerHTML += `
@@ -73,6 +75,10 @@ async function previewSliderPhoto(event) {
         await window.firebase.addSliderImage(prepared);
 
         showToast("🎞️ Slider fotoğrafı eklendi");
+
+        // Ana sayfadaki kapak hemen güncellensin
+        initSlider();
+        if (typeof refreshGuide === "function") refreshGuide(true);
 
     } catch (error) {
 

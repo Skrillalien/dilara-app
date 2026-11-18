@@ -20,7 +20,8 @@ import {
     setDoc,
     runTransaction,
     deleteField,
-    writeBatch
+    writeBatch,
+    getCountFromServer
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 import {
@@ -291,6 +292,46 @@ async function getMyCouple() {
     if (!userDoc.exists()) return null;
 
     return userDoc.data().coupleId || null;
+
+}
+
+// İlk adımlar kartı ve Biz sayfası için sayılar (guide.js).
+// Sayım sorguları belge okumaz: 1000 kayıt başına 1 okuma sayılır.
+async function getCoupleSummary() {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return null;
+
+    const count = async (name, ...extra) => {
+        try {
+            const snap = await getCountFromServer(query(
+                collection(db, name),
+                where("coupleId", "==", coupleId),
+                ...extra
+            ));
+            return snap.data().count;
+        } catch (error) {
+            console.warn("Sayılamadı:", name, error);
+            return null;
+        }
+    };
+
+    const [memories, photos, songs, dreams, dreamsDone, slider, answers, coupleSnap] = await Promise.all([
+        count("memories"),
+        count("photos"),
+        count("songs"),
+        count("dreams"),
+        count("dreams", where("completed", "==", true)),
+        count("sliderImages"),
+        count("questionAnswers", where("authorId", "==", user.uid)),
+        getDoc(doc(db, "couples", coupleId))
+    ]);
+
+    const members = coupleSnap.exists() ? coupleSnap.data().members || [] : [];
+
+    return { memories, photos, songs, dreams, dreamsDone, slider, answers, members: members.length };
 
 }
 
@@ -2280,6 +2321,7 @@ window.firebase = {
     sendPasswordReset,
     deleteMyAccount,
     listenCouple,
+    getCoupleSummary,
     amIAdmin,
     adminGrantPremium,
     adminRevokePremium,

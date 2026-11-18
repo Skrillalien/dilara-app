@@ -25,21 +25,17 @@ function loadSongs() {
 
         currentSongs = songs;
 
+        // Boşken üstteki "Yeni …" düğmesi gizlenir, boş ekranın düğmesi yeter
+        document.getElementById("page-our-songs")?.classList.toggle("page-empty", songs.length === 0);
+
+        if (typeof renderBizInfo === "function" && typeof guideSummary !== "undefined" && guideSummary) {
+            guideSummary.songs = songs.length;
+            renderBizInfo();
+        }
+
         if (songs.length === 0) {
 
-            list.innerHTML = `
-                <div class="memories-empty">
-
-                    🎵
-                    <br><br>
-
-                    Henüz hiç şarkı yok.
-                    <br>
-
-                    İlk şarkıyı sen bırak 💜
-
-                </div>
-            `;
+            list.innerHTML = emptySongsHtml();
 
             return;
  

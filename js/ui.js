@@ -293,6 +293,8 @@ function showPage(page) {
 
     if (typeof updateMissButton === "function") updateMissButton();
 
+    if (typeof guideOnPage === "function") guideOnPage(page);
+
     if (fab) {
         if (page === "home") {
             fab.style.display = "flex";
