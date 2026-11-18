@@ -203,6 +203,8 @@ function closeTopLayer() {
 
     if (typeof closePremium === "function" && closePremium()) return true;
 
+    if (typeof closeSliderManager === "function" && closeSliderManager()) return true;
+
     if (visible("imageViewer")) { closeImage(); return true; }
 
     if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }

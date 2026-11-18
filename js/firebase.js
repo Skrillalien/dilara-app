@@ -1143,6 +1143,19 @@ function listenSliderImages(callback) {
 
 }
 
+// Kapak fotoğraflarının sırası: ids listesindeki sırayla 1, 2, 3…
+async function reorderSliderImages(ids) {
+
+    const batch = writeBatch(db);
+
+    ids.forEach((id, index) => {
+        batch.update(doc(db, "sliderImages", id), { order: index + 1 });
+    });
+
+    await batch.commit();
+
+}
+
 async function deleteSliderImage(id) {
 
     await deleteDoc(
@@ -2322,6 +2335,7 @@ window.firebase = {
     deleteMyAccount,
     listenCouple,
     getCoupleSummary,
+    reorderSliderImages,
     amIAdmin,
     adminGrantPremium,
     adminRevokePremium,
