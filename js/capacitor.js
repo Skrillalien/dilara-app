@@ -209,6 +209,8 @@ function closeTopLayer() {
 
     if (typeof closeWrapped === "function" && closeWrapped()) return true;
 
+    if (typeof closeThemeSheet === "function" && closeThemeSheet()) return true;
+
     if (visible("imageViewer")) { closeImage(); return true; }
 
     if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }

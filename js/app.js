@@ -52,7 +52,7 @@ function authorInfo(item) {
 }
 
 const savedTheme = localStorage.getItem('theme') || 'mor';
-setTheme(savedTheme);
+setTheme(savedTheme, { silent: true });
 
 const notifBtn = document.getElementById("notifBtn");
 
@@ -313,6 +313,8 @@ function checkUserSelection() {
             startGuide();
 
             startWrapped();
+
+            setTimeout(() => typeof maybeOfferSeasonTheme === "function" && maybeOfferSeasonTheme(), 4000);
 
             initNotifyPrefs();
 

@@ -83,6 +83,7 @@ function startPremium() {
     window.firebase.listenCouple(couple => {
         premiumCouple = couple;
         renderPremiumStatus();
+        if (typeof enforceThemeAccess === "function") enforceThemeAccess();
     });
 
     window.firebase.amIAdmin?.().then(isAdmin => {
