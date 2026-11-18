@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=35">
+  <link rel="stylesheet" href="css/style.css?v=36">
   
   <link
     rel="stylesheet"
@@ -396,7 +396,15 @@
 
     </div>
 
-    <div class="memory-input-card">
+    <div class="song-add-card" id="memoryComposeBtn" onclick="openMemoryComposer()">
+        <svg class="song-add-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        <span>Yeni Anı Yaz</span>
+    </div>
+
+    <div class="memory-input-card memory-composer" id="memoryComposer" style="display:none;">
       <div id="memoryAuthorInfo" class="memory-author-info"></div>
       <textarea id="memoryText" placeholder="Bugün ne güzel bir şey oldu?"></textarea>
       <div class="memory-input-footer">
@@ -411,6 +419,12 @@
                   id="sendBtn"
                   onclick="saveMemory()">
                   Kaydet
+              </button>
+              <button
+                  class="memory-cancel-btn"
+                  type="button"
+                  onclick="closeMemoryComposer()">
+                  Vazgeç
               </button>
           </div>
       </div>
@@ -1880,7 +1894,7 @@
 
     <script src="js/notifications.js?v=4"></script>
     <script src="js/images.js?v=4"></script>
-    <script src="js/memories.js?v=9"></script>
+    <script src="js/memories.js?v=10"></script>
     <script src="js/photos.js?v=6"></script>
     <script src="js/songs.js?v=4"></script>
     <script src="js/dreams.js?v=6"></script>
@@ -1897,7 +1911,7 @@
     <script src="js/account.js?v=2"></script>
     <script src="js/proximity.js?v=2"></script>
     <script src="js/onthisday.js?v=1"></script>
-    <script src="js/moods.js?v=4"></script>
+    <script src="js/moods.js?v=5"></script>
     <script src="js/questions.js?v=4"></script>
     <script src="js/letters.js?v=5"></script>
     <script src="js/missyou.js?v=4"></script>
@@ -1911,7 +1925,7 @@
     <script src="js/nowplaying.js?v=1"></script>
     <script src="js/premium.js?v=1"></script>
     <script src="js/download.js?v=1"></script>
-    <script src="js/guide.js?v=1"></script>
+    <script src="js/guide.js?v=2"></script>
     <script src="js/app.js?v=24"></script>
   
 </body>
