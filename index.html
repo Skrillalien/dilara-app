@@ -21,7 +21,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=37">
+  <link rel="stylesheet" href="css/style.css?v=38">
   
   <link
     rel="stylesheet"
@@ -1297,6 +1297,15 @@
     </div>
 
     <button
+        class="theme-btn guide-again-btn"
+        style="width:100%; color:var(--text);"
+        onclick="showGettingStartedAgain()">
+
+        🧭 Uygulama rehberini göster
+
+    </button>
+
+    <button
         class="theme-btn"
         style="width:100%; color:var(--text);"
         onclick="logoutAppUser()">
@@ -1308,10 +1317,6 @@
     <div class="settings-label" style="margin-top:24px;">
         Hakkında
     </div>
-
-    <button class="theme-btn notif-btn guide-again-btn" onclick="showGettingStartedAgain()">
-        🧭 Uygulama rehberini göster
-    </button>
 
     <div class="legal-links">
         <button class="theme-btn" onclick="openLegal('privacy')">🔒 Gizlilik Politikası</button>
