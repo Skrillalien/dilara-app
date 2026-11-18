@@ -92,13 +92,15 @@ service cloud.firestore {
 
       // Yeni çift: sadece kendini ekleyerek kurabilirsin
       allow create: if signedIn()
-        && request.resource.data.members == [me()];
+        && request.resource.data.members == [me()]
+        && !('premium' in request.resource.data)
+        && request.resource.data.get('plan', 'free') == 'free';
 
       // Üyeler çift bilgilerini (başlangıç tarihi, seri…) değiştirebilir
       // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan', 'questionCursor', 'customQueue', 'together'])
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'premium', 'questionCursor', 'customQueue', 'together'])
         // Yakınlık izni: herkes sadece kendi iznini değiştirebilir
         && (!('proximityOptIn' in changes())
             || request.resource.data.proximityOptIn
@@ -202,6 +204,48 @@ service cloud.firestore {
       allow read: if inMyCouple(resource.data.coupleId);
 
       allow write: if false;
+    }
+
+    // ── Şu an dinliyorum ────────────────────────────────────
+    // Herkes kendi belgesini yazar; çiftteki iki kişi okur.
+    // Sanatçı adını sunucu sonradan ekleyebilir.
+    match /nowPlaying/{uid} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow create, update: if signedIn()
+        && uid == me()
+        && request.resource.data.uid == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.link is string
+        && request.resource.data.link.size() > 0
+        && request.resource.data.link.size() <= 480
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.keys().hasOnly([
+             "uid", "coupleId", "link", "platform", "title", "artist",
+             "cover", "shareId", "sharedAt", "expiresAt"
+           ]);
+
+      allow delete: if signedIn() && uid == me();
+    }
+
+    // ── Partner pili ────────────────────────────────────────
+    // Herkes sadece kendi pilini yazar; çiftteki iki kişi okur.
+    match /battery/{uid} {
+
+      allow read: if inMyCouple(resource.data.coupleId);
+
+      allow create, update: if signedIn()
+        && uid == me()
+        && request.resource.data.uid == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.level is number
+        && request.resource.data.level >= 0
+        && request.resource.data.level <= 100
+        && request.resource.data.charging is bool
+        && request.resource.data.keys().hasOnly(["uid", "coupleId", "level", "charging", "at"]);
+
+      allow delete: if signedIn() && uid == me();
     }
 
     // ── Bildirim token'ları ─────────────────────────────────

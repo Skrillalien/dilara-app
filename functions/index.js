@@ -10,10 +10,10 @@
 // Eski sürümün users/{uid}.fcmTokens dizisi de okunur.
 // ─────────────────────────────────────────────────────────────
 
-const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
@@ -30,7 +30,11 @@ const PREMIUM_ENFORCED = false;
 
 function isPremiumCouple(couple) {
 
-    return !PREMIUM_ENFORCED || couple?.get?.("plan") === "premium";
+    if (!PREMIUM_ENFORCED) return true;
+
+    const data = typeof couple?.data === "function" ? couple.data() : couple;
+
+    return premiumActive(data?.premium) || data?.plan === "premium";
 
 }
 
@@ -42,21 +46,25 @@ setGlobalOptions({ region: "europe-west1", maxInstances: 5 });
 
 const TYPES = {
     memories: {
+        category: "content",
         page: "our-memories",
         icon: "💌",
         body: (d) => withPreview("Sana yeni bir not bıraktı", d.text || ((d.imageUrl || d.image) ? "📷 Fotoğraf" : ""))
     },
     songs: {
+        category: "content",
         page: "our-songs",
         icon: "🎵",
         body: (d) => withPreview("Sana bir şarkı bıraktı", [d.title, d.artist].filter(Boolean).join(" · "))
     },
     dreams: {
+        category: "content",
         page: "our-dreams",
         icon: "✨",
         body: (d) => withPreview("Yeni bir hayal ekledi", d.title)
     },
     misses: {
+        category: "love",
         page: "miss",
         icon: "💗",
         // Aynı etiketli bildirimler telefonda üst üste yığılmaz, yenisi eskisinin yerine geçer
@@ -90,12 +98,22 @@ function withPreview(text, preview) {
 }
 
 // Bir kullanıcının bütün telefonlarına bildirim gönder
-async function sendPushToUser(uid, { title, body, data = {}, tag = null }) {
+// Bildirim türleri (Ayarlar → Bildirimler). Kategorisiz bildirimler
+// (ör. partnerin katıldı, hesap silindi) her zaman gider.
+const NOTIFY_CATEGORIES = ["love", "content", "letters", "questions", "reminders", "music"];
+
+async function sendPushToUser(uid, { title, body, data = {}, tag = null, category = null }) {
 
     const userRef = db.doc(`users/${uid}`);
+    const userSnap = await userRef.get();
+
+    if (category && userSnap.get(`notifyPrefs.${category}`) === false) {
+        logger.info("Bildirim türü kapalı, gönderilmedi", { uid, category });
+        return;
+    }
 
     const tokenSnap = await db.collection("pushTokens").where("uid", "==", uid).get();
-    const legacy = (await userRef.get()).get("fcmTokens") || [];
+    const legacy = userSnap.get("fcmTokens") || [];
 
     const tokens = [...new Set([
         ...tokenSnap.docs.map(d => d.id),
@@ -202,7 +220,8 @@ async function notifyPartner(type, event) {
             title: `${t.icon} ${authorName}`,
             body: t.body(data),
             data: { page: t.page, type, id: event.params.id },
-            tag: t.tag || null
+            tag: t.tag || null,
+            category: t.category || null
         });
 
     }
@@ -212,7 +231,63 @@ async function notifyPartner(type, event) {
 exports.onMemoryCreated = onDocumentCreated("memories/{id}", (event) => notifyPartner("memories", event));
 exports.onSongCreated = onDocumentCreated("songs/{id}", (event) => notifyPartner("songs", event));
 exports.onDreamCreated = onDocumentCreated("dreams/{id}", (event) => notifyPartner("dreams", event));
-exports.onMissCreated = onDocumentCreated("misses/{id}", (event) => notifyPartner("misses", event));
+// Özledim: art arda gelen serileri topla, bir süre yeni seri gelmezse
+// tek bildirim gönder ("Seni 1000 kere özledi"). Fotoğraflardaki gibi.
+const MISS_BATCH_WAIT_MS = 20 * 1000;
+const MISS_BATCH_RESET_MS = 10 * 60 * 1000;
+
+exports.onMissCreated = onDocumentCreated({ document: "misses/{id}", timeoutSeconds: 120 }, async (event) => {
+
+    const data = event.data?.data();
+    const { coupleId, authorId } = data || {};
+
+    if (!coupleId || !authorId) return;
+
+    const add = Math.max(1, Math.floor(Number(data.count) || 1));
+    const stateRef = db.doc(`missNotify/${authorId}`);
+    const stamp = Date.now();
+
+    await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        const fresh = !state.exists || stamp - (state.get("lastAt") || 0) > MISS_BATCH_RESET_MS;
+        tx.set(stateRef, {
+            coupleId,
+            count: fresh ? add : (state.get("count") || 0) + add,
+            lastAt: stamp
+        });
+    });
+
+    await new Promise(resolve => setTimeout(resolve, MISS_BATCH_WAIT_MS));
+
+    // Bu arada yeni seri geldiyse bildirimi o gönderecek
+    const count = await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        if (!state.exists || state.get("lastAt") !== stamp) return 0;
+        tx.delete(stateRef);
+        return state.get("count") || add;
+    });
+
+    if (!count) return;
+
+    const couple = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (couple.get("members") || []).filter(m => m !== authorId);
+
+    if (!recipients.length) return;
+
+    const name = await userName(authorId);
+    const t = TYPES.misses;
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `${t.icon} ${name}`,
+            body: t.body({ count }),
+            data: { page: t.page, type: "misses", id: event.params.id },
+            tag: t.tag,
+            category: t.category
+        });
+    }
+
+});
 
 
 // ─────────────────────────────────────────────────────────────
@@ -244,6 +319,8 @@ exports.joinCouple = onCall(async (request) => {
 
     const coupleRef = found.docs[0].ref;
     const userRef = db.doc(`users/${uid}`);
+
+    let waiting = [];
 
     const coupleId = await db.runTransaction(async tx => {
 
@@ -282,11 +359,26 @@ exports.joinCouple = onCall(async (request) => {
 
         tx.set(userRef, { coupleId: coupleRef.id }, { merge: true });
 
+        waiting = members.filter(m => m !== uid);
+
         return coupleRef.id;
 
     });
 
     logger.info("Çifte katıldı", { uid, coupleId });
+
+    // Davet edene haber ver
+    if (waiting.length) {
+
+        const name = await userName(uid, "Partnerin");
+
+        await Promise.all(waiting.map(to => sendPushToUser(to, {
+            title: `💞 ${name} sana katıldı!`,
+            body: "Artık bağlısınız. İlk notunu bırakmaya ne dersin? 💜",
+            data: { page: "home", type: "joined" }
+        }).catch(error => logger.warn("Katılma bildirimi gönderilemedi", { error: error.message }))));
+
+    }
 
     return { coupleId };
 
@@ -551,7 +643,8 @@ exports.sealLetter = onCall(async (request) => {
         body: hideDate
             ? "Sana mühürlü bir mektup bıraktı. Ne zaman açılacağı sürpriz 🤫"
             : `Sana mühürlü bir mektup bıraktı · ${relativeOpenText(openAtMs)} açılacak`,
-        data: { page: "our-letters", type: "letters", id }
+        data: { page: "our-letters", type: "letters", id },
+        category: "letters"
     });
 
     logger.info("Mektup mühürlendi", { id, coupleId, hideDate, hasPhoto });
@@ -751,15 +844,12 @@ async function openLetter(id) {
         await sendPushToUser(partnerId, {
             title: "💌 Mühürlü mektubun açıldı",
             body: `${authorName} sana yazmıştı, şimdi okuyabilirsin`,
-            data
+            data,
+            category: "letters"
         });
     }
 
-    await sendPushToUser(authorId, {
-        title: "💌 Mektubun açıldı",
-        body: `${partnerName} artık mektubunu okuyabilir`,
-        data
-    });
+    // Yazana sadece "okundu" bildirimi gider (onLetterRead)
 
     logger.info("Mektup açıldı", { id, coupleId });
 
@@ -820,7 +910,8 @@ exports.onLetterRead = onDocumentUpdated("letters/{id}", async (event) => {
     await sendPushToUser(after.authorId, {
         title: "💜 Mektubun okundu",
         body: `${await userName(readerId)} mektubunu okudu`,
-        data: { page: "our-letters", type: "letters", id: event.params.id }
+        data: { page: "our-letters", type: "letters", id: event.params.id },
+        category: "letters"
     });
 
 });
@@ -1012,7 +1103,8 @@ exports.answerQuestion = onCall(async (request) => {
                 title: "💬 Cevaplarınız açıldı",
                 body: `${name} de günün sorusunu cevapladı. Gel bak ne yazmış!`,
                 data,
-                tag: `question-${day}`
+                tag: `question-${day}`,
+                category: "questions"
             });
 
         } else if (result.firstTime) {
@@ -1021,7 +1113,8 @@ exports.answerQuestion = onCall(async (request) => {
                 title: `💬 ${name} günün sorusunu cevapladı`,
                 body: "Seninkini bekliyor 👀 Sen de cevaplayınca ikiniz de görebileceksiniz.",
                 data,
-                tag: `question-${day}`
+                tag: `question-${day}`,
+                category: "questions"
             });
 
         }
@@ -1086,7 +1179,8 @@ exports.onQuestionReaction = onDocumentUpdated("dailyQuestions/{id}", async (eve
             title: `${emoji} ${await userName(reactorId)}`,
             body: "Günün sorusundaki cevabına tepki bıraktı",
             data: { page: "our-questions", type: "question", day: after.day },
-            tag: `question-reaction-${after.day}`
+            tag: `question-reaction-${after.day}`,
+            category: "questions"
         });
 
     }
@@ -1169,7 +1263,8 @@ exports.onMoodLogged = onDocumentCreated("moodLogs/{id}", async (event) => {
         title: `${mood.emoji} ${name}: ${mood.label}`,
         body: note ? `“${note.slice(0, 100)}”` : "Bugün biraz desteğe ihtiyacı olabilir 💜",
         data: { page: "mood", type: "mood" },
-        tag: "mood"
+        tag: "mood",
+        category: "love"
     });
 
 });
@@ -1194,7 +1289,8 @@ exports.onNudge = onDocumentCreated("nudges/{id}", async (event) => {
             ? `${label.replace(/ bugün$/, "")}ki bir anınızı hatırladı`
             : "Eski bir anınızı hatırladı"),
         data: { page: nudge.page || "mood", type: "nudge" },
-        tag: nudge.page ? "remember" : "nudge"
+        tag: nudge.page ? "remember" : "nudge",
+        category: "love"
     });
 
 });
@@ -1506,7 +1602,8 @@ exports.notifyOnThisDay = onSchedule({
                 title: `📅 ${doc.get("label")}`,
                 body: count > 1 ? `${count} anınız var 💜` : "Bir anınız var 💜",
                 data: { page: "onthisday", type: "onthisday" },
-                tag: "onthisday"
+                tag: "onthisday",
+                category: "reminders"
             }).catch(error => logger.warn("Bildirim gönderilemedi", { uid, error: error.message }));
 
         }
@@ -1676,7 +1773,9 @@ exports.clearPresence = onCall(async (request) => {
 // Silen kişinin eklediği kayıtların bulunduğu koleksiyonlar
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
-    "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers"
+    "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
+    // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
+    "sliderImages"
 ];
 
 async function deleteQueryInBatches(docs) {
@@ -1767,8 +1866,8 @@ exports.deleteAccount = onCall(async (request) => {
 
             // Çiftte kimse kalmadı: ortak alanın tamamını sil
             for (const name of [
-                ...AUTHORED_COLLECTIONS, "sliderImages", "dailyQuestions",
-                "onThisDay", "togetherDays"
+                ...AUTHORED_COLLECTIONS, "dailyQuestions",
+                "onThisDay", "togetherDays", "songPlays", "wrapped"
             ]) {
                 const rest = await db.collection(name).where("coupleId", "==", coupleId).get();
                 await deleteQueryInBatches(rest.docs);
@@ -1816,6 +1915,10 @@ exports.deleteAccount = onCall(async (request) => {
     await Promise.all([
         db.doc(`presence/${uid}`).delete().catch(() => {}),
         db.doc(`moodNotify/${uid}`).delete().catch(() => {}),
+        db.doc(`battery/${uid}`).delete().catch(() => {}),
+        db.doc(`nowPlaying/${uid}`).delete().catch(() => {}),
+        db.doc(`photoNotify/${uid}`).delete().catch(() => {}),
+        db.doc(`missNotify/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 
@@ -1825,5 +1928,974 @@ exports.deleteAccount = onCall(async (request) => {
     logger.info("Hesap silindi", { uid });
 
     return { ok: true };
+
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// Şu an dinliyorum
+//
+// nowPlaying/{uid}: kişi bir şarkıyı 5 dakikalığına paylaşır.
+// • Spotify bağlantılarında sanatçı adı istemcide alınamıyor;
+//   burada şarkı sayfasından eklenir
+// • Partnere bildirim gider
+// • Süresi geçen kayıtlar 10 dakikada bir silinir
+// ─────────────────────────────────────────────────────────────
+
+function decodeHtml(text) {
+    return String(text || "")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"')
+        .replace(/&#x27;|&#39;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">");
+}
+
+async function spotifyTrackMeta(link) {
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+
+    try {
+
+        const res = await fetch(link, {
+            signal: controller.signal,
+            redirect: "follow",
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; KalpKalbe/1.0)", "Accept-Language": "tr,en" }
+        });
+
+        if (!res.ok) return {};
+
+        const html = await res.text();
+
+        const meta = name => {
+            const m = html.match(new RegExp(`<meta[^>]+(?:property|name)="${name}"[^>]+content="([^"]*)"`, "i"))
+                || html.match(new RegExp(`<meta[^>]+content="([^"]*)"[^>]+(?:property|name)="${name}"`, "i"));
+            return m ? decodeHtml(m[1]).trim() : "";
+        };
+
+        // Sayfa başlığı: "Cambaz - song and lyrics by Mor ve Ötesi | Spotify"
+        // ya da "Şarkı - Song, Lyrics, and Music Video by Sanatçı | Spotify"
+        const pageTitle = decodeHtml((html.match(/<title[^>]*>([^<]*)<\/title>/i) || [])[1] || "");
+        const fromTitle = pageTitle.match(/^(.*?)\s+-\s+.*?\bby\s+(.+?)\s*\|\s*Spotify/i);
+
+        // og:description: "Sanatçı · Albüm · Song · 2004"
+        const description = meta("og:description");
+
+        const artist = meta("music:musician_description")
+            || (fromTitle ? fromTitle[2] : "")
+            || (description.includes(" · ") ? description.split(" · ")[0] : "");
+
+        return {
+            title: meta("og:title") || (fromTitle ? fromTitle[1] : ""),
+            artist: artist.length < 120 ? artist : "",
+            cover: meta("og:image")
+        };
+
+    } catch (error) {
+
+        logger.warn("Spotify bilgisi alınamadı", { error: error.message });
+        return {};
+
+    } finally {
+
+        clearTimeout(timer);
+
+    }
+
+}
+
+exports.onNowPlaying = onDocumentWritten("nowPlaying/{uid}", async (event) => {
+
+    const after = event.data?.after;
+
+    if (!after?.exists) return;
+
+    const data = after.data();
+    const before = event.data.before?.exists ? event.data.before.data() : null;
+
+    // Sunucunun kendi güncellemesi ya da aynı paylaşım: tekrar işleme
+    if (before && before.shareId === data.shareId) return;
+
+    const { coupleId, uid } = data;
+
+    if (!coupleId || !uid) return;
+
+    let { title, artist, cover } = data;
+
+    if (data.platform === "spotify" && (!artist || !title)) {
+
+        const meta = await spotifyTrackMeta(data.link);
+
+        const update = {};
+
+        if (!title && meta.title) update.title = title = meta.title.slice(0, 200);
+        if (!artist && meta.artist) update.artist = artist = meta.artist.slice(0, 200);
+        if (!cover && meta.cover) update.cover = cover = meta.cover.slice(0, 480);
+
+        if (Object.keys(update).length) {
+            await after.ref.update(update).catch(() => {});
+        }
+
+    }
+
+    // Yılımız için: hangi şarkı kaç kere paylaşıldı (sadece sayı ve şarkı adı)
+    await countSongPlay(coupleId, uid, { link: data.link, title, artist, cover })
+        .catch(error => logger.warn("Şarkı paylaşımı sayılamadı", { error: error.message }));
+
+    const coupleSnap = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (coupleSnap.get("members") || []).filter(m => m !== uid);
+
+    if (recipients.length === 0) return;
+
+    const name = await userName(uid);
+    const song = [title, artist].filter(Boolean).join(" · ") || "Bir şarkı";
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `🎧 ${name} şu an dinliyor`,
+            body: song,
+            data: { page: "nowplaying", type: "nowPlaying" },
+            tag: "nowplaying",
+            category: "music"
+        });
+    }
+
+});
+
+exports.cleanupNowPlaying = onSchedule({ schedule: "every 10 minutes", maxInstances: 1 }, async () => {
+
+    const expired = await db.collection("nowPlaying")
+        .where("expiresAt", "<", admin.firestore.Timestamp.now())
+        .get();
+
+    await Promise.all(expired.docs.map(d => d.ref.delete().catch(() => {})));
+
+    if (expired.size) logger.info("Süresi geçen 'şu an dinliyorum' silindi", { count: expired.size });
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// Fotoğraf bildirimi (toplu)
+//
+// Arka arkaya birkaç fotoğraf eklenirse tek bildirim gider:
+// "Berk 4 fotoğraf ekledi". Her fotoğraf sayacı artırır, 40 sn
+// bekler; o sürede yenisi gelmediyse bildirimi o gönderir.
+// ─────────────────────────────────────────────────────────────
+
+const PHOTO_BATCH_WAIT_MS = 40 * 1000;
+
+exports.onPhotoCreated = onDocumentCreated({ document: "photos/{id}", timeoutSeconds: 120 }, async (event) => {
+
+    const data = event.data?.data();
+    const { coupleId, authorId } = data || {};
+
+    if (!coupleId || !authorId) return;
+
+    const stateRef = db.doc(`photoNotify/${authorId}`);
+    const stamp = Date.now();
+
+    await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        const fresh = !state.exists || stamp - (state.get("lastAt") || 0) > 10 * 60 * 1000;
+        tx.set(stateRef, {
+            coupleId,
+            count: fresh ? 1 : (state.get("count") || 0) + 1,
+            lastAt: stamp
+        });
+    });
+
+    await new Promise(resolve => setTimeout(resolve, PHOTO_BATCH_WAIT_MS));
+
+    // Sırası gelen son fotoğraf mı? Öyleyse sayacı sıfırla ve gönder
+    const count = await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        if (!state.exists || state.get("lastAt") !== stamp) return 0;
+        tx.delete(stateRef);
+        return state.get("count") || 1;
+    });
+
+    if (!count) return;
+
+    const couple = await db.doc(`couples/${coupleId}`).get();
+    const recipients = (couple.get("members") || []).filter(m => m !== authorId);
+
+    if (!recipients.length) return;
+
+    const name = await userName(authorId);
+
+    for (const to of recipients) {
+        await sendPushToUser(to, {
+            title: `📷 ${name}`,
+            body: count > 1 ? `${count} yeni fotoğraf ekledi 💜` : "Yeni bir fotoğraf ekledi 💜",
+            data: { page: "our-photos", type: "photos" },
+            tag: "photos",
+            category: "content"
+        });
+    }
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// Hatırlatmalar
+//
+// 09:00  Özel günler (bugün) + ilişki dönüm noktaları
+//        (her ayın yıldönümü, yıl dönümü, her 100. gün)
+// 21:00  Yarınki özel günler + seri tehlikede uyarısı
+//
+// Özel gün hatırlatmaları eskiden sadece Android telefonda yerel
+// olarak kuruluyordu; artık sunucudan herkese gidiyor.
+// ─────────────────────────────────────────────────────────────
+
+function istanbulParts(date) {
+
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+        timeZone: OTD_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit"
+    }).formatToParts(date).map(p => [p.type, p.value]));
+
+    return { y: Number(parts.year), m: Number(parts.month), d: Number(parts.day) };
+
+}
+
+function daysInMonth(y, m) {
+    return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+// startDate "YYYY-MM-DD" → bugünkü dönüm noktası metni ya da null
+function milestoneText(startDate, today) {
+
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(startDate || ""));
+
+    if (!m) return null;
+
+    const start = { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
+
+    const startUtc = Date.UTC(start.y, start.m - 1, start.d);
+    const todayUtc = Date.UTC(today.y, today.m - 1, today.d);
+
+    if (todayUtc <= startUtc) return null;
+
+    const days = Math.round((todayUtc - startUtc) / 86400000);
+
+    // Ay yıldönümü: 31'inde başlayanlar için kısa aylarda ayın son günü
+    const anniversaryDay = Math.min(start.d, daysInMonth(today.y, today.m));
+    const months = (today.y - start.y) * 12 + (today.m - start.m);
+
+    const texts = [];
+
+    if (today.d === anniversaryDay && months > 0) {
+        if (months % 12 === 0) texts.push(`🎉 Bugün ${months / 12}. yılınız!`);
+        else texts.push(`💜 Bugün ${months}. ayınız!`);
+    }
+
+    if (days % 100 === 0) texts.push(`✨ Birlikte ${days}. gününüz`);
+
+    return texts.length ? texts : null;
+
+}
+
+async function forEachCouple(handler) {
+
+    const couples = await db.collection("couples").get();
+
+    for (const couple of couples.docs) {
+
+        const members = couple.get("members") || [];
+
+        if (members.length < 2 || couple.get("partnerLeft")) continue;
+
+        try {
+            await handler(couple, members);
+        } catch (error) {
+            logger.warn("Hatırlatma hatası", { coupleId: couple.id, error: error.message });
+        }
+
+    }
+
+}
+
+async function eventsOn(coupleId, month, day) {
+
+    const snap = await db.collection("events").where("coupleId", "==", coupleId).get();
+
+    return snap.docs
+        .map(d => d.data())
+        .filter(e => Number(e.month) === month && Number(e.day) === day && e.name);
+
+}
+
+exports.morningReminders = onSchedule({
+    schedule: "0 9 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const today = istanbulParts(new Date());
+
+    await forEachCouple(async (couple, members) => {
+
+        for (const e of await eventsOn(couple.id, today.m, today.d)) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: `${e.emoji || "📅"} Bugün ${e.name}!`,
+                    body: "Unutmayın 💜",
+                    data: { page: "our-calendar", type: "event" },
+                    tag: `event-${today.m}-${today.d}`,
+                    category: "reminders"
+                });
+            }
+        }
+
+        const milestone = milestoneText(couple.get("startDate"), today);
+
+        if (milestone) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: milestone[0],
+                    body: milestone[1] || "Nice güzel günlere 💜",
+                    data: { page: "home", type: "milestone" },
+                    tag: "milestone",
+                    category: "reminders"
+                });
+            }
+        }
+
+    });
+
+});
+
+exports.eveningReminders = onSchedule({
+    schedule: "0 21 * * *",
+    timeZone: OTD_TIMEZONE,
+    maxInstances: 1,
+    timeoutSeconds: 540
+}, async () => {
+
+    const now = new Date();
+    const today = istanbulParts(now);
+    const tomorrow = istanbulParts(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+    const todayKey = `${today.y}-${String(today.m).padStart(2, "0")}-${String(today.d).padStart(2, "0")}`;
+
+    await forEachCouple(async (couple, members) => {
+
+        // Yarınki özel günler
+        for (const e of await eventsOn(couple.id, tomorrow.m, tomorrow.d)) {
+            for (const uid of members) {
+                await sendPushToUser(uid, {
+                    title: `${e.emoji || "📅"} Yarın ${e.name}`,
+                    body: "Hazırlık için hâlâ vakit var 😉",
+                    data: { page: "our-calendar", type: "event" },
+                    tag: `event-${tomorrow.m}-${tomorrow.d}`,
+                    category: "reminders"
+                });
+            }
+        }
+
+        // Seri: bugün henüz tamamlanmadıysa, uğramayanlara hatırlat
+        const streak = couple.get("streak");
+        const count = streak?.count || 0;
+
+        if (count < 2 || !streak.lastCountedDay || streak.lastCountedDay >= todayKey) return;
+
+        const visited = uid => {
+            const day = streak.visits?.[uid];
+            return !!day && day > streak.lastCountedDay;
+        };
+
+        const missing = members.filter(uid => !visited(uid));
+
+        if (!missing.length) return;
+
+        for (const uid of missing) {
+
+            const partnerId = members.find(m => m !== uid);
+            const partnerCame = partnerId && visited(partnerId);
+            const partnerName = partnerCame ? await userName(partnerId) : "";
+
+            await sendPushToUser(uid, {
+                title: `🔥 ${count} günlük seriniz bozulmasın`,
+                body: partnerCame
+                    ? `${partnerName} bugün uğradı, senin de girmen yeterli 💗`
+                    : "Bugün ikiniz de uygulamaya bir uğrayın 💗",
+                data: { page: "home", type: "streak" },
+                tag: "streak",
+                category: "reminders"
+            });
+
+        }
+
+    });
+
+});
+
+
+// ─────────────────────────────────────────────────────────────
+// Premium
+//
+// Premium çift başınadır: biri alınca ikisi de kullanır.
+// couples/{id}.premium = {
+//   gift:  { until: Timestamp | null, grantedAt, note }   (hediye; null = süresiz)
+//   store: { until: Timestamp, productId, store, buyerUid } (mağaza aboneliği)
+// }
+// couples/{id}.plan = "premium" | "free"  (ikisinden biri geçerliyse premium)
+//
+// • Hediye: sadece yöneticiler (admins/{uid} belgesi olanlar) verebilir
+// • Mağaza: RevenueCat webhook'u (revenuecatWebhook) yazar
+// • Süresi dolanlar her gece "free" olur (expirePremiums)
+// ─────────────────────────────────────────────────────────────
+
+function premiumPartActive(part, now = Date.now()) {
+
+    if (!part) return false;
+
+    if (part.until === null) return true;          // süresiz hediye
+
+    const ms = part.until?.toMillis?.() ?? (typeof part.until === "number" ? part.until : 0);
+
+    return ms > now;
+
+}
+
+function premiumActive(premium, now = Date.now()) {
+    return premiumPartActive(premium?.gift, now) || premiumPartActive(premium?.store, now);
+}
+
+// premium haritasını yaz ve plan alanını ona göre ayarla
+async function writeCouplePremium(coupleRef, mutate) {
+
+    return db.runTransaction(async tx => {
+
+        const snap = await tx.get(coupleRef);
+
+        if (!snap.exists) throw new HttpsError("not-found", "COUPLE_NOT_FOUND");
+
+        const premium = { ...(snap.get("premium") || {}) };
+
+        mutate(premium);
+
+        Object.keys(premium).forEach(k => premium[k] === undefined && delete premium[k]);
+
+        tx.update(coupleRef, {
+            premium,
+            plan: premiumActive(premium) ? "premium" : "free"
+        });
+
+        return premium;
+
+    });
+
+}
+
+async function requireAdmin(request) {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "NOT_SIGNED_IN");
+
+    const adminDoc = await db.doc(`admins/${uid}`).get();
+
+    if (!adminDoc.exists) throw new HttpsError("permission-denied", "NOT_ADMIN");
+
+    return uid;
+
+}
+
+async function coupleRefForEmail(email) {
+
+    let user;
+
+    try {
+        user = await admin.auth().getUserByEmail(String(email || "").trim().toLowerCase());
+    } catch {
+        throw new HttpsError("not-found", "USER_NOT_FOUND");
+    }
+
+    const coupleId = (await db.doc(`users/${user.uid}`).get()).get("coupleId");
+
+    if (!coupleId) throw new HttpsError("failed-precondition", "NO_COUPLE");
+
+    return { user, coupleRef: db.doc(`couples/${coupleId}`) };
+
+}
+
+// Ayarlar'da yönetici bölümünü göstermek için
+exports.amIAdmin = onCall(async (request) => {
+
+    if (!request.auth?.uid) return { admin: false };
+
+    return { admin: (await db.doc(`admins/${request.auth.uid}`).get()).exists };
+
+});
+
+// Hediye Premium ver: { email, days } (days boş/0 = süresiz)
+exports.adminGrantPremium = onCall(async (request) => {
+
+    const adminUid = await requireAdmin(request);
+
+    const days = Number(request.data?.days) || 0;
+
+    if (days < 0 || days > 3650) throw new HttpsError("invalid-argument", "BAD_DAYS");
+
+    const { user, coupleRef } = await coupleRefForEmail(request.data?.email);
+
+    const until = days ? admin.firestore.Timestamp.fromMillis(Date.now() + days * 86400000) : null;
+
+    await writeCouplePremium(coupleRef, premium => {
+        premium.gift = {
+            until,
+            grantedAt: admin.firestore.Timestamp.now(),
+            grantedBy: adminUid,
+            note: String(request.data?.note || "").slice(0, 80)
+        };
+    });
+
+    logger.info("Hediye Premium verildi", { coupleId: coupleRef.id, days });
+
+    // Çiftin ikisine de haber ver
+    const members = (await coupleRef.get()).get("members") || [];
+
+    await Promise.all(members.map(uid => sendPushToUser(uid, {
+        title: "👑 Premium hediyen var!",
+        body: days ? `Kalp Kalbe Premium ${days} gün boyunca açık 💜` : "Kalp Kalbe Premium artık sizde 💜",
+        data: { page: "home", type: "premium" }
+    }).catch(() => {})));
+
+    return { ok: true, coupleId: coupleRef.id, user: user.email, until: until ? until.toMillis() : null };
+
+});
+
+exports.adminRevokePremium = onCall(async (request) => {
+
+    await requireAdmin(request);
+
+    const { coupleRef } = await coupleRefForEmail(request.data?.email);
+
+    await writeCouplePremium(coupleRef, premium => { delete premium.gift; });
+
+    return { ok: true };
+
+});
+
+// Hediye Premium listesi (yönetici ekranı)
+exports.adminListPremium = onCall(async (request) => {
+
+    await requireAdmin(request);
+
+    const snap = await db.collection("couples").where("plan", "==", "premium").get();
+
+    const rows = [];
+
+    for (const couple of snap.docs) {
+
+        const premium = couple.get("premium") || {};
+
+        if (!premium.gift) continue;
+
+        const emails = [];
+
+        for (const uid of couple.get("members") || []) {
+            try { emails.push((await admin.auth().getUser(uid)).email); } catch {}
+        }
+
+        rows.push({
+            coupleId: couple.id,
+            emails,
+            until: premium.gift.until ? premium.gift.until.toMillis() : null,
+            note: premium.gift.note || "",
+            store: premiumPartActive(premium.store)
+        });
+
+    }
+
+    return { rows };
+
+});
+
+// Süresi dolan hediye / abonelikleri kapat
+exports.expirePremiums = onSchedule({ schedule: "15 3 * * *", timeZone: OTD_TIMEZONE, maxInstances: 1 }, async () => {
+
+    const snap = await db.collection("couples").where("plan", "==", "premium").get();
+
+    let expired = 0;
+
+    for (const couple of snap.docs) {
+
+        if (premiumActive(couple.get("premium"))) continue;
+
+        await couple.ref.update({ plan: "free" });
+        expired++;
+
+    }
+
+    if (expired) logger.info("Süresi dolan Premium kapatıldı", { expired });
+
+});
+
+// ── Mağaza satın alımları (RevenueCat) ──────────────────────
+//
+// RevenueCat → Project settings → Integrations → Webhooks:
+//   URL:  https://europe-west1-<proje>.cloudfunctions.net/revenuecatWebhook
+//   Authorization header: functions/.env içindeki REVENUECAT_WEBHOOK_AUTH
+// Uygulamada RevenueCat kullanıcı kimliği = Firebase uid.
+// Ayar yapılmadıysa webhook hiçbir şeyi değiştirmez.
+
+const RC_ACTIVE_EVENTS = ["INITIAL_PURCHASE", "RENEWAL", "PRODUCT_CHANGE", "UNCANCELLATION", "NON_RENEWING_PURCHASE", "SUBSCRIPTION_EXTENDED", "TEMPORARY_ENTITLEMENT_GRANT"];
+const RC_END_EVENTS = ["EXPIRATION"];
+
+exports.revenuecatWebhook = onRequest(async (req, res) => {
+
+    const secret = process.env.REVENUECAT_WEBHOOK_AUTH;
+
+    if (!secret) {
+        res.status(503).send("not configured");
+        return;
+    }
+
+    if (req.method !== "POST" || req.get("Authorization") !== secret) {
+        res.status(401).send("unauthorized");
+        return;
+    }
+
+    const event = req.body?.event || {};
+    const type = event.type;
+    const uid = event.app_user_id;
+
+    if (!uid || (!RC_ACTIVE_EVENTS.includes(type) && !RC_END_EVENTS.includes(type))) {
+        res.status(200).send("ignored");
+        return;
+    }
+
+    try {
+
+        const coupleId = (await db.doc(`users/${uid}`).get()).get("coupleId");
+
+        if (!coupleId) {
+            logger.warn("RevenueCat: kullanıcının çifti yok", { uid, type });
+            res.status(200).send("no couple");
+            return;
+        }
+
+        await writeCouplePremium(db.doc(`couples/${coupleId}`), premium => {
+
+            if (RC_END_EVENTS.includes(type)) {
+                delete premium.store;
+                return;
+            }
+
+            premium.store = {
+                until: admin.firestore.Timestamp.fromMillis(Number(event.expiration_at_ms) || Date.now() + 86400000),
+                productId: event.product_id || null,
+                store: event.store || null,
+                buyerUid: uid
+            };
+
+        });
+
+        logger.info("RevenueCat olayı işlendi", { type, coupleId });
+
+        res.status(200).send("ok");
+
+    } catch (error) {
+
+        logger.error("RevenueCat webhook hatası", { error: error.message, type });
+        res.status(500).send("error");
+
+    }
+
+});
+
+
+// ═════════════════════════════════════════════════════════════
+// YILIMIZ (yıl sonu özeti)
+//
+//   songPlays/{coupleId}_{yıl}  "şu an dinliyorum" paylaşım sayıları
+//   wrapped/{coupleId}_{yıl}    hesaplanmış özet (6 saat önbellek)
+//
+// İkisi de sadece sunucudan okunur/yazılır. Özet; anılar, fotoğraflar,
+// şarkılar, özledimler, yan yana günler, seri, ruh hali, Günün Sorusu,
+// mektuplar ve hayallerden hesaplanır.
+// ═════════════════════════════════════════════════════════════
+
+const WRAPPED_CACHE_MS = 6 * 60 * 60 * 1000;
+
+function songPlayKey(link) {
+
+    const url = String(link || "");
+
+    const spotify = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+    if (spotify) return "sp_" + spotify[1];
+
+    const youtube = url.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/)([A-Za-z0-9_-]{6,})/);
+    if (youtube) return "yt_" + youtube[1];
+
+    return "h_" + require("crypto").createHash("sha1").update(url).digest("hex").slice(0, 16);
+
+}
+
+async function countSongPlay(coupleId, uid, song) {
+
+    if (!song.link) return;
+
+    const year = istanbulDayKey(new Date()).slice(0, 4);
+    const key = songPlayKey(song.link);
+    const ref = db.doc(`songPlays/${coupleId}_${year}`);
+    const inc = admin.firestore.FieldValue.increment(1);
+
+    await ref.set({
+        coupleId,
+        year: Number(year),
+        total: inc,
+        perUser: { [uid]: inc },
+        songs: {
+            [key]: {
+                count: inc,
+                title: String(song.title || "").slice(0, 200),
+                artist: String(song.artist || "").slice(0, 200),
+                cover: String(song.cover || "").slice(0, 480),
+                link: String(song.link).slice(0, 480)
+            }
+        }
+    }, { merge: true });
+
+}
+
+function tsMillis(value) {
+    if (!value) return 0;
+    if (typeof value.toMillis === "function") return value.toMillis();
+    if (value instanceof Date) return value.getTime();
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function topEntry(map) {
+    let best = null;
+    for (const [key, value] of Object.entries(map)) {
+        if (!best || value > best[1]) best = [key, value];
+    }
+    return best;
+}
+
+async function computeWrapped(coupleId, couple, year) {
+
+    const members = couple.members || [];
+    const yearStr = String(year);
+
+    // Yıl sınırları (İstanbul, UTC+3)
+    const startMs = Date.parse(`${year}-01-01T00:00:00+03:00`);
+    const endMs = Date.parse(`${year + 1}-01-01T00:00:00+03:00`);
+    const inYear = ms => ms >= startMs && ms < endMs;
+    const monthOf = ms => Number(istanbulDayKey(new Date(ms)).slice(5, 7));
+
+    const byCouple = name => db.collection(name).where("coupleId", "==", coupleId).get();
+
+    const [memSnap, photoSnap, songSnap, missSnap, moodSnap, questionSnap, letterSnap, dreamSnap, playSnap, togetherSnap] = await Promise.all([
+        byCouple("memories"), byCouple("photos"), byCouple("songs"), byCouple("misses"),
+        byCouple("moodLogs"), byCouple("dailyQuestions"), byCouple("letters"), byCouple("dreams"),
+        db.doc(`songPlays/${coupleId}_${year}`).get(),
+        byCouple("togetherDays")
+    ]);
+
+    const names = {};
+    for (const uid of members) names[uid] = await userName(uid, "");
+
+    const perAuthor = () => Object.fromEntries(members.map(uid => [uid, 0]));
+
+    // Birlikte geçen gün (yıl içinde, başlangıç tarihinden sonra)
+    const coupleStart = couple.startDate ? Date.parse(`${couple.startDate}T00:00:00+03:00`) : startMs;
+    const from = Math.max(startMs, coupleStart || startMs);
+    const to = Math.min(Date.now(), endMs);
+    const daysTogether = Math.max(0, Math.floor((to - from) / 86400000));
+    const startedThisYear = coupleStart >= startMs && coupleStart < endMs;
+
+    // Anılar
+    const memories = memSnap.docs.map(d => d.data()).filter(m => inYear(tsMillis(m.createdAt)));
+    const memMonths = {};
+    const tags = {};
+    const memAuthors = perAuthor();
+    for (const m of memories) {
+        const month = monthOf(tsMillis(m.createdAt));
+        memMonths[month] = (memMonths[month] || 0) + 1;
+        if (m.authorId in memAuthors) memAuthors[m.authorId]++;
+        for (const tag of String(m.text || "").match(/#[\p{L}\p{N}_]+/gu) || []) {
+            const t = tag.toLocaleLowerCase("tr-TR");
+            tags[t] = (tags[t] || 0) + 1;
+        }
+    }
+    const firstMemory = memories.sort((a, b) => tsMillis(a.createdAt) - tsMillis(b.createdAt))[0] || null;
+
+    // Fotoğraflar (anılardaki fotoğraflar dahil)
+    const photoTimes = [
+        ...photoSnap.docs.map(d => tsMillis(d.get("createdAt"))),
+        ...memories.filter(m => m.imageUrl || m.thumbUrl || m.image).map(m => tsMillis(m.createdAt))
+    ].filter(inYear);
+    const photoMonths = {};
+    for (const ms of photoTimes) photoMonths[monthOf(ms)] = (photoMonths[monthOf(ms)] || 0) + 1;
+
+    // Şarkılar
+    const songs = songSnap.docs.map(d => d.data()).filter(x => inYear(tsMillis(x.createdAt)))
+        .sort((a, b) => tsMillis(a.createdAt) - tsMillis(b.createdAt));
+    const songAuthors = perAuthor();
+    const artists = {};
+    const artistLabel = {};
+    for (const x of songs) {
+        if (x.authorId in songAuthors) songAuthors[x.authorId]++;
+        const artist = String(x.artist || "").trim();
+        if (artist) {
+            const key = artist.toLocaleLowerCase("tr-TR");
+            artists[key] = (artists[key] || 0) + 1;
+            artistLabel[key] = artistLabel[key] || artist;
+        }
+    }
+    const topArtist = topEntry(artists);
+    const firstSong = songs[0] || null;
+
+    const plays = playSnap.exists ? playSnap.data() : null;
+    const topPlays = plays
+        ? Object.values(plays.songs || {}).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 3)
+        : [];
+
+    // Özledim
+    const missAuthors = perAuthor();
+    let missTotal = 0;
+    let missMax = null;
+    for (const d of missSnap.docs) {
+        const m = d.data();
+        const ms = tsMillis(m.createdAt) || Number(m.clientAt) || 0;
+        if (!inYear(ms)) continue;
+        const n = Math.max(1, Math.floor(Number(m.count) || 1));
+        missTotal += n;
+        if (m.authorId in missAuthors) missAuthors[m.authorId] += n;
+        if (!missMax || n > missMax.count) missMax = { count: n, authorId: m.authorId, at: ms };
+    }
+
+    // Yan yana
+    let togetherTotal = 0;
+    const togetherMonths = {};
+    for (const d of togetherSnap.docs) {
+        const t = d.data();
+        if (String(t.month || "").slice(0, 4) !== yearStr) continue;
+        const n = (t.days || []).length;
+        togetherTotal += n;
+        togetherMonths[Number(String(t.month).slice(5, 7))] = n;
+    }
+
+    // Ruh hali (kişi başı en sık)
+    const moodCounts = Object.fromEntries(members.map(uid => [uid, {}]));
+    for (const d of moodSnap.docs) {
+        const m = d.data();
+        const ms = tsMillis(m.createdAt) || Date.parse(`${m.day}T12:00:00+03:00`) || 0;
+        if (!inYear(ms) || !moodCounts[m.authorId] || !m.mood) continue;
+        moodCounts[m.authorId][m.mood] = (moodCounts[m.authorId][m.mood] || 0) + 1;
+    }
+    const topMoods = Object.fromEntries(Object.entries(moodCounts).map(([uid, counts]) => {
+        const top = topEntry(counts);
+        return [uid, top ? { mood: top[0], count: top[1] } : null];
+    }));
+
+    // Günün Sorusu
+    let questionsBoth = 0;
+    const questionAuthors = perAuthor();
+    for (const d of questionSnap.docs) {
+        const q = d.data();
+        if (String(q.day || "").slice(0, 4) !== yearStr) continue;
+        const answered = Object.keys(q.answers || {});
+        for (const uid of answered) if (uid in questionAuthors) questionAuthors[uid]++;
+        if (q.revealed) questionsBoth++;
+    }
+
+    // Mektuplar
+    const letters = letterSnap.docs.map(d => d.data()).filter(l => inYear(tsMillis(l.createdAt)));
+
+    // Hayaller
+    const dreams = dreamSnap.docs.map(d => d.data());
+    const dreamsDone = dreams.filter(x => x.completed && inYear(tsMillis(x.completedAt)))
+        .sort((a, b) => tsMillis(a.completedAt) - tsMillis(b.completedAt));
+    const dreamsAdded = dreams.filter(x => inYear(tsMillis(x.createdAt))).length;
+
+    const monthTop = map => {
+        const top = topEntry(map);
+        return top ? { month: Number(top[0]), count: top[1] } : null;
+    };
+
+    return {
+        year,
+        members,
+        names,
+        startDate: couple.startDate || null,
+        startedThisYear,
+        daysTogether,
+        memories: {
+            count: memories.length,
+            perAuthor: memAuthors,
+            topMonth: monthTop(memMonths),
+            topTag: topEntry(tags) && topEntry(tags)[1] >= 2 ? { tag: topEntry(tags)[0], count: topEntry(tags)[1] } : null,
+            first: firstMemory ? {
+                text: String(firstMemory.text || "").slice(0, 160),
+                at: tsMillis(firstMemory.createdAt),
+                authorId: firstMemory.authorId || null
+            } : null
+        },
+        photos: { count: photoTimes.length, topMonth: monthTop(photoMonths) },
+        songs: {
+            count: songs.length,
+            perAuthor: songAuthors,
+            topArtist: topArtist && topArtist[1] >= 2 ? { artist: artistLabel[topArtist[0]], count: topArtist[1] } : null,
+            first: firstSong ? {
+                title: firstSong.title || "", artist: firstSong.artist || "",
+                cover: firstSong.cover || "", authorId: firstSong.authorId || null
+            } : null,
+            playsTotal: plays?.total || 0,
+            topPlays: topPlays.map(p => ({ title: p.title, artist: p.artist, cover: p.cover, count: p.count || 0 }))
+        },
+        misses: { total: missTotal, perAuthor: missAuthors, max: missMax },
+        together: { days: togetherTotal, topMonth: monthTop(togetherMonths) },
+        streakBest: couple.streak?.best || 0,
+        moods: topMoods,
+        questions: { both: questionsBoth, perAuthor: questionAuthors },
+        letters: { count: letters.length },
+        dreams: {
+            added: dreamsAdded,
+            done: dreamsDone.length,
+            doneList: dreamsDone.slice(0, 5).map(x => ({ emoji: x.emoji || "✨", title: String(x.title || "").slice(0, 80) }))
+        },
+        computedAt: Date.now()
+    };
+
+}
+
+// Yılımız özeti: { year?, refresh? }
+exports.getWrapped = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (request) => {
+
+    const uid = request.auth?.uid;
+
+    if (!uid) throw new HttpsError("unauthenticated", "NOT_SIGNED_IN");
+
+    const coupleId = (await db.doc(`users/${uid}`).get()).get("coupleId");
+
+    if (!coupleId) throw new HttpsError("failed-precondition", "NO_COUPLE");
+
+    const coupleSnap = await db.doc(`couples/${coupleId}`).get();
+    const couple = coupleSnap.data() || {};
+
+    if (!(couple.members || []).includes(uid)) throw new HttpsError("permission-denied", "NOT_MEMBER");
+
+    const thisYear = Number(istanbulDayKey(new Date()).slice(0, 4));
+    let year = Number(request.data?.year) || thisYear;
+    if (year > thisYear || year < 2020) year = thisYear;
+
+    const cacheRef = db.doc(`wrapped/${coupleId}_${year}`);
+    const cached = await cacheRef.get();
+
+    // Geçmiş yıllar değişmez; bu yıl 6 saatte bir tazelenir
+    const fresh = cached.exists && (year < thisYear || Date.now() - (cached.get("computedAt") || 0) < WRAPPED_CACHE_MS);
+
+    if (fresh && !request.data?.refresh) return cached.get("data");
+
+    const data = await computeWrapped(coupleId, couple, year);
+
+    await cacheRef.set({ coupleId, year, computedAt: data.computedAt, data });
+
+    return data;
 
 });

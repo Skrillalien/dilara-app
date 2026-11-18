@@ -1,6 +1,6 @@
 {
-  "name": "Berk & Dilara 💜",
-  "short_name": "Berk & Dilara",
+  "name": "Kalp Kalbe",
+  "short_name": "Kalp Kalbe",
   "description": "Birliktelik sayacı ve özel günler",
   "start_url": "./",
   "display": "standalone",
@@ -20,5 +20,14 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "./?paylas=1",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

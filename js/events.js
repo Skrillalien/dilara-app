@@ -431,11 +431,7 @@ function renderCalendarEvents(){
 
     if(EVENTS.length===0){
 
-        container.innerHTML=`
-            <div class="empty-state">
-                Henüz özel gün eklenmedi 💜
-            </div>
-        `;
+        container.innerHTML=calendarSuggestionsHtml(true);
 
         return;
 
@@ -504,7 +500,8 @@ function renderCalendarEvents(){
                 </div>
 
                 <button
-                    class="photo-menu-btn"
+                    class="event-menu-btn"
+                    aria-label="Seçenekler"
                     onclick="event.stopPropagation(); openEventMenu('${event.id}')">
 
                     <svg
@@ -526,6 +523,13 @@ function renderCalendarEvents(){
         `;
 
     }).join("");
+
+    // Az özel gün varsa eksik önerileri listenin altında göster (guide.js)
+    if (sortedEvents.length < 5 && typeof calendarSuggestionsHtml === "function") {
+        container.insertAdjacentHTML("beforeend", calendarSuggestionsHtml(false));
+    }
+
+    if (typeof renderBizInfo === "function") renderBizInfo();
 
 }
 

@@ -144,6 +144,46 @@ function initSheetDrag(id, zoneHeight = 76) {
 
 }
 
+// Panel açıkken arkadaki sayfa kaymasın / dokunulmasın
+function updateSheetScrollLock() {
+
+    const viewer = document.getElementById("imageViewer");
+
+    const anyOpen = Object.keys(SHEETS).some(isSheetOpen)
+        // Fotoğraf görüntüleyici (fotoğraflar, anılar, mektuplar)
+        || (!!viewer && viewer.style.display !== "none" && viewer.style.display !== "")
+        // Ortadaki pencereler (mektup, soru, takvim…)
+        || !!document.getElementById("modalOverlay")?.classList.contains("active")
+        // Sonradan eklenen pencereler (Premium, şu an dinliyorum)
+        || !!document.querySelector("body > .pm-wrap, body > .np-sheet-wrap, body > .sm-wrap, body > .wr-wrap");
+
+    document.documentElement.classList.toggle("sheet-open", anyOpen);
+
+}
+
+let sheetLockReady = false;
+
+function initSheetScrollLock() {
+
+    if (sheetLockReady) return;
+    sheetLockReady = true;
+
+    const observer = new MutationObserver(updateSheetScrollLock);
+
+    for (const id of [...Object.keys(SHEETS), "modalOverlay"]) {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+    }
+
+    const viewer = document.getElementById("imageViewer");
+    if (viewer) observer.observe(viewer, { attributes: true, attributeFilter: ["style"] });
+
+    observer.observe(document.body, { childList: true });
+
+    updateSheetScrollLock();
+
+}
+
 function initSheetDrags() {
 
     initSheetDrag("bnyPanel");
@@ -187,6 +227,12 @@ function openAppTarget(target) {
         return;
     }
 
+    // Şu an dinliyorum bildirimi: ana sayfanın üstünde görünüyor
+    if (target === "nowplaying") {
+        showPage("home");
+        return;
+    }
+
     if (target === "miss") {
         showPage("home");
         if (typeof openMissPanel === "function") openMissPanel();
@@ -212,7 +258,8 @@ function showPage(page) {
     el.classList.add('active');
     el.scrollTop = 0;
 
-    document.getElementById('nav-' + page)?.classList.add('active');
+    // Alt sayfalar (Anılarımız, Fotoğraflarımız…) Biz sekmesinin altında
+    document.getElementById('nav-' + (page.startsWith('our-') ? 'us' : page))?.classList.add('active');
 
     if (page === 'our-memories') {
 
@@ -245,6 +292,8 @@ function showPage(page) {
     }
 
     if (typeof updateMissButton === "function") updateMissButton();
+
+    if (typeof guideOnPage === "function") guideOnPage(page);
 
     if (fab) {
         if (page === "home") {
@@ -323,6 +372,13 @@ function openActionMenu(type, id) {
 
     currentActionType = type;
     currentActionId = id;
+
+    // "İndir" sadece fotoğrafı olan kayıtlarda (download.js)
+    const download = document.getElementById("actionDownloadBtn");
+    if (download) {
+        download.style.display =
+            typeof actionImageItem === "function" && actionImageItem(type, id) ? "" : "none";
+    }
 
     document.getElementById("actionOverlay").classList.add("active");
     document.getElementById("actionSheet").classList.add("active");
@@ -519,3 +575,32 @@ document.addEventListener("DOMContentLoaded", () => {
         if (img.complete && img.naturalWidth) markImageLoaded(img);
     });
 });
+
+// Panel kilidi girişten bağımsız, sayfa yüklenir yüklenmez kurulur
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initSheetScrollLock);
+else initSheetScrollLock();
+
+
+// Alt sayfaların başlığına geri oku (Biz'e döner)
+function initPageBackButtons() {
+
+    document.querySelectorAll('.page[id^="page-our-"] .photos-header').forEach(header => {
+
+        if (header.querySelector(".page-back")) return;
+
+        const back = document.createElement("button");
+
+        back.type = "button";
+        back.className = "page-back";
+        back.setAttribute("aria-label", "Biz'e dön");
+        back.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        back.addEventListener("click", () => showPage("us"));
+
+        header.prepend(back);
+
+    });
+
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPageBackButtons);
+else initPageBackButtons();

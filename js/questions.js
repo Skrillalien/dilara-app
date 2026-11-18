@@ -147,7 +147,7 @@ function startQuestions() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        questionPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
+        questionPlan = isPremiumPlan(couple) ? "premium" : "free";
     }).catch(() => {});
 
     // Uygulama gece yarısını geçerek açık kaldıysa yeni günün sorusu
@@ -494,7 +494,9 @@ function renderQuestionArchive() {
 
     }
 
-    list.innerHTML = sorted.map(q => {
+    const today = questionToday();
+
+    list.innerHTML = sorted.map((q, index) => {
 
         const mine = !!questionMyAnswers[q.day];
         const partnerAnswered = (q.answeredBy || []).some(uid => uid !== myUid);
@@ -505,6 +507,27 @@ function renderQuestionArchive() {
         else if (mine) status = `<span class="question-chip">🔒 ${escapeQuestion(partner)} bekleniyor</span>`;
         else if (partnerAnswered) status = `<span class="question-chip waiting">👀 Seni bekliyor</span>`;
         else status = `<span class="question-chip">Cevaplanmadı</span>`;
+
+        // Bugünün sorusu en üstte, büyük ve düğmeli
+        if (q.day === today) {
+
+            const action = q.revealed
+                ? "💬 Cevapları gör"
+                : mine ? null : "✍️ Cevapla";
+
+            return `
+                <div class="question-row question-today" onclick="openQuestionModal('${q.day}')">
+                    <div class="question-row-top">
+                        <span class="question-today-label">Bugünün sorusu</span>
+                        ${q.revealed || mine ? status : partnerAnswered ? status : ""}
+                    </div>
+                    <div class="question-today-text">${escapeQuestion(q.text)}</div>
+                    ${action ? `<button class="question-today-btn" type="button">${action}</button>` : ""}
+                </div>
+                ${sorted.length > 1 ? '<div class="question-past-label">Geçmiş sorular</div>' : ""}
+            `;
+
+        }
 
         return `
             <div class="question-row" onclick="openQuestionModal('${q.day}')">
@@ -566,7 +589,8 @@ function closeQuestionModal() {
 function openCustomQuestion() {
 
     if (questionPlan !== "premium") {
-        showToast("👑 Kendi sorularınızı eklemek Premium özelliği");
+        if (typeof openPremium === "function") openPremium();
+        else showToast("👑 Kendi sorularınızı eklemek Premium özelliği");
         return;
     }
 

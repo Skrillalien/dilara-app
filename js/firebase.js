@@ -13,13 +13,15 @@ import {
     where,
     onSnapshot,
     serverTimestamp,
+    Timestamp,
     arrayUnion,
     arrayRemove,
     getDoc,
     setDoc,
     runTransaction,
     deleteField,
-    writeBatch
+    writeBatch,
+    getCountFromServer
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 import {
@@ -47,6 +49,8 @@ import {
     signOut,
     onAuthStateChanged,
     sendPasswordResetEmail,
+    sendEmailVerification,
+    reload,
     EmailAuthProvider,
     reauthenticateWithCredential
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -291,6 +295,55 @@ async function getMyCouple() {
 
 }
 
+// Yılımız özeti (sunucuda hesaplanır, js/wrapped.js)
+async function getWrapped(year, refresh = false) {
+
+    const result = await httpsCallable(functions, "getWrapped")({ year, refresh });
+
+    return result.data;
+
+}
+
+// İlk adımlar kartı ve Biz sayfası için sayılar (guide.js).
+// Sayım sorguları belge okumaz: 1000 kayıt başına 1 okuma sayılır.
+async function getCoupleSummary() {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return null;
+
+    const count = async (name, ...extra) => {
+        try {
+            const snap = await getCountFromServer(query(
+                collection(db, name),
+                where("coupleId", "==", coupleId),
+                ...extra
+            ));
+            return snap.data().count;
+        } catch (error) {
+            console.warn("Sayılamadı:", name, error);
+            return null;
+        }
+    };
+
+    const [memories, photos, songs, dreams, dreamsDone, slider, answers, coupleSnap] = await Promise.all([
+        count("memories"),
+        count("photos"),
+        count("songs"),
+        count("dreams"),
+        count("dreams", where("completed", "==", true)),
+        count("sliderImages"),
+        count("questionAnswers", where("authorId", "==", user.uid)),
+        getDoc(doc(db, "couples", coupleId))
+    ]);
+
+    const members = coupleSnap.exists() ? coupleSnap.data().members || [] : [];
+
+    return { memories, photos, songs, dreams, dreamsDone, slider, answers, members: members.length };
+
+}
+
 async function getMyCoupleData() {
 
     const user = auth.currentUser;
@@ -423,7 +476,7 @@ async function getCurrentUserName() {
 
 }
 
-async function createUserProfile(uid, name, email) {
+async function createUserProfile(uid, name, email, consentVersion = null) {
 
     await setDoc(
         doc(db, "users", uid),
@@ -431,10 +484,24 @@ async function createUserProfile(uid, name, email) {
             name: name,
             email: email,
             coupleId: null,
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            ...(consentVersion ? { consents: { version: consentVersion, at: serverTimestamp() } } : {})
         },
         { merge: true }
     );
+
+}
+
+// Gizlilik politikası / kullanım koşulları onayı (sürümüyle birlikte)
+async function saveConsent(version) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), {
+        consents: { version, at: serverTimestamp() }
+    });
 
 }
 
@@ -516,6 +583,27 @@ async function addMemory(text, image = null) {
     });
 }
 
+// Aynı şarkıyı tanımak için anahtar: Spotify parça kimliği,
+// YouTube video kimliği ya da sorgusuz adres
+function songKey(link) {
+
+    const raw = String(link || "").trim();
+
+    const spotify = raw.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/i);
+    if (spotify) return "spotify:" + spotify[1];
+
+    const yt = raw.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+    if (yt) return "youtube:" + yt[1];
+
+    try {
+        const u = new URL(raw);
+        return (u.host + u.pathname).toLowerCase().replace(/\/+$/, "");
+    } catch {
+        return raw.toLowerCase();
+    }
+
+}
+
 async function addSong(link, title, artist, note, platform = null, cover = null) {
     const coupleId = await getMyCouple();
 
@@ -527,6 +615,25 @@ async function addSong(link, title, artist, note, platform = null, cover = null)
 
     if (!profile) {
         throw new Error("USER_PROFILE_NOT_FOUND");
+    }
+
+    // Aynı şarkı daha önce eklendiyse eskisini kaldır;
+    // yenisi listenin en başına gelir
+    try {
+
+        const key = songKey(link);
+
+        const existing = await getDocs(query(
+            collection(db, "songs"),
+            where("coupleId", "==", coupleId)
+        ));
+
+        await Promise.all(existing.docs
+            .filter(d => songKey(d.get("link")) === key)
+            .map(d => deleteDoc(d.ref)));
+
+    } catch (error) {
+        console.warn("Eski kopya silinemedi:", error);
     }
 
     await addDoc(collection(db, "songs"), {
@@ -962,6 +1069,7 @@ async function addSliderImage(image) {
             order: nextOrder,
             active: true,
             coupleId,
+            authorId: auth.currentUser?.uid || null,
             createdAt: serverTimestamp()
         }
     );
@@ -1041,6 +1149,19 @@ function listenSliderImages(callback) {
         callback([]);
 
     });
+
+}
+
+// Kapak fotoğraflarının sırası: ids listesindeki sırayla 1, 2, 3…
+async function reorderSliderImages(ids) {
+
+    const batch = writeBatch(db);
+
+    ids.forEach((id, index) => {
+        batch.update(doc(db, "sliderImages", id), { order: index + 1 });
+    });
+
+    await batch.commit();
 
 }
 
@@ -1882,6 +2003,46 @@ function listenCouple(callback) {
 
 }
 
+// ── Premium (yönetici: hediye) ─────────────────────────────
+
+async function amIAdmin() {
+
+    if (!auth.currentUser) return false;
+
+    try {
+        const result = await httpsCallable(functions, "amIAdmin")({});
+        return !!result.data?.admin;
+    } catch {
+        return false;
+    }
+
+}
+
+async function callAdmin(name, data) {
+
+    try {
+        const result = await httpsCallable(functions, name)(data);
+        return result.data;
+    } catch (error) {
+        // functions → HttpsError mesajı: USER_NOT_FOUND, NO_COUPLE…
+        throw new Error(error?.message || "ADMIN_FAILED");
+    }
+
+}
+
+async function adminGrantPremium({ email, days, note }) {
+    return callAdmin("adminGrantPremium", { email, days, note });
+}
+
+async function adminRevokePremium({ email }) {
+    return callAdmin("adminRevokePremium", { email });
+}
+
+async function adminListPremium() {
+    const data = await callAdmin("adminListPremium", {});
+    return data?.rows || [];
+}
+
 async function setProximityOptIn(enabled) {
 
     const user = auth.currentUser;
@@ -1964,6 +2125,185 @@ async function sendPasswordReset(email) {
 
 }
 
+// ── Bildirim türleri (js/notifications.js) ──────────────────
+
+async function setNotifyPref(key, value) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), {
+        [`notifyPrefs.${key}`]: !!value
+    });
+
+}
+
+// ── Şu an dinliyorum (js/nowplaying.js) ─────────────────────
+// Tek belge: nowPlaying/{uid}. 5 dakika sonra görünmez olur,
+// sunucu da süresi geçenleri siler.
+
+const NOW_PLAYING_MS = 5 * 60 * 1000;
+
+async function shareNowPlaying({ link, platform, title, artist, cover }) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const clip = (v, n) => (v ? String(v).slice(0, n) : "");
+
+    await setDoc(doc(db, "nowPlaying", user.uid), {
+        uid: user.uid,
+        coupleId,
+        link: clip(link, 480),
+        platform: platform || null,
+        title: clip(title, 200),
+        artist: clip(artist, 200),
+        cover: cover ? clip(cover, 480) : null,
+        shareId: Math.random().toString(36).slice(2, 12),
+        sharedAt: serverTimestamp(),
+        expiresAt: Timestamp.fromMillis(Date.now() + NOW_PLAYING_MS)
+    });
+
+}
+
+async function stopNowPlaying() {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await deleteDoc(doc(db, "nowPlaying", user.uid)).catch(() => {});
+
+}
+
+function listenNowPlaying(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        const q = query(collection(db, "nowPlaying"), where("coupleId", "==", coupleId));
+
+        unsubscribe = onSnapshot(q, snapshot => {
+
+            callback(snapshot.docs.map(d => {
+                const data = d.data();
+                return {
+                    ...data,
+                    uid: data.uid || d.id,
+                    expiresAt: data.expiresAt?.toMillis?.() || 0
+                };
+            }));
+
+        }, error => console.warn("Şu an dinlenen alınamadı:", error));
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// ── Partner pili (js/battery.js) ────────────────────────────
+
+async function saveMyBattery({ level, charging }) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return;
+
+    await setDoc(doc(db, "battery", user.uid), {
+        uid: user.uid,
+        coupleId,
+        level: Math.max(0, Math.min(100, Math.round(level))),
+        charging: !!charging,
+        at: serverTimestamp()
+    });
+
+}
+
+async function deleteMyBattery() {
+
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    await deleteDoc(doc(db, "battery", user.uid)).catch(() => {});
+
+}
+
+function listenCoupleBattery(callback) {
+
+    let unsubscribe = null;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId) return;
+
+        const q = query(collection(db, "battery"), where("coupleId", "==", coupleId));
+
+        unsubscribe = onSnapshot(q, snapshot => {
+
+            const map = {};
+
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                map[data.uid || d.id] = {
+                    ...data,
+                    at: data.at?.toMillis?.() || Date.now()
+                };
+            });
+
+            callback(map);
+
+        }, error => console.warn("Pil bilgisi dinlenemedi:", error));
+
+    });
+
+    return () => unsubscribe?.();
+
+}
+
+// ── E-posta doğrulama (js/verify.js) ────────────────────────
+
+async function sendVerificationEmail() {
+
+    const user = auth.currentUser;
+
+    if (!user || user.emailVerified) return false;
+
+    auth.languageCode = "tr";
+
+    await sendEmailVerification(user);
+
+    return true;
+
+}
+
+// Doğrulama bağlantısına başka bir uygulamada (e-posta) basılmış
+// olabilir: güncel durumu sunucudan al
+async function refreshEmailVerified() {
+
+    const user = auth.currentUser;
+
+    if (!user) return null;
+
+    try { await reload(user); } catch {}
+
+    return {
+        verified: !!auth.currentUser?.emailVerified,
+        usesPassword: (auth.currentUser?.providerData || []).some(p => p.providerId === "password"),
+        createdAt: Date.parse(auth.currentUser?.metadata?.creationTime || "") || 0,
+        email: auth.currentUser?.email || ""
+    };
+
+}
+
 // Şifreyle yeniden doğrula, sonra sunucuda hesabı ve verileri sil
 async function deleteMyAccount(password) {
 
@@ -1990,9 +2330,26 @@ async function deleteMyAccount(password) {
 }
 
 window.firebase = {
+    setNotifyPref,
+    shareNowPlaying,
+    stopNowPlaying,
+    listenNowPlaying,
+    saveMyBattery,
+    deleteMyBattery,
+    listenCoupleBattery,
+    sendVerificationEmail,
+    refreshEmailVerified,
+    saveConsent,
     sendPasswordReset,
     deleteMyAccount,
     listenCouple,
+    getCoupleSummary,
+    getWrapped,
+    reorderSliderImages,
+    amIAdmin,
+    adminGrantPremium,
+    adminRevokePremium,
+    adminListPremium,
     setProximityOptIn,
     reportPresence,
     listenTogetherMonth,

@@ -14,6 +14,70 @@ const EYE_CLOSED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 
 let passwordResetCooldown = 0;
 
+// ── Yasal metinler ──────────────────────────────────────────
+// Sürüm legal/config.js → version ile aynı olmalı. Metin önemli ölçüde
+// değişince ikisini de artır: kullanıcılardan yeniden onay istenir.
+const LEGAL_VERSION = 1;
+
+// Uygulama içinden açılınca telefonun tarayıcısında açılan adres
+const LEGAL_BASE_URL = "https://skrillalien.github.io/dilara-app/legal/";
+
+function openLegal(page) {
+
+    const file = page === "terms" ? "kosullar.html" : "gizlilik.html";
+
+    // Android/iOS uygulaması: dış adrese gidince Capacitor onu
+    // uygulamanın içinde değil, telefonun tarayıcısında açar
+    if (window.Capacitor?.isNativePlatform?.()) {
+        window.location.href = LEGAL_BASE_URL + file;
+        return;
+    }
+
+    window.open(`legal/${file}`, "_blank", "noopener");
+
+}
+
+// Mevcut kullanıcılar: metin sürümü değiştiyse bir kez onay iste
+async function checkLegalConsent() {
+
+    try {
+
+        const profile = await window.firebase.getUserProfile();
+
+        if (!profile || (profile.consents?.version || 0) >= LEGAL_VERSION) return;
+
+        document.getElementById("consentUpdateCheck").checked = false;
+        document.getElementById("consentUpdateOverlay").classList.add("active");
+
+    } catch (error) {
+
+        console.warn("Onay durumu okunamadı:", error);
+
+    }
+
+}
+
+async function acceptLegalUpdate(button) {
+
+    if (!document.getElementById("consentUpdateCheck").checked) {
+        showToast("Devam etmek için kutucuğu işaretle.");
+        return;
+    }
+
+    await withButtonBusy(button, "Kaydediliyor…", async () => {
+
+        try {
+            await window.firebase.saveConsent(LEGAL_VERSION);
+            document.getElementById("consentUpdateOverlay").classList.remove("active");
+        } catch (error) {
+            console.error(error);
+            showToast("Kaydedilemedi, tekrar dene.");
+        }
+
+    });
+
+}
+
 // ── Göz ikonu ───────────────────────────────────────────────
 
 function enhancePasswordInputs(root = document) {

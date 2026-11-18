@@ -135,7 +135,7 @@ function startLetters() {
 
     // Paket (ileride Premium)
     window.firebase.getMyCoupleData?.().then(couple => {
-        letterLimit = isPremiumPlan(couple?.plan) ? LETTER_PREMIUM_LIMIT : LETTER_FREE_LIMIT;
+        letterLimit = isPremiumPlan(couple) ? LETTER_PREMIUM_LIMIT : LETTER_FREE_LIMIT;
         renderLetters();
     }).catch(() => {});
 
@@ -504,6 +504,10 @@ function openLetterComposer(editId = null) {
     const myActive = lettersAll.filter(l => l.status === "sealed" && l.authorId === lettersMyUid()).length;
 
     if (!editId && myActive >= letterLimit) {
+        if (letterLimit < LETTER_PREMIUM_LIMIT && typeof openPremium === "function") {
+            openPremium();
+            return;
+        }
         showToast(letterLimit === 1
             ? "Aynı anda 1 mühürlü mektup bırakabilirsin 💌"
             : `Aynı anda ${letterLimit} mühürlü mektup bırakabilirsin`);

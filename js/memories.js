@@ -72,6 +72,37 @@ async function previewPhoto(event) {
 
 }
 
+// "Yeni Anı Yaz" ile açılan yazma kutusu
+function openMemoryComposer() {
+
+    document.getElementById("memoryComposeBtn").style.display = "none";
+
+    const box = document.getElementById("memoryComposer");
+
+    box.style.display = "";
+    box.classList.remove("closing");
+
+    setTimeout(() => document.getElementById("memoryText")?.focus(), 50);
+
+}
+
+function closeMemoryComposer(force = false) {
+
+    const text = document.getElementById("memoryText");
+
+    // Yazılmış bir şey varsa yanlışlıkla silinmesin
+    if (!force && (text.value.trim() || selectedPhoto) && !confirm("Yazdıkların silinsin mi?")) return;
+
+    text.value = "";
+    selectedPhoto = null;
+    document.getElementById("photoInput").value = "";
+    document.getElementById("photoPreviewContainer").style.display = "none";
+
+    document.getElementById("memoryComposer").style.display = "none";
+    document.getElementById("memoryComposeBtn").style.display = "";
+
+}
+
 async function saveMemory() {
     const text = document.getElementById('memoryText').value.trim();
     if (!text) return;
@@ -92,6 +123,7 @@ async function saveMemory() {
         document.getElementById("photoInput").value = "";
         document.getElementById("photoPreviewContainer").style.display = "none";
         showToast('Anı kaydedildi 💜');
+        closeMemoryComposer(true);
         loadMemories();
 
     }
@@ -119,8 +151,9 @@ async function loadMemories() {
     list.innerHTML = '<div class="memories-loading">Yükleniyor...</div>';
     window.firebase.listenMemories((memories) => {
         currentMemories = memories;
+        document.getElementById("page-our-memories")?.classList.toggle("page-empty", memories.length === 0);
         if (memories.length === 0) {
-            list.innerHTML = '<div class="memories-empty">Henüz anı yok 💜<br>İlk anıyı sen ekle!</div>';
+            list.innerHTML = emptyMemoriesHtml();
             return;
         }
         list.innerHTML = memories.map(m => {

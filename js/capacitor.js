@@ -1,6 +1,10 @@
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { Purchases } from "@revenuecat/purchases-capacitor";
+import { Media } from "@capacitor-community/media";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 window.appHaptics = {
 
@@ -23,6 +27,20 @@ window.appHaptics = {
 };
 
 window.appNotifications = {
+
+    // Eskiden telefonda kurulan özel gün hatırlatmaları artık sunucudan
+    // geliyor; çift bildirim olmasın diye bekleyenleri iptal et
+    async cancelAllScheduled() {
+
+        const pending = await LocalNotifications.getPending();
+
+        if (pending.notifications?.length) {
+            await LocalNotifications.cancel({
+                notifications: pending.notifications.map(n => ({ id: n.id }))
+            });
+        }
+
+    },
 
     async requestPermission() {
 
@@ -181,6 +199,18 @@ function closeTopLayer() {
         return el && getComputedStyle(el).display !== "none";
     };
 
+    if (typeof onboardingBack === "function" && onboardingBack()) return true;
+
+    if (typeof closeNowPlayingSheet === "function" && closeNowPlayingSheet()) return true;
+
+    if (typeof closePremium === "function" && closePremium()) return true;
+
+    if (typeof closeSliderManager === "function" && closeSliderManager()) return true;
+
+    if (typeof closeWrapped === "function" && closeWrapped()) return true;
+
+    if (typeof closeThemeSheet === "function" && closeThemeSheet()) return true;
+
     if (visible("imageViewer")) { closeImage(); return true; }
 
     if (isOpen("inboxBanner", "show")) { hideInboxBanner(); return true; }
@@ -268,3 +298,175 @@ if (App) {
     console.log("Capacitor App plugin bulunamadı.");
 
 }
+
+// ─────────────────────────────────────────────────────────────
+// Satın alma (RevenueCat → App Store / Google Play)
+//
+// Anahtarlar RevenueCat panelinden (Project → API keys → Public).
+// Boşken satın alma kapalıdır; Premium ekranı "yakında" der.
+// Kullanıcı kimliği = Firebase uid. Satın alınca RevenueCat,
+// sunucudaki revenuecatWebhook'u çağırır, Premium oradan açılır.
+// ─────────────────────────────────────────────────────────────
+
+const REVENUECAT_KEYS = {
+    android: "",
+    ios: ""
+};
+
+const PURCHASE_PACKAGES = {
+    monthly: "$rc_monthly",
+    yearly: "$rc_annual"
+};
+
+let purchasesReady = null;
+let purchasesUid = null;
+
+function purchasesKey() {
+    const platform = window.Capacitor?.getPlatform?.();
+    return REVENUECAT_KEYS[platform] || "";
+}
+
+async function findPackage(plan) {
+
+    const offerings = await Purchases.getOfferings();
+    const packages = offerings?.current?.availablePackages || [];
+
+    return packages.find(p => p.identifier === PURCHASE_PACKAGES[plan]) || null;
+
+}
+
+window.appPurchases = {
+
+    available() {
+        return !!(window.Capacitor?.isNativePlatform?.() && purchasesKey() && purchasesReady);
+    },
+
+    // Giriş yapınca (premium.js → startPremium)
+    async login(uid) {
+
+        if (!uid || !window.Capacitor?.isNativePlatform?.() || !purchasesKey()) return;
+
+        if (purchasesUid === uid && purchasesReady) return;
+
+        purchasesUid = uid;
+
+        try {
+
+            if (!purchasesReady) {
+                await Purchases.configure({ apiKey: purchasesKey(), appUserID: uid });
+            } else {
+                await Purchases.logIn({ appUserID: uid });
+            }
+
+            purchasesReady = true;
+
+        } catch (error) {
+            console.warn("Satın alma başlatılamadı:", error);
+        }
+
+    },
+
+    async prices() {
+
+        const result = {};
+
+        for (const plan of Object.keys(PURCHASE_PACKAGES)) {
+            const pkg = await findPackage(plan);
+            if (pkg?.product?.priceString) result[plan] = pkg.product.priceString;
+        }
+
+        return result;
+
+    },
+
+    async purchase(plan) {
+
+        const pkg = await findPackage(plan);
+
+        if (!pkg) throw new Error("PACKAGE_NOT_FOUND");
+
+        try {
+            await Purchases.purchasePackage({ aPackage: pkg });
+            return true;
+        } catch (error) {
+            if (error?.userCancelled || String(error?.code) === "1") {
+                throw { userCancelled: true };
+            }
+            throw error;
+        }
+
+    },
+
+    async restore() {
+
+        const { customerInfo } = await Purchases.restorePurchases();
+
+        return Object.keys(customerInfo?.entitlements?.active || {}).length > 0;
+
+    },
+
+    async logout() {
+
+        if (!purchasesReady) return;
+
+        purchasesUid = null;
+
+        try { await Purchases.logOut(); } catch {}
+
+    }
+
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// Fotoğrafı galeriye kaydet (js/download.js)
+// Android: "Kalp Kalbe" albümüne. iPhone: Fotoğraflar'a (sadece ekleme izni).
+// ─────────────────────────────────────────────────────────────
+
+const MEDIA_ALBUM = "Kalp Kalbe";
+
+async function androidAlbumId() {
+
+    const { path } = await Media.getAlbumsPath();
+
+    // Zaten varsa "Album already exists" der; sorun değil
+    try { await Media.createAlbum({ name: MEDIA_ALBUM }); } catch {}
+
+    return `${path}/${MEDIA_ALBUM}`;
+
+}
+
+window.appMedia = {
+
+    async saveToGallery(url, fileName) {
+
+        if (window.Capacitor?.getPlatform?.() === "android") {
+            await Media.savePhoto({ path: url, albumIdentifier: await androidAlbumId(), fileName });
+            return;
+        }
+
+        await Media.savePhoto({ path: url });
+
+    }
+
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// Görsel paylaş (Yılımız kartları: js/wrapped.js)
+// Görsel önbelleğe yazılır, paylaş menüsü açılır.
+// ─────────────────────────────────────────────────────────────
+
+window.appShareImage = async function (dataUrl, fileName, text = "") {
+
+    const base64 = String(dataUrl).split(",")[1];
+
+    const { uri } = await Filesystem.writeFile({
+        path: `${fileName}.png`,
+        data: base64,
+        directory: Directory.Cache
+    });
+
+    await Share.share({ files: [uri], text, dialogTitle: "Paylaş" });
+
+};

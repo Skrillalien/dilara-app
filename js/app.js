@@ -6,14 +6,23 @@ let coupleNames = {
 // ─────────────────────────────────────────────────────────────
 // PREMIUM
 // false: Premium özellikleri herkese açık (👑 işareti yine görünür).
-// true:  sadece couples.plan == "premium" olan çiftlere açık.
+// true:  sadece Premium'u olan çiftlere açık (hediye ya da abonelik).
 // Sunucudaki eşi: functions/index.js → PREMIUM_ENFORCED (ikisi aynı olmalı)
 // ─────────────────────────────────────────────────────────────
 const PREMIUM_ENFORCED = false;
 
-function isPremiumPlan(plan) {
+// Çift kaydı (couples/{id}) ya da eski usul plan adı ("premium")
+function isPremiumPlan(coupleOrPlan) {
 
-    return !PREMIUM_ENFORCED || plan === "premium";
+    if (!PREMIUM_ENFORCED) return true;
+
+    if (typeof coupleOrPlan === "string") return coupleOrPlan === "premium";
+
+    const premium = coupleOrPlan?.premium || {};
+
+    const active = part => !!part && (part.until === null || (part.until?.toMillis?.() || 0) > Date.now());
+
+    return active(premium.gift) || active(premium.store) || coupleOrPlan?.plan === "premium";
 
 }
 
@@ -43,7 +52,7 @@ function authorInfo(item) {
 }
 
 const savedTheme = localStorage.getItem('theme') || 'mor';
-setTheme(savedTheme);
+setTheme(savedTheme, { silent: true });
 
 const notifBtn = document.getElementById("notifBtn");
 
@@ -199,6 +208,11 @@ function checkUserSelection() {
 
             hideSplash();
 
+            // İlk kez açan kişiye kısa tanıtım
+            if (shouldShowOnboarding()) showOnboarding();
+
+            applyPendingInvite();
+
             return;
         }
 
@@ -272,19 +286,37 @@ function checkUserSelection() {
                 document.getElementById("inviteCodeDisplay").textContent =
                     couple.inviteCode;
 
-                document.getElementById("inviteOverlay")
-                    .classList.add("active");
-
-                document.getElementById("invitePopup")
-                    .classList.add("active");
+                // Davet kartı ana sayfada (js/guide.js); partner katılınca yenilenir
+                startGuideWaiting(couple.inviteCode);
 
                 hideSplash();
+
+                applyPendingInvite();
 
                 return;
             }
 
             // Couple tamamlanmış
             overlay.style.display = "none";
+
+            window.isCoupleReady = true;
+            applyPendingInvite();
+
+            checkEmailVerification();
+
+            startBattery();
+
+            startNowPlaying();
+
+            startPremium();
+
+            startGuide();
+
+            startWrapped();
+
+            setTimeout(() => typeof maybeOfferSeasonTheme === "function" && maybeOfferSeasonTheme(), 4000);
+
+            initNotifyPrefs();
 
             const streakLoad = checkStreak();
             startMissYou();
@@ -293,6 +325,9 @@ function checkUserSelection() {
             startMoods();
             startOnThisDay();
             startProximity();
+
+            // Gizlilik metni güncellendiyse onay iste
+            setTimeout(checkLegalConsent, 2500);
 
             // Push bildirimi: token'ı kaydet, bildirime dokunarak
             // açıldıysa ilgili sayfaya git
@@ -475,6 +510,15 @@ function showRegister() {
             autocomplete="new-password"
         >
 
+        <label class="consent-check">
+            <input type="checkbox" id="registerConsent">
+            <span>
+                <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik Politikası</a>'nı ve
+                <a href="#" onclick="event.preventDefault(); openLegal('terms')">Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+                Verilerimin yurt dışındaki sunucularda işlenmesine açık rıza veriyorum.
+            </span>
+        </label>
+
         <button class="user-btn primary" onclick="registerUser(this)">
             💜 Kayıt Ol
         </button>
@@ -490,6 +534,8 @@ function showRegister() {
 
     `;
 
+    applyPendingInvite();
+
     setupAuthCard();
 
 }
@@ -499,7 +545,7 @@ async function registerUser(button) {
     const name =
         document.getElementById("registerName").value.trim();
 
-    const email =
+    let email =
         document.getElementById("registerEmail").value.trim();
 
     const password =
@@ -532,7 +578,18 @@ async function registerUser(button) {
 
     }
 
+    if (!document.getElementById("registerConsent")?.checked) {
+
+        showToast("Devam etmek için Gizlilik Politikası ve Kullanım Koşulları'nı onaylaman gerekiyor.");
+
+        return;
+
+    }
+
     if (button?.disabled) return;
+
+    // "gmial.com" gibi yazım hatalarını yakala
+    email = confirmEmailSpelling(email);
 
     const originalText = button?.innerHTML;
 
@@ -552,7 +609,8 @@ async function registerUser(button) {
         await window.firebase.createUserProfile(
             user.uid,
             name,
-            email
+            email,
+            LEGAL_VERSION
         );
 
         localStorage.setItem(
@@ -563,7 +621,10 @@ async function registerUser(button) {
         document.getElementById("userSelectOverlay")
             .style.display = "none";
 
-        showToast("Hesabın oluşturuldu! 💜");
+        // Engellemez; sadece doğrulama bağlantısı gönderir
+        sendWelcomeVerification();
+
+        showToast("Hesabın oluşturuldu! 💜 E-postana bir doğrulama bağlantısı gönderdik.");
 
         showCoupleSetup();
 
@@ -633,13 +694,19 @@ function showCoupleSetup() {
             style="text-transform:uppercase;"
         >
 
-        <button class="user-btn" onclick="joinMyCouple()">
+        <button class="user-btn" id="joinCoupleBtn" onclick="joinMyCouple(this)">
             💜 Partnerime Katıl
         </button>
+
+        <div class="invite-help">
+            Partnerin sana bir davet bağlantısı gönderdiyse ona dokunman yeterli, kod buraya kendiliğinden gelir.
+        </div>
 
     `;
 
     document.getElementById("userSelectOverlay").style.display = "flex";
+
+    applyPendingInvite();
 
 }
 
@@ -752,7 +819,7 @@ async function createMyCouple() {
 }
 
 
-async function joinMyCouple() {
+async function joinMyCouple(button) {
 
     const input = document.getElementById("inviteCode");
 
@@ -767,44 +834,20 @@ async function joinMyCouple() {
 
     }
 
-    const user = window.firebase.getCurrentAuthUser();
+    if (button?.disabled) return;
 
-    if (!user) return;
+    if (button) {
+        button.disabled = true;
+        button.dataset.label = button.innerHTML;
+        button.innerHTML = "Bağlanıyor…";
+    }
 
-    try {
+    // Başarılı olursa sayfa yenilenir (js/invite.js → joinWithCode)
+    const ok = await joinWithCode(inviteCode);
 
-        await window.firebase.joinCouple(
-            user,
-            inviteCode
-        );
-
-        document.getElementById("userSelectOverlay").style.display = "none";
-
-        showToast("Partnerine bağlandın! 💜");
-
-        loadWaitingItems();
-        loadLastMemory();
-        loadNextEvent();
-        updateMemoryAuthorInfo();
-
-    } catch (error) {
-
-        console.error(error);
-
-        if (error.message === "INVITE_CODE_NOT_FOUND") {
-
-            showToast("Davet kodu bulunamadı.");
-
-        } else if (error.message === "COUPLE_FULL") {
-
-            showToast("Bu çift zaten dolu.");
-
-        } else {
-
-            showToast("Çifte katılınamadı.");
-
-        }
-
+    if (!ok && button) {
+        button.disabled = false;
+        button.innerHTML = button.dataset.label;
     }
 
 }
@@ -827,9 +870,7 @@ async function copyInviteCode() {
 
     try {
 
-        await window.Capacitor.Plugins.Clipboard.write({
-            string: code
-        });
+        await copyText(code);
 
         showToast("Davet kodu kopyalandı ✓");
 

@@ -6,20 +6,26 @@
   <meta name="theme-color" content="#1a0a2e" id="themeColorMeta">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Berk & Dilara">
+  <meta name="apple-mobile-web-app-title" content="Kalp Kalbe">
   <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <title>Berk & Dilara 💜</title>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="icons/kalp-kalbe.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <title>Kalp Kalbe</title>
 
   <!-- Temayı sayfa çizilmeden uygula: açılış ekranı doğru renkte gelsin -->
   <script>
     try {
       var t = localStorage.getItem('theme');
-      if (t && t !== 'mor') document.documentElement.setAttribute('data-theme', t);
+      var r = document.documentElement;
+      if (t && t !== 'mor') r.setAttribute('data-theme', t);
+      if (t === 'pembe' || t === 'kahve' || t === 'kis' || t === 'sakura') r.setAttribute('data-light', '');
+      var fx = { fb: 'plain', kis: 'snow', gece: 'stars', gunbatimi: 'sunset', sakura: 'petals', orman: 'fireflies' }[t];
+      if (fx) r.setAttribute('data-fx', fx);
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=44">
   
   <link
     rel="stylesheet"
@@ -29,18 +35,20 @@
 
 <body>
 
+<!-- Kalp Kalbe logosu (iki yarım, tek kalp). Renkleri seçili temadan alır. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="brandMark" viewBox="150 205 724 730">
+    <g fill="none" stroke-width="78" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M512 345 C485 290 430 250 360 250 C270 250 190 320 190 420 C190 560 300 680 512 820 L600 892" style="stroke:var(--accent)"/>
+      <path d="M512 345 C539 290 594 250 664 250 C754 250 834 320 834 420 C834 560 724 680 512 820 L424 892" style="stroke:var(--accent2)"/>
+    </g>
+  </symbol>
+</svg>
+
 <!-- Açılış ekranı: veriler yüklenene kadar görünür (js/ui.js → hideSplash) -->
 <div id="splash" class="splash" aria-hidden="true">
   <div class="splash-heart">
-    <svg viewBox="0 0 24 24">
-      <defs>
-        <linearGradient id="splashGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" style="stop-color:var(--accent)"/>
-          <stop offset="1" style="stop-color:var(--accent2)"/>
-        </linearGradient>
-      </defs>
-      <path fill="url(#splashGrad)" d="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/>
-    </svg>
+    <svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg>
   </div>
   <div class="splash-names" id="splashNames"></div>
   <div class="splash-dots"><span></span><span></span><span></span></div>
@@ -49,7 +57,7 @@
   window.splashVisible = true;
   try {
     var n = localStorage.getItem('splashNames');
-    if (n) document.getElementById('splashNames').textContent = n;
+    document.getElementById('splashNames').textContent = n || 'Kalp Kalbe';
   } catch (e) {}
   // Ne olursa olsun açılış ekranı sonsuza kadar kalmasın
   setTimeout(function () { if (window.hideSplash) window.hideSplash(true); }, 9000);
@@ -79,6 +87,10 @@
 
   <div id="imageViewer" onclick="closeImage()">
 
+    <button class="viewer-download" type="button" aria-label="Fotoğrafı indir" onclick="downloadViewerImage(event)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
     <img
         id="viewerImage"
         onclick="event.stopPropagation()">
@@ -102,8 +114,9 @@
 
     <div class="user-card">
 
-        <div class="user-title">
-            💜 Sen & Ben
+        <div class="brand-head">
+            <svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg>
+            <div class="brand-name">Kalp Kalbe</div>
         </div>
 
         <div style="color:var(--muted); margin:10px 0 24px;">
@@ -143,6 +156,39 @@
 
         </button>
 
+        <div class="auth-legal">
+            <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik</a>
+            ·
+            <a href="#" onclick="event.preventDefault(); openLegal('terms')">Koşullar</a>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Gizlilik metni güncellendi: mevcut kullanıcılardan bir kez onay -->
+<div id="consentUpdateOverlay" class="consent-overlay">
+
+    <div class="user-card">
+
+        <div class="user-title" style="margin-bottom:12px;">🔒 Gizlilik</div>
+
+        <div class="consent-text">
+            Uygulamanın Gizlilik Politikası ve Kullanım Koşulları'nı yayınladık.
+            Kullanmaya devam etmek için göz atıp onaylaman gerekiyor.
+        </div>
+
+        <label class="consent-check">
+            <input type="checkbox" id="consentUpdateCheck">
+            <span>
+                <a href="#" onclick="event.preventDefault(); openLegal('privacy')">Gizlilik Politikası</a>'nı ve
+                <a href="#" onclick="event.preventDefault(); openLegal('terms')">Kullanım Koşulları</a>'nı okudum, kabul ediyorum.
+                Verilerimin yurt dışındaki sunucularda işlenmesine açık rıza veriyorum.
+            </span>
+        </label>
+
+        <button class="user-btn primary" onclick="acceptLegalUpdate(this)">Onaylıyorum</button>
+
     </div>
 
 </div>
@@ -163,12 +209,27 @@
 
       <div class="header-fade"></div>
 
+      <!-- Kapak fotoğrafı yoksa (js/guide.js) -->
+      <button class="cover-add-btn" id="coverAddBtn" type="button" style="display:none;" onclick="pickCoverPhoto()">🖼️ Kapak fotoğrafı ekle</button>
+
+      <!-- Şu an dinliyorum (js/nowplaying.js) -->
+      <button class="now-playing" id="nowPlaying" type="button" onclick="onNowPlayingTap(event)"></button>
+
       <div class="header-content">
-        <span class="header-emoji">💜</span>
+        <span class="header-emoji"><svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg></span>
         <div class="header-title" id="coupleNameDisplay">Sen & Ben</div>
         <div class="together-badge" id="togetherBadge" style="display:none;">💞 Şu an birliktesiniz</div>
       </div>
 
+    </div>
+
+    <!-- Partner henüz katılmadı (js/guide.js) -->
+    <div class="invite-home" id="inviteHomeCard" style="display:none;">
+      <div class="invite-home-tag">İLK ADIM</div>
+      <div class="invite-home-title">💌 Partnerini davet et</div>
+      <div class="invite-home-text">Kalp Kalbe ikiniz için. Bağlantıyı gönder, katıldığı an her şey ortak olsun.</div>
+      <div class="invite-home-code"><span>Davet kodun</span><b id="inviteHomeCode"></b></div>
+      <button class="invite-home-btn" id="inviteHomeShare" type="button" onclick="shareInviteLink(this)">Bağlantıyı paylaş</button>
     </div>
 
     <!-- Main counter -->
@@ -184,6 +245,31 @@
         </div>
         <div class="counter-together" id="togetherMonth" style="display:none;"></div>
       </div>
+    </div>
+
+    <!-- Yılımız (js/wrapped.js) -->
+    <div class="wrapped-entry" id="wrappedHomeCard" style="display:none;" onclick="openWrapped()">
+      <div class="wrapped-entry-glow"></div>
+      <div class="wrapped-entry-body">
+        <div class="wrapped-entry-title">🎁 Yılınız hazır!</div>
+        <div class="wrapped-entry-text">Birlikte geçen bir yılın özeti. Dokun, hikâyeyi izle 💜</div>
+      </div>
+      <span class="wrapped-entry-tag">Önizleme</span>
+      <span class="wrapped-entry-go">›</span>
+    </div>
+
+    <!-- İlk adımlar (js/guide.js) -->
+    <div class="guide-card" id="guideCard" style="display:none;"></div>
+
+    <!-- E-posta doğrulama hatırlatması (js/verify.js) -->
+    <div class="verify-card" id="verifyCard" style="display:none;">
+      <div class="verify-card-icon">✉️</div>
+      <div class="verify-card-body">
+        <div class="verify-card-title">E-postanı doğrular mısın?</div>
+        <div class="verify-card-text">Şifreni unutursan hesabına bu adresle ulaşırsın.</div>
+        <button class="verify-card-btn" onclick="resendVerification(this)">Bağlantıyı gönder</button>
+      </div>
+      <button class="verify-card-close" onclick="dismissVerifyCard()" aria-label="Kapat">✕</button>
     </div>
 
     <!-- Seri (streak) -->
@@ -304,17 +390,18 @@
         <div class="biz-card-icon">
 
             <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
 
-                <path d="M4 6h16v12H4z"/>
-                <path d="M4 7l8 6 8-6"/>
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+            <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5z"/>
+            <path d="M9 8h7"/>
 
-            </svg>
+        </svg>
 
         </div>
 
@@ -324,7 +411,15 @@
 
     </div>
 
-    <div class="memory-input-card">
+    <div class="song-add-card" id="memoryComposeBtn" onclick="openMemoryComposer()">
+        <svg class="song-add-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/>
+            <path d="M5 12h14"/>
+        </svg>
+        <span>Yeni Anı Yaz</span>
+    </div>
+
+    <div class="memory-input-card memory-composer" id="memoryComposer" style="display:none;">
       <div id="memoryAuthorInfo" class="memory-author-info"></div>
       <textarea id="memoryText" placeholder="Bugün ne güzel bir şey oldu?"></textarea>
       <div class="memory-input-footer">
@@ -339,6 +434,12 @@
                   id="sendBtn"
                   onclick="saveMemory()">
                   Kaydet
+              </button>
+              <button
+                  class="memory-cancel-btn"
+                  type="button"
+                  onclick="closeMemoryComposer()">
+                  Vazgeç
               </button>
           </div>
       </div>
@@ -437,6 +538,8 @@
 
         </div>
 
+        <div class="song-actions-row">
+
         <div
             class="song-add-card"
             onclick="openSongForm()">
@@ -456,6 +559,18 @@
             </svg>
 
             <span>Yeni Şarkı Bırak</span>
+
+        </div>
+
+        <div
+            class="song-add-card np-add-card"
+            onclick="openNowPlayingSheet()">
+
+            <span class="np-add-icon" aria-hidden="true">🎧</span>
+
+            <span>Şu an dinliyorum</span>
+
+        </div>
 
         </div>
 
@@ -642,9 +757,10 @@
         <div class="photos-header">
 
             <div class="biz-card-icon">
-
-                <!-- Aynı SVG -->
-
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3C12.7 6.7 14.3 8.3 18 9C14.3 9.7 12.7 11.3 12 15C11.3 11.3 9.7 9.7 6 9C9.7 8.3 11.3 6.7 12 3Z"/>
+                    <path d="M18 15.5c.3 1.5.9 2.1 2.4 2.4c-1.5.3-2.1.9-2.4 2.4c-.3-1.5-.9-2.1-2.4-2.4c1.5-.3 2.1-.9 2.4-2.4Z"/>
+                </svg>
             </div>
 
             <div class="header-title">
@@ -738,12 +854,11 @@
 
         </div>
 
-        <div class="song-add-card" onclick="openCustomQuestion()">
-            <span>👑</span>
-            <span>Kendi sorunu ekle</span>
-        </div>
-
         <div id="questionsList"></div>
+
+        <button class="question-custom-btn" type="button" onclick="openCustomQuestion()">
+            👑 Kendi sorunu ekle
+        </button>
 
     </div>
 
@@ -815,6 +930,17 @@
     
     </div>
 
+  <!-- Yılımız (js/wrapped.js) -->
+  <div class="wrapped-entry" id="wrappedBizCard" style="display:none;" onclick="openWrapped()">
+      <div class="wrapped-entry-glow"></div>
+      <div class="wrapped-entry-body">
+        <div class="wrapped-entry-title">🎁 Yılınız hazır!</div>
+        <div class="wrapped-entry-text">Birlikte geçen bir yılın özeti. Dokun, hikâyeyi izle 💜</div>
+      </div>
+      <span class="wrapped-entry-tag">Önizleme</span>
+      <span class="wrapped-entry-go">›</span>
+    </div>
+
   <div class="biz-menu">
 
     <div class="biz-card" onclick="openCard('our-memories', this)">
@@ -829,8 +955,9 @@
             stroke-linecap="round"
             stroke-linejoin="round">
 
-            <path d="M4 6h16v12H4z"/>
-            <path d="M4 7l8 6 8-6"/>
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/>
+            <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5z"/>
+            <path d="M9 8h7"/>
 
         </svg>
 
@@ -1079,39 +1206,21 @@
 
   <div class="settings-body">
 
-    <div class="settings-label">Tema</div>
+    <div class="settings-label">Premium</div>
 
-    <div class="theme-grid">
-      <button class="theme-btn" id="theme-mor" onclick="setTheme('mor')">
-        <div class="swatch swatch-mor"></div>
-        <span>Mor</span>
-      </button>
-
-      <button class="theme-btn" id="theme-bordo" onclick="setTheme('bordo')">
-        <div class="swatch swatch-bordo"></div>
-        <span>Bordo</span>
-      </button>
-
-      <button class="theme-btn" id="theme-gri" onclick="setTheme('gri')">
-        <div class="swatch swatch-gri"></div>
-        <span>Gri</span>
-      </button>
-
-      <button class="theme-btn" id="theme-gs" onclick="setTheme('gs')">
-        <div class="swatch swatch-gs"></div>
-        <span>Galatasaray</span>
-      </button>
-
-      <button class="theme-btn" id="theme-bjk" onclick="setTheme('bjk')">
-        <div class="swatch swatch-bjk"></div>
-        <span>Beşiktaş</span>
-      </button>
-
-      <button class="theme-btn" id="theme-pembe" onclick="setTheme('pembe')">
-        <div class="swatch swatch-pembe"></div>
-        <span>Pembe (açık)</span>
-      </button>
+    <div class="premium-status" id="premiumStatus">
+      <div class="premium-status-text"><b>Kalp Kalbe Premium</b><span>Yükleniyor…</span></div>
     </div>
+
+    <div class="premium-admin" id="premiumAdmin" style="display:none;"></div>
+
+    <div class="settings-label settings-label-row" style="margin-top:24px;">
+        <span>Tema <span class="settings-count" id="themeCurrentName"></span></span>
+        <button class="settings-all-btn" type="button" onclick="openThemeSheet()">Tümü →</button>
+    </div>
+
+    <!-- Seçili tema + 2 öneri + Tümü (js/theme.js) -->
+    <div class="theme-grid theme-strip" id="themeGrid"></div>
 
     <input
       type="file"
@@ -1120,20 +1229,13 @@
       onchange="previewSliderPhoto(event)"
       hidden>
 
-    <button
-      class="theme-btn"
-      style="width:100%;"
-      onclick="document.getElementById('sliderPhotoInput').click()">
-
-      🖼️ Slider Fotoğrafı Ekle
-
-    </button>
-
-    <div class="settings-label" style="margin-top:24px;">
-        Slider Fotoğrafları
+    <div class="settings-label settings-label-row" style="margin-top:24px;">
+        <span>Kapak Fotoğrafları <span class="settings-count" id="sliderCount"></span></span>
+        <button class="settings-all-btn" id="sliderAllBtn" type="button" onclick="openSliderManager()" style="display:none;">Tümü →</button>
     </div>
 
-    <div id="sliderImagesList"></div>
+    <!-- İlk 3 fotoğraf + ekle (js/slider.js) -->
+    <div class="slider-strip" id="sliderImagesList"></div>
 
     <div class="settings-label" style="margin-top:24px;">
         Bildirimler
@@ -1142,6 +1244,8 @@
     <button class="theme-btn notif-btn" id="notifBtn" onclick="requestNotification()">
       🔔 Bildirimler için izin ver
     </button>
+
+    <div class="notify-prefs" id="notifyPrefs"></div>
 
     <div class="settings-label" style="margin-top:24px;">
         Yakınlık
@@ -1154,8 +1258,45 @@
     <div class="settings-hint" id="proximityStatus"></div>
 
     <div class="settings-label" style="margin-top:24px;">
+        Pil
+    </div>
+
+    <button class="theme-btn notif-btn" id="batteryBtn" onclick="toggleBatteryShare()">
+      🔋 Pilimi partnerimle paylaş
+    </button>
+
+    <div class="settings-hint" id="batteryStatus"></div>
+
+    <div class="settings-label" style="margin-top:24px;">
+        Bugün Ne Yapsak
+    </div>
+
+    <button class="theme-btn notif-btn" id="bnySpicyBtn" onclick="toggleBnySpicy()">
+      🔥 Cilveli önerileri aç
+    </button>
+
+    <div class="settings-hint" id="bnySpicyStatus"></div>
+
+    <div class="settings-label" style="margin-top:24px;">
         Hesap
     </div>
+
+    <div class="verify-row" id="verifyRow" style="display:none;">
+        <div class="verify-row-text">
+            <b>✉️ E-postan doğrulanmadı</b>
+            <span><span class="verify-email"></span> adresine gönderdiğimiz bağlantıya dokun. Şifreni unutursan hesabını bu adresle kurtarırsın.</span>
+        </div>
+        <button class="verify-row-btn" onclick="resendVerification(this)">Tekrar gönder</button>
+    </div>
+
+    <button
+        class="theme-btn guide-again-btn"
+        style="width:100%; color:var(--text);"
+        onclick="showGettingStartedAgain()">
+
+        🧭 Uygulama rehberini göster
+
+    </button>
 
     <button
         class="theme-btn"
@@ -1165,6 +1306,15 @@
         🚪 Çıkış Yap
 
     </button>
+
+    <div class="settings-label" style="margin-top:24px;">
+        Hakkında
+    </div>
+
+    <div class="legal-links">
+        <button class="theme-btn" onclick="openLegal('privacy')">🔒 Gizlilik Politikası</button>
+        <button class="theme-btn" onclick="openLegal('terms')">📄 Kullanım Koşulları</button>
+    </div>
 
     <button class="danger-link" onclick="openDeleteAccount()">
         Hesabımı sil
@@ -1177,6 +1327,16 @@
 <div class="action-overlay" id="actionOverlay" onclick="closeActionMenu()"></div>
 
 <div class="action-sheet" id="actionSheet">
+
+    <button
+        id="actionDownloadBtn"
+        class="action-btn"
+        style="display:none;"
+        onclick="performDownloadAction()">
+
+        📥 İndir
+
+    </button>
 
     <button
         id="actionDeleteBtn"
@@ -1209,7 +1369,8 @@
     </div>
 
     <div class="invite-text">
-        Partnerinin sana katılması için bu kodu kullanabilirsin.
+        Davet bağlantısını partnerine gönder. Bağlantıya dokunduğunda sizi otomatik bağlarız.
+        İstersen kodu da elle girebilir.
     </div>
 
     <div class="invite-code" id="inviteCodeDisplay">
@@ -1218,6 +1379,30 @@
 
     <button
         class="invite-copy-btn"
+        onclick="shareInviteLink(this)">
+
+        <svg
+            class="invite-copy-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+
+        </svg>
+
+        <span>Davet Bağlantısını Paylaş</span>
+
+    </button>
+
+    <button
+        class="invite-copy-btn secondary"
         onclick="copyInviteCode()">
 
         <svg
@@ -1710,41 +1895,50 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=15"></script>
+    <script type="module" src="js/firebase.js?v=23"></script>
     
-    <script src="js/theme.js?v=4"></script>
-    <script src="js/bny.js?v=3"></script>
-    <script src="js/events.js?v=9"></script>
+    <script src="js/theme.js?v=7"></script>
+    <script src="js/bny.js?v=4"></script>
+    <script src="js/events.js?v=11"></script>
 
     <script type="module" src="js/capacitor.js"></script>
 
-    <script src="js/notifications.js?v=3"></script>
-    <script src="js/images.js?v=3"></script>
-    <script src="js/memories.js?v=8"></script>
-    <script src="js/photos.js?v=5"></script>
-    <script src="js/songs.js?v=3"></script>
-    <script src="js/dreams.js?v=2"></script>
+    <script src="js/notifications.js?v=4"></script>
+    <script src="js/images.js?v=4"></script>
+    <script src="js/memories.js?v=10"></script>
+    <script src="js/photos.js?v=6"></script>
+    <script src="js/songs.js?v=4"></script>
+    <script src="js/dreams.js?v=6"></script>
 
 
 
-    <script src="js/ui.js?v=13"></script>
+    <script src="js/ui.js?v=20"></script>
 
-    <script src="js/slider.js?v=2"></script>
+    <script src="js/slider.js?v=4"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script src="js/streak.js?v=2"></script>
-    <script src="js/account.js?v=1"></script>
-    <script src="js/proximity.js?v=1"></script>
+    <script src="js/account.js?v=2"></script>
+    <script src="js/proximity.js?v=2"></script>
     <script src="js/onthisday.js?v=1"></script>
-    <script src="js/moods.js?v=2"></script>
-    <script src="js/questions.js?v=3"></script>
-    <script src="js/letters.js?v=3"></script>
-    <script src="js/missyou.js?v=3"></script>
+    <script src="js/moods.js?v=5"></script>
+    <script src="js/questions.js?v=5"></script>
+    <script src="js/letters.js?v=5"></script>
+    <script src="js/missyou.js?v=4"></script>
 
-    <script src="js/inbox.js?v=7"></script>
+    <script src="js/inbox.js?v=8"></script>
 
-    <script src="js/app.js?v=15"></script>
+    <script src="js/invite.js?v=1"></script>
+    <script src="js/verify.js?v=1"></script>
+    <script src="js/onboarding.js?v=1"></script>
+    <script src="js/battery.js?v=1"></script>
+    <script src="js/nowplaying.js?v=1"></script>
+    <script src="js/premium.js?v=2"></script>
+    <script src="js/download.js?v=1"></script>
+    <script src="js/guide.js?v=2"></script>
+    <script src="js/wrapped.js?v=2"></script>
+    <script src="js/app.js?v=26"></script>
   
 </body>
 </html>

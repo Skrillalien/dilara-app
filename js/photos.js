@@ -81,6 +81,14 @@ async function loadPhotos() {
 
     galleryItems = await getGalleryItems();
 
+    if (!galleryItems.length) {
+        grid.innerHTML = typeof emptyPhotosHtml === "function" ? emptyPhotosHtml() : "";
+        grid.classList.add("is-empty");
+        return;
+    }
+
+    grid.classList.remove("is-empty");
+
     const groups = groupPhotosByMonth(galleryItems);
 
     let globalIndex = 0;

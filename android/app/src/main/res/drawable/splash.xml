@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kalp Kalbe logosu: iki yarım, tek kalp (kaynak: icons/kalp-kalbe.svg) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="240dp" android:height="240dp" android:viewportWidth="1024" android:viewportHeight="1024">
+  <group android:scaleX="0.58" android:scaleY="0.58" android:translateX="215.04" android:translateY="181.20">
+    <path android:pathData="M512 345 C485 290 430 250 360 250 C270 250 190 320 190 420 C190 560 300 680 512 820 L600 892" android:strokeWidth="78" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000">
+      <aapt:attr name="android:strokeColor"><gradient android:type="linear" android:startX="190" android:startY="250" android:endX="834" android:endY="892" android:startColor="#FFD8A4FF" android:endColor="#FF9B5CF0"/></aapt:attr>
+    </path>
+    <path android:pathData="M512 345 C539 290 594 250 664 250 C754 250 834 320 834 420 C834 560 724 680 512 820 L424 892" android:strokeWidth="78" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000">
+      <aapt:attr name="android:strokeColor"><gradient android:type="linear" android:startX="190" android:startY="250" android:endX="834" android:endY="892" android:startColor="#FFFF9CC8" android:endColor="#FFE2457F"/></aapt:attr>
+    </path>
+  </group>
+</vector>

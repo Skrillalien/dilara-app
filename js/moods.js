@@ -116,7 +116,7 @@ function startMoods() {
     });
 
     window.firebase.getMyCoupleData?.().then(couple => {
-        moodPlan = isPremiumPlan(couple?.plan) ? "premium" : "free";
+        moodPlan = isPremiumPlan(couple) ? "premium" : "free";
     }).catch(() => {});
 
 }
@@ -161,6 +161,9 @@ function renderMoodCard() {
 
     mine.innerHTML = moodChipHtml(moodsCurrent[moodMyUid()], "Sen", "Bugün nasılsın?");
     theirs.innerHTML = moodChipHtml(partnerUid ? moodsCurrent[partnerUid] : null, partner, "Henüz paylaşmadı");
+
+    // Partnerin pili köşede (js/battery.js)
+    if (typeof renderPartnerBattery === "function") renderPartnerBattery();
 
     document.getElementById("moodCard").style.display = "grid";
 
@@ -303,6 +306,9 @@ function renderPartnerMood() {
         <div class="partner-mood-time">Bir sarılma göndermenin her zaman tam zamanı 💜</div>
     `;
 
+
+    if (typeof renderPartnerBatteryDetail === "function") renderPartnerBatteryDetail();
+
 }
 
 async function sendMoodNudge(type) {
@@ -342,7 +348,7 @@ function moodLeaveNote() {
 
     showPage("our-memories");
 
-    setTimeout(() => document.getElementById("memoryText")?.focus(), 350);
+    setTimeout(() => openMemoryComposer(), 350);
 
 }
 
@@ -351,7 +357,8 @@ function moodLeaveNote() {
 async function openMoodHistory(whose) {
 
     if (moodPlan !== "premium") {
-        showToast("👑 Ruh hali takvimi Premium özelliği");
+        if (typeof openPremium === "function") openPremium();
+        else showToast("👑 Ruh hali takvimi Premium özelliği");
         return;
     }
 
