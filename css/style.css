@@ -119,6 +119,26 @@ body::before {
   --bg-rgb: 5, 5, 5;
 }
 
+/* Kahve-Krem (açık) */
+[data-theme="kahve"] {
+  --bg: #f6efe6;
+  --surface: #fffaf4;
+  --surface2: #f1e6d9;
+  --accent: #7b4b2a;
+  --accent2: #c48a55;
+  --text: #3a2618;
+  --muted: #8f7663;
+  --border: rgba(123, 75, 42, 0.16);
+  --glow: rgba(123, 75, 42, 0.06);
+  --accent-rgb: 123, 75, 42;
+  --accent2-rgb: 196, 138, 85;
+  --text-rgb: 58, 38, 24;
+  --bg-rgb: 246, 239, 230;
+  --success: #15803d;
+  --success-rgb: 21, 128, 61;
+  color-scheme: light;
+}
+
 /* Sarı-Lacivert */
 [data-theme="fb"] {
   --bg: #071230;
@@ -7448,7 +7468,7 @@ html.sheet-open .page{
     overflow:hidden;
     border-radius:22px;
     border:1px solid rgba(var(--accent2-rgb), .5);
-    background:linear-gradient(120deg, rgba(var(--accent-rgb), .45), rgba(var(--accent2-rgb), .35));
+    background:linear-gradient(120deg, rgba(var(--accent-rgb), .45), rgba(var(--accent2-rgb), .35)), var(--surface);
     color:#fff;
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
@@ -7799,6 +7819,7 @@ html.sheet-open .page{
 }
 
 /* Renk örnekleri */
+.theme-btn .swatch-kahve{ background:linear-gradient(135deg, #f3e6d3 0 45%, #7b4b2a 55% 100%); border:1px solid rgba(123,75,42,.25); }
 .theme-btn .swatch-fb{ background:linear-gradient(135deg, #ffcf1f 0 48%, #1a3a8f 52% 100%); }
 .theme-btn .swatch-kis{ background:radial-gradient(circle at 35% 35%, #fff 0 30%, transparent 31%), linear-gradient(135deg, #ffffff, #e8727a); border:1px solid rgba(207,67,78,.25); }
 .theme-btn .swatch-gece{ background:radial-gradient(circle at 68% 30%, #f3d58a 0 12%, transparent 13%), radial-gradient(circle at 30% 65%, #fff 0 5%, transparent 6%), linear-gradient(160deg, #1b2c7a, #040820); }
@@ -8044,9 +8065,23 @@ html.sheet-open .page{
 }
 
 /* Açık temalarda kartlar zeminden ayrılsın */
-[data-theme="kis"] .biz-card,
-[data-theme="sakura"] .biz-card{
-    background:rgba(255,255,255,.85);
+/* Efektli temalarda yarı saydam kartlar opak olsun:
+   parçacıklar kartların arkasında kalsın, içinden görünmesin */
+[data-fx] .biz-card{
+    background:var(--surface);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+}
+
+/* Sayfa geçişi: efektli temalarda sadece kayma (solma yok),
+   yoksa geçiş sırasında kartlar saydamlaşıp parçacıklar önde görünür */
+[data-fx] .page.active{
+    animation-name:pageInMove;
+}
+
+@keyframes pageInMove{
+    from{ transform:translateY(10px); }
+    to{ transform:none; }
 }
 
 @media (prefers-reduced-motion: reduce){
