@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Temalar
 //
-// • Klasik: Mor, Bordo, Gri, Pembe (açık)
+// • Klasik: Mor, Bordo, Gri, Pembe (açık), Kahve-Krem (açık)
 // • Takım: Sarı-Kırmızı, Siyah-Beyaz, Sarı-Lacivert
 // • Hareketli (👑 Premium): Kar Tanesi, Gece Mavisi, Gün Batımı,
 //   Sakura, Orman — arkada kar, yıldız, yaprak, ateş böceği…
@@ -15,6 +15,7 @@ const THEMES = [
   { id: 'bordo',     name: 'Bordo',          group: 'Klasik', color: '#0f0508' },
   { id: 'gri',       name: 'Gri',            group: 'Klasik', color: '#0a0a0a' },
   { id: 'pembe',     name: 'Pembe (açık)',   group: 'Klasik', color: '#fff4f7', light: true },
+  { id: 'kahve',     name: 'Kahve-Krem',     group: 'Klasik', color: '#f6efe6', light: true },
   { id: 'gs',        name: 'Sarı-Kırmızı',   group: 'Takım',  color: '#0a0500' },
   { id: 'bjk',       name: 'Siyah-Beyaz',    group: 'Takım',  color: '#050505' },
   { id: 'fb',        name: 'Sarı-Lacivert',  group: 'Takım',  color: '#0b1a3f', fx: 'plain' },
@@ -173,7 +174,7 @@ function renderThemeStrip() {
   const current = THEME_BY_ID[currentTheme] || THEMES[0];
 
   // Seçili tema + yeni/hareketli olanlardan 2 + bir klasik
-  const others = ['gece', 'kis', 'mor', 'fb', 'sakura', 'bordo']
+  const others = ['gece', 'kahve', 'kis', 'mor', 'fb', 'sakura', 'bordo']
     .filter(id => id !== current.id)
     .slice(0, 2)
     .map(id => THEME_BY_ID[id]);
