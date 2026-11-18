@@ -128,7 +128,7 @@ function guideSteps(s) {
         {
             id: "memory", icon: "📝", text: "İlk anınızı yazın",
             done: s.memories > 0,
-            go: () => { showPage("our-memories"); setTimeout(() => document.getElementById("memoryText")?.focus(), 300); }
+            go: () => { showPage("our-memories"); openMemoryComposer(); }
         },
         {
             id: "song", icon: "🎵", text: "İlk şarkınızı bırakın",
@@ -327,7 +327,7 @@ function emptyMemoriesHtml() {
         title: "İlk anınızı yazın",
         text: "Bugün ne güzel bir şey oldu? Bir cümle bile yeter. Fotoğraf da ekleyebilirsin; yıllar sonra okumak çok güzel olacak.",
         button: "Yazmaya başla",
-        onclick: "document.getElementById('memoryText').focus()"
+        onclick: "openMemoryComposer()"
     });
 }
 

@@ -348,7 +348,7 @@ function moodLeaveNote() {
 
     showPage("our-memories");
 
-    setTimeout(() => document.getElementById("memoryText")?.focus(), 350);
+    setTimeout(() => openMemoryComposer(), 350);
 
 }
 

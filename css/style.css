@@ -6918,3 +6918,145 @@ html.sheet-open .page{
     background:rgba(250, 204, 21, .14);
     color:#facc15;
 }
+
+/* Anılar: "Yeni Anı Yaz" ile açılan yazma kutusu */
+.memory-composer{
+    animation:memoryComposerIn .22s ease-out;
+}
+
+@keyframes memoryComposerIn{
+    from{ opacity:0; transform:translateY(-6px); }
+    to{ opacity:1; transform:none; }
+}
+
+.memory-cancel-btn{
+    margin-left:auto;
+    padding:8px 14px;
+    border:none;
+    border-radius:20px;
+    background:transparent;
+    color:var(--muted);
+    font:inherit;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.memory-cancel-btn:active{
+    background:var(--surface2);
+}
+
+.memory-composer .memory-actions{ width:100%; }
+
+/* ─── Günün Sorusu: bugünün sorusu öne çıksın ─────────────── */
+.question-row.question-today{
+    margin-bottom:6px;
+    padding:18px;
+    border-radius:22px;
+    border:1px solid rgba(var(--accent-rgb), .45);
+    background:linear-gradient(140deg, rgba(var(--accent-rgb), .2), rgba(var(--accent2-rgb), .1));
+}
+
+.question-today-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+}
+
+.question-today-text{
+    margin-top:10px;
+    font-family:'Playfair Display', serif;
+    font-size:21px;
+    font-weight:600;
+    line-height:1.35;
+    color:var(--text);
+}
+
+.question-today-btn{
+    width:100%;
+    margin-top:16px;
+    padding:12px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#fff;
+    font:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.question-past-label{
+    margin:20px 4px 10px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+}
+
+.question-custom-btn{
+    display:block;
+    margin:6px auto 0;
+    padding:10px 16px;
+    border:1px dashed var(--border);
+    border-radius:999px;
+    background:transparent;
+    color:var(--muted);
+    font:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+/* ─── Şarkılar: iki düğme yan yana ────────────────────────── */
+.song-actions-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+}
+
+.song-actions-row .song-add-card{
+    flex:1;
+    min-width:0;
+    margin-bottom:0;
+    padding:13px 10px;
+    font-size:14.5px;
+    line-height:1.2;
+    text-align:center;
+}
+
+/* ─── Fotoğraflar: ay başlıkları sade ─────────────────────── */
+.photos-month-title,
+[data-theme="pembe"] .photos-month-title{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin:18px 2px 8px;
+    padding:0;
+    border:none;
+    border-radius:0;
+    background:none;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+}
+
+.photos-month-title:first-child{ margin-top:4px; }
+
+.photos-month-name,
+[data-theme="pembe"] .photos-month-name{
+    color:var(--text);
+    font-size:16px;
+    font-weight:700;
+}
+
+.photos-month-count{
+    margin-top:0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.photos-month-count::before{
+    content:"· ";
+}
