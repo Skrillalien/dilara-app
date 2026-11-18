@@ -233,7 +233,7 @@ exports.onSongCreated = onDocumentCreated("songs/{id}", (event) => notifyPartner
 exports.onDreamCreated = onDocumentCreated("dreams/{id}", (event) => notifyPartner("dreams", event));
 // Özledim: art arda gelen serileri topla, bir süre yeni seri gelmezse
 // tek bildirim gönder ("Seni 1000 kere özledi"). Fotoğraflardaki gibi.
-const MISS_BATCH_WAIT_MS = 45 * 1000;
+const MISS_BATCH_WAIT_MS = 20 * 1000;
 const MISS_BATCH_RESET_MS = 10 * 60 * 1000;
 
 exports.onMissCreated = onDocumentCreated({ document: "misses/{id}", timeoutSeconds: 120 }, async (event) => {
