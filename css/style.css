@@ -427,6 +427,8 @@ body::before {
     -webkit-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+    /* Dokununca çıkan mavi kutu (tarayıcı vurgusu) hiçbir yerde olmasın */
+    -webkit-tap-highlight-color: transparent;
 }
 
 input,
@@ -8170,3 +8172,34 @@ html.sheet-open .page{
 .home-events-empty b{ display:block; font-size:14.5px; }
 .home-events-empty small{ display:block; margin-top:2px; font-size:12.5px; color:var(--muted); }
 .home-events-go{ margin-left:auto; color:var(--muted); font-size:20px; }
+
+/* Dokunma geri bildirimi: mavi kutu yerine hafif basılma */
+.question-row,
+.waiting-item,
+.event-card,
+.memory-card,
+.dream-card,
+.home-events-empty,
+.guide-step,
+.empty-chip,
+.cal-sugg-btn,
+.wr-item{
+    transition:transform .12s ease, filter .12s ease;
+}
+
+.question-row:active,
+.waiting-item:active,
+.event-card:active,
+.memory-card:active,
+.home-events-empty:active,
+.guide-step:not(.done):active,
+.empty-chip:active,
+.cal-sugg-btn:active{
+    transform:scale(.985);
+    filter:brightness(1.06);
+}
+
+.waiting-item:active{
+    background:rgba(var(--accent-rgb), .08);
+    border-radius:12px;
+}
