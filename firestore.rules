@@ -80,6 +80,10 @@ service cloud.firestore {
           !('coupleId' in changes())
           || request.resource.data.coupleId == null
           || isMember(request.resource.data.coupleId)
+        )
+        && (
+          !('heart' in changes())
+          || request.resource.data.heart in ['💙', '💗', '💜', '💚', '🧡', '💛', '🤍', '🖤']
         );
 
       allow delete: if false;

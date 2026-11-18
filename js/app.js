@@ -4,6 +4,22 @@ let coupleNames = {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Kalpler: her kişinin kendi kalbi (users/{uid}.heart), iki telefonda
+// da aynı görünür. Seçmeyen için: çifti kuran 💙, sonradan katılan 💗.
+// ─────────────────────────────────────────────────────────────
+const HEART_CHOICES = ["💙", "💗", "💜", "💚", "🧡", "💛", "🤍", "🖤"];
+
+let coupleHearts = { me: "💙", partner: "💗" };
+
+function defaultHeart(uid, members) {
+    return (members || [])[0] === uid ? "💙" : "💗";
+}
+
+function validHeart(value) {
+    return HEART_CHOICES.includes(value) ? value : null;
+}
+
+// ─────────────────────────────────────────────────────────────
 // PREMIUM
 // false: Premium özellikleri herkese açık (👑 işareti yine görünür).
 // true:  sadece Premium'u olan çiftlere açık (hediye ya da abonelik).
@@ -45,7 +61,7 @@ function authorInfo(item) {
         ? (mine ? coupleNames.me : coupleNames.partner)
         : item.author;
 
-    const emoji = mine ? "💙" : "💗";
+    const emoji = mine ? coupleHearts.me : coupleHearts.partner;
 
     return { mine, emoji, name, label: `${emoji} ${name}` };
 
@@ -159,6 +175,10 @@ async function loadCoupleNames() {
 
         }
 
+        coupleHearts.me = validHeart(myProfile?.heart) || defaultHeart(user.uid, members);
+
+        if (typeof renderHeartSetting === "function") renderHeartSetting();
+
         // Partner henüz yoksa "Ben" olarak kalır
         if (members.length < 2) {
             return;
@@ -181,6 +201,20 @@ async function loadCoupleNames() {
                 partnerProfile.name;
 
         }
+
+        // İki telefonda da aynı sonucu veren kural: seçmeyenin kalbi
+        // varsayılandır; o kalbi diğeri seçmişse diğer varsayılan kullanılır
+        const resolve = (uid, own, other) => {
+            const chosen = validHeart(own);
+            if (chosen) return chosen;
+            const base = defaultHeart(uid, members);
+            return validHeart(other) === base ? (base === "💙" ? "💗" : "💙") : base;
+        };
+
+        coupleHearts.me = resolve(user.uid, myProfile?.heart, partnerProfile?.heart);
+        coupleHearts.partner = resolve(partnerUid, partnerProfile?.heart, myProfile?.heart);
+
+        if (typeof renderHeartSetting === "function") renderHeartSetting();
 
     } catch (error) {
 
@@ -985,3 +1019,58 @@ if ("serviceWorker" in navigator) {
     });
 
 }
+
+
+// ── Ayarlar: Kalbim ─────────────────────────────────────────
+
+function renderHeartSetting() {
+
+    const box = document.getElementById("heartPicker");
+
+    if (!box) return;
+
+    box.innerHTML = HEART_CHOICES.map(h => `
+        <button class="heart-choice${h === coupleHearts.me ? " active" : ""}" type="button"
+            aria-label="Kalbim ${h}" onclick="chooseHeart('${h}')">${h}</button>
+    `).join("");
+
+    const hint = document.getElementById("heartHint");
+
+    if (hint) {
+        hint.textContent = `Eklediğin her şeyin yanında ${coupleHearts.me} görünür; ${coupleNames.partner && coupleNames.partner !== "Ben" ? coupleNames.partner : "partnerin"} için ${coupleHearts.partner}. İki telefonda da aynı.`;
+    }
+
+}
+
+async function chooseHeart(heart) {
+
+    if (!validHeart(heart) || heart === coupleHearts.me) return;
+
+    const before = coupleHearts.me;
+
+    coupleHearts.me = heart;
+    renderHeartSetting();
+
+    try {
+
+        await window.firebase.setMyHeart(heart);
+
+        showToast(`${heart} Kalbin güncellendi`);
+
+        // Açık listeler yeni kalple çizilsin
+        const page = document.querySelector(".page.active")?.id?.replace("page-", "");
+        if (page && page !== "home") showPage(page);
+        if (typeof loadLastMemory === "function") loadLastMemory();
+
+    } catch (error) {
+
+        console.error("Kalp kaydedilemedi:", error);
+        coupleHearts.me = before;
+        renderHeartSetting();
+        showToast("Kaydedilemedi, tekrar dene.");
+
+    }
+
+}
+
+renderHeartSetting();
