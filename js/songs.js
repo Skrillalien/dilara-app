@@ -21,7 +21,7 @@ function loadSongs() {
 
     list.innerHTML = "Yükleniyor...";
 
-    window.firebase.listenSongs((songs) => {
+    window.firebase.listenSongs(window.songsHandler = (songs) => {
 
         currentSongs = songs;
 

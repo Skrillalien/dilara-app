@@ -8203,3 +8203,9 @@ html.sheet-open .page{
     background:rgba(var(--accent-rgb), .08);
     border-radius:12px;
 }
+
+/* Degrade yazılı isimlerde kalp kendi renginde kalsın */
+.author-heart{
+    -webkit-text-fill-color:initial;
+    color:initial;
+}

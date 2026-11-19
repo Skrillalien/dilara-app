@@ -26,7 +26,7 @@ function loadDreams() {
 
     list.innerHTML = "Yükleniyor...";
 
-    window.firebase.listenDreams((dreams) => {
+    window.firebase.listenDreams(window.dreamsHandler = (dreams) => {
 
         currentDreams = dreams;
 
