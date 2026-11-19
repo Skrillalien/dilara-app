@@ -210,6 +210,8 @@ async function loadCoupleNames() {
 
         if (typeof renderHeartSetting === "function") renderHeartSetting();
 
+        renderMyNameSetting();
+
         // Partner henüz yoksa "Ben" olarak kalır
         if (members.length < 2) {
             return;
@@ -246,6 +248,8 @@ async function loadCoupleNames() {
         coupleHearts.partner = resolve(partnerUid, partnerProfile?.heart, myProfile?.heart);
 
         if (typeof renderHeartSetting === "function") renderHeartSetting();
+
+        renderMyNameSetting();
 
         // Listeler kalpler gelmeden çizildiyse güncelle
         rerenderHeartViews();
@@ -1222,6 +1226,62 @@ async function saveStartDate(button) {
         showToast("Kaydedilemedi, tekrar dene.");
     } finally {
         button.disabled = false;
+    }
+
+}
+
+
+// ── Ayarlar: Adım ───────────────────────────────────────────
+
+function renderMyNameSetting() {
+
+    const input = document.getElementById("myNameInput");
+
+    if (!input || document.activeElement === input) return;
+
+    input.value = coupleNames.me && coupleNames.me !== "Sen" ? coupleNames.me : "";
+
+}
+
+async function saveMyName(button) {
+
+    const input = document.getElementById("myNameInput");
+    const name = (input?.value || "").trim().replace(/\s+/g, " ");
+
+    if (!name) {
+        showToast("Adını yaz.");
+        return;
+    }
+
+    if (name === coupleNames.me) {
+        showToast("Adın zaten bu 💜");
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+
+        await window.firebase.setMyName(name);
+
+        coupleNames.me = name;
+
+        updateCoupleNameDisplay();
+        renderMyNameSetting();
+        if (typeof renderHeartSetting === "function") renderHeartSetting();
+        rerenderHeartViews();
+
+        showToast("✨ Adın güncellendi");
+
+    } catch (error) {
+
+        console.error("Ad kaydedilemedi:", error);
+        showToast("Kaydedilemedi, tekrar dene.");
+
+    } finally {
+
+        button.disabled = false;
+
     }
 
 }
