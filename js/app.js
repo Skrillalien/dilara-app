@@ -337,6 +337,8 @@ function checkUserSelection() {
 
                 updateCounter();
 
+                renderStartDateSetting();
+
             }
 
             await loadCoupleNames();
@@ -892,6 +894,7 @@ async function createMyCouple() {
                 new Date(startDate + "T00:00:00");
 
             updateCounter();
+            renderStartDateSetting();
 
             document.getElementById("inviteCodeDisplay").textContent =
                 result.inviteCode;
@@ -1137,3 +1140,88 @@ async function chooseHeart(heart) {
 }
 
 renderHeartSetting();
+
+
+// ── Ayarlar: Birlikteliğimiz (başlangıç tarihi) ─────────────
+
+function startDateKey(date) {
+    const p = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}`;
+}
+
+function renderStartDateSetting() {
+
+    const input = document.getElementById("startDateInput");
+
+    if (!input) return;
+
+    input.max = startDateKey(new Date());
+    input.min = "1950-01-01";
+
+    if (START_DATE instanceof Date && !isNaN(START_DATE) && document.activeElement !== input) {
+        input.value = startDateKey(START_DATE);
+    }
+
+}
+
+// Tarih değişince (bu telefonda ya da partner değiştirince)
+function applyStartDate(startDate) {
+
+    if (!startDate) return;
+
+    const date = new Date(startDate + "T00:00:00");
+
+    if (isNaN(date)) return;
+
+    if (START_DATE instanceof Date && startDateKey(START_DATE) === startDate) return;
+
+    START_DATE = date;
+
+    updateCounter();
+    renderStartDateSetting();
+
+    if (typeof renderCalendarEvents === "function") try { renderCalendarEvents(); } catch {}
+
+}
+
+async function saveStartDate(button) {
+
+    const input = document.getElementById("startDateInput");
+    const value = input?.value;
+
+    if (!value) {
+        showToast("Bir tarih seç.");
+        return;
+    }
+
+    if (value > startDateKey(new Date())) {
+        showToast("İleri bir tarih seçilemez.");
+        return;
+    }
+
+    if (START_DATE instanceof Date && startDateKey(START_DATE) === value) {
+        showToast("Tarih zaten bu 💜");
+        return;
+    }
+
+    const nice = new Date(value + "T00:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+
+    if (!confirm(`Sevgili olduğunuz tarih ${nice} olarak değişsin mi? Partnerinde de değişir.`)) {
+        renderStartDateSetting();
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await window.firebase.setCoupleStartDate(value);
+        applyStartDate(value);
+        showToast("💞 Tarih güncellendi");
+    } catch (error) {
+        console.error("Tarih kaydedilemedi:", error);
+        showToast("Kaydedilemedi, tekrar dene.");
+    } finally {
+        button.disabled = false;
+    }
+
+}

@@ -2142,6 +2142,19 @@ async function markQuestionSeen(days) {
 
 }
 
+// Sevgili olunan tarih ("YYYY-MM-DD"), Ayarlar'dan değiştirilebilir
+async function setCoupleStartDate(startDate) {
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) throw new Error("BAD_DATE");
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) throw new Error("NO_COUPLE");
+
+    await updateDoc(doc(db, "couples", coupleId), { startDate });
+
+}
+
 // Kalbim (app.js → HEART_CHOICES)
 async function setMyHeart(heart) {
 
@@ -2371,6 +2384,7 @@ window.firebase = {
     listenCouple,
     getCoupleSummary,
     setMyHeart,
+    setCoupleStartDate,
     markQuestionSeen,
     getWrapped,
     reorderSliderImages,

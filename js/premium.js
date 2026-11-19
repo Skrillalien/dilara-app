@@ -84,6 +84,8 @@ function startPremium() {
         premiumCouple = couple;
         renderPremiumStatus();
         if (typeof enforceThemeAccess === "function") enforceThemeAccess();
+        // Partner başlangıç tarihini değiştirirse burada da güncellensin
+        if (typeof applyStartDate === "function") applyStartDate(couple?.startDate);
     });
 
     window.firebase.amIAdmin?.().then(isAdmin => {

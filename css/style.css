@@ -8209,3 +8209,34 @@ html.sheet-open .page{
     -webkit-text-fill-color:initial;
     color:initial;
 }
+
+/* Ayarlar: Birlikteliğimiz */
+.start-date-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:8px;
+}
+
+.start-date-input{
+    flex:1;
+    min-width:0;
+    margin:0;
+    color-scheme:dark;
+}
+
+[data-light] .start-date-input{ color-scheme:light; }
+
+.start-date-save{
+    flex-shrink:0;
+    padding:0 18px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#fff;
+    font:inherit;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.start-date-save:disabled{ opacity:.5; }
