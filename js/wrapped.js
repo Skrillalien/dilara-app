@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // Yılımız: yıl sonu özeti
 //
-// • Aralık başından 15 Ocak'a kadar ana sayfada ve Biz'de
+// • 15 Aralık'tan 15 Ocak'a kadar ana sayfada ve Biz'de
 //   "2026'nız hazır" kartı (yöneticiler her zaman görür, deneme için)
 // • Instagram hikayesi gibi kartlar: sağa dokun → sonraki,
 //   sola dokun → önceki
@@ -23,12 +23,12 @@ let wrappedIndex = 0;
 let wrappedAdmin = false;
 let wrappedStarted = false;
 
-// Gösterilecek yıl: Aralık → bu yıl, 1-15 Ocak → geçen yıl
+// Gösterilecek yıl: 15-31 Aralık → bu yıl, 1-15 Ocak → geçen yıl
 function wrappedSeasonYear(now = new Date()) {
 
     const month = now.getMonth();
 
-    if (month === 11) return now.getFullYear();
+    if (month === 11 && now.getDate() >= 15) return now.getFullYear();
     if (month === 0 && now.getDate() <= 15) return now.getFullYear() - 1;
 
     return null;
