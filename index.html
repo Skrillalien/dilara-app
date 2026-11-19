@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=48">
+  <link rel="stylesheet" href="css/style.css?v=49">
   
   <link
     rel="stylesheet"
@@ -1215,6 +1215,14 @@
     <div class="heart-picker" id="heartPicker"></div>
     <div class="settings-hint" id="heartHint"></div>
 
+    <div class="settings-label" style="margin-top:24px;">Birlikteliğimiz</div>
+
+    <div class="start-date-row">
+        <input type="date" id="startDateInput" class="song-input start-date-input" aria-label="Sevgili olduğunuz tarih">
+        <button class="start-date-save" id="startDateSave" type="button" onclick="saveStartDate(this)">Kaydet</button>
+    </div>
+    <div class="settings-hint" id="startDateHint">Sevgili olduğunuz gün. Gün sayacı, aylık ve yıllık hatırlatmalar buna göre.</div>
+
     <div class="settings-label settings-label-row" style="margin-top:24px;">
         <span>Tema <span class="settings-count" id="themeCurrentName"></span></span>
         <button class="settings-all-btn" type="button" onclick="openThemeSheet()">Tümü →</button>
@@ -1896,7 +1904,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=25"></script>
+    <script type="module" src="js/firebase.js?v=26"></script>
     
     <script src="js/theme.js?v=7"></script>
     <script src="js/bny.js?v=4"></script>
@@ -1935,11 +1943,11 @@
     <script src="js/onboarding.js?v=1"></script>
     <script src="js/battery.js?v=1"></script>
     <script src="js/nowplaying.js?v=1"></script>
-    <script src="js/premium.js?v=2"></script>
+    <script src="js/premium.js?v=3"></script>
     <script src="js/download.js?v=1"></script>
     <script src="js/guide.js?v=2"></script>
     <script src="js/wrapped.js?v=2"></script>
-    <script src="js/app.js?v=29"></script>
+    <script src="js/app.js?v=30"></script>
   
 </body>
 </html>
