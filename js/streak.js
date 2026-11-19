@@ -407,8 +407,8 @@ function renderStreak() {
     statusEl.className = "streak-status" + (urgent ? " is-urgent" : "");
 
     statusEl.innerHTML =
-        `<span class="${meDone ? "ok" : "wait"}">💙 ${escapeStreakHtml(myName)} ${meDone ? "✓" : "⏳"}</span>` +
-        `<span class="${partnerDone ? "ok" : "wait"}">💗 ${escapeStreakHtml(partnerName)} ${partnerDone ? "✓" : "⏳"}</span>` +
+        `<span class="${meDone ? "ok" : "wait"}">${typeof coupleHearts !== "undefined" ? coupleHearts.me : "💙"} ${escapeStreakHtml(myName)} ${meDone ? "✓" : "⏳"}</span>` +
+        `<span class="${partnerDone ? "ok" : "wait"}">${typeof coupleHearts !== "undefined" ? coupleHearts.partner : "💗"} ${escapeStreakHtml(partnerName)} ${partnerDone ? "✓" : "⏳"}</span>` +
         (count > 0 ? `<span class="streak-time">⌛ ${formatStreakRemaining(remaining)}</span>` : "");
 
 }

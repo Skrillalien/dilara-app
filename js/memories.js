@@ -149,7 +149,7 @@ async function loadMemories() {
         return;
     }
     list.innerHTML = '<div class="memories-loading">Yükleniyor...</div>';
-    window.firebase.listenMemories((memories) => {
+    window.firebase.listenMemories(window.memoriesHandler = (memories) => {
         currentMemories = memories;
         document.getElementById("page-our-memories")?.classList.toggle("page-empty", memories.length === 0);
         if (memories.length === 0) {
@@ -163,7 +163,7 @@ async function loadMemories() {
               <div class="memory-card">
                 <div class="memory-header">
                 <span class="memory-author">
-                    ${escapeInboxHtml(authorInfo(m).label)}
+                    ${authorLabelHtml(m)}
                 </span>
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span class="memory-date">${m.together ? `<span class="together-chip">💞 Birlikteydik</span>` : ""}${dateStr}</span>
@@ -213,7 +213,9 @@ async function loadLastMemory() {
 
     await loadCoupleMemberProfiles();
 
-    window.firebase.listenMemories((memories) => {
+    window.firebase.listenMemories(window.lastMemoryHandler = (memories) => {
+
+        window.lastMemoryCache = memories;
 
         const author = document.getElementById('lastMemoryAuthor');
 
@@ -230,8 +232,8 @@ async function loadLastMemory() {
         const last = memories[0];
 
         author.style.display = '';
-        author.textContent =
-            authorInfo(last).label
+        author.innerHTML =
+            authorLabelHtml(last)
         document.getElementById('lastMemoryText').innerHTML =
             formatMemoryText(last.text);
         const date = last.createdAt?.toDate?.();

@@ -67,6 +67,37 @@ function authorInfo(item) {
 
 }
 
+// Kalp + isim, HTML olarak: kalp kendi renginde kalsın (degrade yazı
+// kullanan yerlerde emojiyi de boyamasın)
+function authorLabelHtml(item) {
+
+    const info = authorInfo(item);
+
+    if (!info.name && !info.emoji) return "";
+
+    const esc = v => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    return `<span class="author-heart">${info.emoji}</span> ${esc(info.name)}`;
+
+}
+
+// Kalp değişince açık listeleri yeniden çiz
+function rerenderHeartViews() {
+
+    // Sadece veri gelmiş listeler (boşken çizip "henüz yok" göstermesin)
+    const has = list => Array.isArray(list) && list.length > 0;
+
+    try { if (has(currentDreams)) window.dreamsHandler?.(currentDreams); } catch {}
+    try { if (has(currentMemories)) window.memoriesHandler?.(currentMemories); } catch {}
+    try { if (has(currentSongs)) window.songsHandler?.(currentSongs); } catch {}
+    try { if (has(window.lastMemoryCache)) window.lastMemoryHandler?.(window.lastMemoryCache); } catch {}
+
+    try { if (typeof renderStreak === "function") renderStreak(); } catch {}
+    try { if (typeof lettersAll !== "undefined" && has(lettersAll)) renderLetters(); } catch {}
+    try { if (typeof questionsAll !== "undefined" && has(questionsAll)) renderQuestionViews(); } catch {}
+
+}
+
 const savedTheme = localStorage.getItem('theme') || 'mor';
 setTheme(savedTheme, { silent: true });
 
@@ -215,6 +246,9 @@ async function loadCoupleNames() {
         coupleHearts.partner = resolve(partnerUid, partnerProfile?.heart, myProfile?.heart);
 
         if (typeof renderHeartSetting === "function") renderHeartSetting();
+
+        // Listeler kalpler gelmeden çizildiyse güncelle
+        rerenderHeartViews();
 
     } catch (error) {
 
@@ -1089,10 +1123,7 @@ async function chooseHeart(heart) {
 
         showToast(`${heart} Kalbin güncellendi`);
 
-        // Açık listeler yeni kalple çizilsin
-        const page = document.querySelector(".page.active")?.id?.replace("page-", "");
-        if (page && page !== "home") showPage(page);
-        if (typeof loadLastMemory === "function") loadLastMemory();
+        rerenderHeartViews();
 
     } catch (error) {
 
