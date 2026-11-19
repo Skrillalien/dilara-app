@@ -2155,6 +2155,21 @@ async function setCoupleStartDate(startDate) {
 
 }
 
+// Adını değiştir (Ayarlar → Adım)
+async function setMyName(name) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    const clean = String(name || "").trim().slice(0, 30);
+
+    if (!clean) throw new Error("EMPTY_NAME");
+
+    await updateDoc(doc(db, "users", user.uid), { name: clean });
+
+}
+
 // Kalbim (app.js → HEART_CHOICES)
 async function setMyHeart(heart) {
 
@@ -2384,6 +2399,7 @@ window.firebase = {
     listenCouple,
     getCoupleSummary,
     setMyHeart,
+    setMyName,
     setCoupleStartDate,
     markQuestionSeen,
     getWrapped,
