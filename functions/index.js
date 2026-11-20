@@ -2619,7 +2619,7 @@ exports.revenuecatWebhook = onRequest(async (req, res) => {
 
 const WRAPPED_CACHE_MS = 6 * 60 * 60 * 1000;
 // Hesaplama değişince artır: eski önbellek kullanılmaz
-const WRAPPED_VERSION = 2;
+const WRAPPED_VERSION = 3;
 
 function songPlayKey(link) {
 
@@ -2704,16 +2704,38 @@ async function computeWrapped(coupleId, couple, year) {
     const perAuthor = () => Object.fromEntries(members.map(uid => [uid, 0]));
 
     // Kaydı kim ekledi? Yeni kayıtlarda authorId var; uygulamanın ilk
-    // sürümlerinden kalan kayıtlarda yalnız isim ("author") yazıyor.
+    // sürümlerinden kalan kayıtlarda yalnız isim ("author") yazıyor ya da
+    // authorId eski (artık çiftte olmayan) bir hesabı gösteriyor.
     const norm = v => String(v || "").trim().toLocaleLowerCase("tr-TR");
-    const authorOf = x => {
-        if (x?.authorId && members.includes(x.authorId)) return x.authorId;
-        const a = norm(x?.author);
+    const firstWord = v => norm(v).split(/\s+/)[0];
+    const byName = raw => {
+        const a = norm(raw);
         if (!a) return null;
         return members.find(uid => norm(names[uid]) === a)
-            || members.find(uid => norm(names[uid]).split(/\s+/)[0] === a.split(/\s+/)[0])
+            || members.find(uid => firstWord(names[uid]) === firstWord(a))
             || null;
     };
+    const foreignIds = new Set();
+    for (const snap of [memSnap, songSnap, missSnap]) {
+        for (const d of snap.docs) {
+            const id = d.get("authorId");
+            if (id && !members.includes(id)) foreignIds.add(id);
+        }
+    }
+    const foreignNames = {};
+    await Promise.all([...foreignIds].slice(0, 20).map(async uid => {
+        foreignNames[uid] = await userName(uid, "");
+    }));
+    const authorOf = x => {
+        if (!x) return null;
+        if (x.authorId && members.includes(x.authorId)) return x.authorId;
+        return byName(x.author)
+            || (x.authorId ? byName(foreignNames[x.authorId]) : null)
+            // seenBy ilk olarak ekleyen kişiyle başlar
+            || (Array.isArray(x.seenBy) && members.includes(x.seenBy[0]) ? x.seenBy[0] : null)
+            || null;
+    };
+    const unmatched = [];
 
     // Birlikte geçen gün (yıl içinde, başlangıç tarihinden sonra)
     const coupleStart = couple.startDate ? Date.parse(`${couple.startDate}T00:00:00+03:00`) : startMs;
@@ -2730,7 +2752,7 @@ async function computeWrapped(coupleId, couple, year) {
     for (const m of memories) {
         const month = monthOf(tsMillis(m.createdAt));
         memMonths[month] = (memMonths[month] || 0) + 1;
-        { const a = authorOf(m); if (a) memAuthors[a]++; }
+        { const a = authorOf(m); if (a) memAuthors[a]++; else unmatched.push({ type: "memory", authorId: m.authorId || null, author: m.author || null }); }
         for (const tag of String(m.text || "").match(/#[\p{L}\p{N}_]+/gu) || []) {
             const t = tag.toLocaleLowerCase("tr-TR");
             tags[t] = (tags[t] || 0) + 1;
@@ -2753,7 +2775,7 @@ async function computeWrapped(coupleId, couple, year) {
     const artists = {};
     const artistLabel = {};
     for (const x of songs) {
-        { const a = authorOf(x); if (a) songAuthors[a]++; }
+        { const a = authorOf(x); if (a) songAuthors[a]++; else unmatched.push({ type: "song", authorId: x.authorId || null, author: x.author || null }); }
         const artist = String(x.artist || "").trim();
         if (artist) {
             const key = artist.toLocaleLowerCase("tr-TR");
@@ -2783,6 +2805,8 @@ async function computeWrapped(coupleId, couple, year) {
         if (who) missAuthors[who] += n;
         if (!missMax || n > missMax.count) missMax = { count: n, authorId: who, at: ms };
     }
+
+    if (unmatched.length) console.warn("Yılımız: sahibi bulunamayan kayıtlar", coupleId, unmatched.slice(0, 20));
 
     // Yan yana
     let togetherTotal = 0;
