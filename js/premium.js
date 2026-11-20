@@ -35,6 +35,7 @@ const PREMIUM_FEATURES = [
     ["🫶", "Yan Yana istatistikleri", "Birlikte geçirdiğiniz günlerin aylık ve yıllık dökümü"],
     ["💬", "Kendi sorularınız", "Günün Sorusu'na kendi sorularınızı ekleyin"],
     ["📅", "Ruh hali takvimi", "Her ay nasıl hissettiğinizi takvimde görün"],
+    ["🎨", "Takım ve hareketli temalar", "Kar, gece, orman, sakura… Yılımız özetinde de temaya özel sahneler"],
     ["💜", "Gelecek tüm Premium özellikleri", "Yeni 👑 özellikler geldikçe sizde"]
 ];
 

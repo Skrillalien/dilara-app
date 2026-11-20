@@ -303,6 +303,13 @@ async function openWrapped(refresh = false) {
         </button>
     `;
 
+    // Temaya özel sahne (Kar Tanesi, Gece Mavisi, Orman, Sakura)
+    const scene = wrappedScene();
+    if (scene) {
+        wrap.dataset.scene = scene;
+        wrap.querySelector("#wrStage").insertAdjacentHTML("afterend", wrappedSceneHtml(scene));
+    }
+
     document.body.appendChild(wrap);
 
     wrap.querySelector(".wr-close").addEventListener("click", () => closeWrapped());
@@ -427,6 +434,9 @@ function wrappedColors(index) {
     const accent = css.getPropertyValue("--accent").trim() || "#c084fc";
     const accent2 = css.getPropertyValue("--accent2").trim() || "#f472b6";
 
+    const scene = wrappedScene();
+    if (scene) return WRAPPED_SCENES[scene][index % 5];
+
     const sets = [
         [accent, accent2, "#1a0b2e"],
         [accent2, "#1a0b2e", accent],
@@ -478,8 +488,11 @@ async function renderWrappedImage(card, index) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
+    const scene = wrappedScene();
+    if (scene) drawWrappedScene(ctx, W, H, scene, index);
+
     // Okunurluk için hafif karartma
-    ctx.fillStyle = "rgba(10, 4, 24, .38)";
+    ctx.fillStyle = scene ? "rgba(10, 4, 24, .22)" : "rgba(10, 4, 24, .38)";
     ctx.fillRect(0, 0, W, H);
 
     try {
@@ -621,6 +634,311 @@ async function shareWrappedCard() {
 
         if (btn) btn.disabled = false;
 
+    }
+
+}
+
+// ── Temaya özel Yılımız sahneleri ───────────────────────────
+// Kar Tanesi, Gece Mavisi, Orman ve Sakura temalarında hikâyenin
+// arkasında o temaya özel bir sahne oynar. Paylaşılan görsel de
+// aynı sahnenin durağan hâlini taşır. Diğer temalar eskisi gibi.
+
+const WRAPPED_SCENES = {
+    kis: [
+        ["#0d2140", "#3f6f9f", "#a9cdee"],
+        ["#123058", "#5d8fbf", "#0b1a33"],
+        ["#9cc4e8", "#3c6a99", "#0c1f3b"],
+        ["#0b1a33", "#2c5a8a", "#8fb9e0"],
+        ["#4b7cad", "#163a63", "#0a1830"]
+    ],
+    gece: [
+        ["#050b2e", "#0f1d5c", "#27348f"],
+        ["#0b1748", "#1c2b78", "#05081f"],
+        ["#1a2470", "#0a1240", "#03061a"],
+        ["#03061a", "#0f1d5c", "#2f2a86"],
+        ["#0f1d5c", "#050b2e", "#1c1550"]
+    ],
+    orman: [
+        ["#123826", "#0c2218", "#04100a"],
+        ["#1d4d33", "#0e2a1c", "#050f09"],
+        ["#0a1f15", "#1a4630", "#06140d"],
+        ["#2a5a3a", "#0f2d1e", "#030a06"],
+        ["#0c2218", "#24553a", "#06140d"]
+    ],
+    sakura: [
+        ["#f3a6c3", "#c25a8a", "#5a1f45"],
+        ["#e88db2", "#9b3f70", "#3f1431"],
+        ["#c25a8a", "#f0a3c0", "#6b2852"],
+        ["#7a2e5c", "#d978a3", "#f6bdd2"],
+        ["#e27fa8", "#7a2e5c", "#3f1431"]
+    ]
+};
+
+// Sakura dalı (viewBox 0 0 400 300, sol üst köşeden uzanır)
+const SAKURA_BRANCH = "M-10 40 C 60 50 110 70 170 110 C 210 135 250 150 300 158 M 120 80 C 135 50 150 35 175 22 M 210 132 C 220 165 225 190 240 215 M 60 52 C 70 80 72 100 66 125";
+const SAKURA_FLOWERS = [[175, 22, 13], [300, 158, 14], [240, 215, 12], [66, 125, 11], [150, 95, 10], [255, 150, 9], [110, 66, 9], [200, 125, 8], [30, 45, 9]];
+
+function wrappedScene() {
+    const id = typeof currentTheme !== "undefined" ? currentTheme : null;
+    return id && WRAPPED_SCENES[id] ? id : null;
+}
+
+// Aynı tohumla hep aynı dağılım (paylaşılan görsel her seferinde aynı)
+function wrSeeded(seed) {
+    let s = seed >>> 0;
+    return () => {
+        s = (s * 1664525 + 1013904223) >>> 0;
+        return s / 4294967296;
+    };
+}
+
+// Çam ağaçları: [x, taban y, yükseklik, genişlik] (0..1 oranları)
+function wrPines(seed, count, baseY, minH, maxH) {
+    const r = wrSeeded(seed);
+    const trees = [];
+    for (let i = 0; i < count; i++) {
+        const x = (i + r() * .6) / count;
+        const h = minH + r() * (maxH - minH);
+        trees.push([x, baseY + r() * .02, h, h * (.42 + r() * .1)]);
+    }
+    return trees;
+}
+
+function wrPinePoints(tree, W, H) {
+    const [x, by, h, w] = tree;
+    const cx = x * W, base = by * H, top = base - h * H, half = w * W / 2;
+    // Üç kat dal
+    const pts = [];
+    const tiers = [[0, .45, .55], [.3, .75, .78], [.55, 1, 1]];
+    for (const [t0, t1, wf] of tiers) {
+        const y0 = top + (base - top) * t0;
+        const y1 = top + (base - top) * t1;
+        pts.push([[cx, y0], [cx + half * wf, y1], [cx - half * wf, y1]]);
+    }
+    pts.push([[cx - half * .08, base - (base - top) * .02], [cx + half * .08, base - (base - top) * .02], [cx + half * .08, base + 6], [cx - half * .08, base + 6]]);
+    return pts;
+}
+
+function wrPineSvg(trees, fill) {
+    const W = 400, H = 800;
+    const polys = trees.map(t => wrPinePoints(t, W, H)
+        .map(p => `<polygon points="${p.map(([a, b]) => `${a.toFixed(1)},${b.toFixed(1)}`).join(" ")}"/>`).join("")).join("");
+    return `<svg viewBox="0 0 400 800" preserveAspectRatio="none"><g fill="${fill}">${polys}</g><rect x="0" y="${(trees[0]?.[1] || .95) * H}" width="400" height="80" fill="${fill}"/></svg>`;
+}
+
+function wrappedSceneHtml(scene) {
+
+    const r = Math.random;
+    const rnd = (a, b) => a + r() * (b - a);
+    const items = [];
+
+    if (scene === "kis") {
+        // Üç derinlikte kar: uzakta küçük ve yavaş, yakında büyük ve bulanık
+        for (let i = 0; i < 40; i++) {
+            const s = rnd(2, 4);
+            items.push(`<i class="wrs-dot" style="left:${rnd(0, 100)}%;width:${s}px;height:${s}px;animation-duration:${rnd(12, 20).toFixed(1)}s,${rnd(3, 6).toFixed(1)}s;animation-delay:-${rnd(0, 20).toFixed(1)}s,-${rnd(0, 6).toFixed(1)}s"></i>`);
+        }
+        for (let i = 0; i < 22; i++) {
+            items.push(`<i class="wrs-flake" style="left:${rnd(0, 100)}%;font-size:${rnd(14, 24).toFixed(0)}px;opacity:${rnd(.6, .95).toFixed(2)};animation-duration:${rnd(8, 14).toFixed(1)}s,${rnd(3, 6).toFixed(1)}s;animation-delay:-${rnd(0, 14).toFixed(1)}s,-${rnd(0, 6).toFixed(1)}s">❄</i>`);
+        }
+        for (let i = 0; i < 4; i++) {
+            items.push(`<i class="wrs-flake near" style="left:${rnd(0, 100)}%;font-size:${rnd(40, 60).toFixed(0)}px;animation-duration:${rnd(6, 9).toFixed(1)}s,${rnd(4, 7).toFixed(1)}s;animation-delay:-${rnd(0, 9).toFixed(1)}s,-${rnd(0, 7).toFixed(1)}s">❄</i>`);
+        }
+        items.push(`<i class="wrs-frost"></i>`);
+        items.push(`<i class="wrs-snowbank"><svg viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0 30 C 60 10 110 40 170 24 C 230 8 290 36 340 20 C 370 12 390 18 400 22 L400 60 L0 60Z" fill="rgba(235,245,255,.9)"/><path d="M0 44 C 80 30 140 52 220 38 C 290 26 340 48 400 36 L400 60 L0 60Z" fill="#fff"/></svg></i>`);
+    }
+
+    if (scene === "gece") {
+        items.push(`<i class="wrs-aurora"></i><i class="wrs-aurora two"></i>`);
+        for (let i = 0; i < 90; i++) {
+            const s = r() < .12 ? rnd(2.4, 3.4) : rnd(1, 2);
+            items.push(`<i class="wrs-star" style="left:${rnd(0, 100)}%;top:${rnd(0, 88)}%;width:${s}px;height:${s}px;animation-duration:${rnd(2.5, 6).toFixed(1)}s;animation-delay:-${rnd(0, 6).toFixed(1)}s"></i>`);
+        }
+        items.push(`<i class="wrs-moon"></i>`);
+        items.push(`<i class="wrs-shoot" style="top:14%;left:78%;animation-delay:2s"></i>`);
+        items.push(`<i class="wrs-shoot" style="top:34%;left:95%;animation-delay:7.5s"></i>`);
+    }
+
+    if (scene === "orman") {
+        items.push(`<i class="wrs-rays"></i>`);
+        items.push(`<i class="wrs-pines far">${wrPineSvg(wrPines(7, 9, .93, .18, .3), "rgba(6,22,14,.75)")}</i>`);
+        items.push(`<i class="wrs-mist"></i>`);
+        items.push(`<i class="wrs-pines near">${wrPineSvg(wrPines(21, 6, .97, .22, .36), "#020805")}</i>`);
+        for (let i = 0; i < 26; i++) {
+            const s = rnd(3, 6);
+            items.push(`<i class="wrs-fly" style="left:${rnd(0, 100)}%;top:${rnd(8, 92)}%;width:${s}px;height:${s}px;animation-duration:${rnd(2.5, 5.5).toFixed(1)}s,${rnd(12, 24).toFixed(1)}s;animation-delay:-${rnd(0, 6).toFixed(1)}s,-${rnd(0, 24).toFixed(1)}s"></i>`);
+        }
+    }
+
+    if (scene === "sakura") {
+        for (let i = 0; i < 6; i++) {
+            const s = rnd(60, 140);
+            items.push(`<i class="wrs-bokeh" style="left:${rnd(-10, 90)}%;top:${rnd(10, 85)}%;width:${s}px;height:${s}px;animation-delay:-${rnd(0, 10).toFixed(1)}s"></i>`);
+        }
+        const flowers = SAKURA_FLOWERS.map(([x, y, s]) => {
+            const petals = [0, 72, 144, 216, 288].map(a =>
+                `<ellipse cx="${x}" cy="${y - s * .55}" rx="${(s * .42).toFixed(1)}" ry="${(s * .58).toFixed(1)}" transform="rotate(${a} ${x} ${y})"/>`).join("");
+            return `<g fill="#ffd3e2">${petals}</g><circle cx="${x}" cy="${y}" r="${(s * .22).toFixed(1)}" fill="#e2668f"/>`;
+        }).join("");
+        items.push(`<i class="wrs-branch"><svg viewBox="0 0 400 300"><path d="${SAKURA_BRANCH}" fill="none" stroke="#3b1426" stroke-width="7" stroke-linecap="round"/>${flowers}</svg></i>`);
+        for (let i = 0; i < 26; i++) {
+            const s = rnd(9, 18);
+            items.push(`<i class="wrs-petal" style="left:${rnd(0, 100)}%;width:${s}px;height:${(s * .65).toFixed(1)}px;opacity:${rnd(.6, .95).toFixed(2)};animation-duration:${rnd(9, 16).toFixed(1)}s,${rnd(3, 6).toFixed(1)}s;animation-delay:-${rnd(0, 16).toFixed(1)}s,-${rnd(0, 6).toFixed(1)}s"></i>`);
+        }
+    }
+
+    const still = typeof themeFxEnabled === "function" && !themeFxEnabled();
+
+    return `<div class="wr-scene wrs-${scene}${still ? " still" : ""}" aria-hidden="true">${items.join("")}</div>`;
+
+}
+
+// Paylaşılan görsel için sahnenin durağan çizimi (yazılardan önce)
+function drawWrappedScene(ctx, W, H, scene, index) {
+
+    const r = wrSeeded(1000 + index * 97);
+    const rnd = (a, b) => a + r() * (b - a);
+
+    const snowflake = (x, y, size, alpha) => {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rnd(0, Math.PI));
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = Math.max(1.5, size / 12);
+        ctx.lineCap = "round";
+        for (let k = 0; k < 6; k++) {
+            ctx.rotate(Math.PI / 3);
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(0, -size / 2);
+            ctx.moveTo(0, -size * .3); ctx.lineTo(size * .12, -size * .4);
+            ctx.moveTo(0, -size * .3); ctx.lineTo(-size * .12, -size * .4);
+            ctx.stroke();
+        }
+        ctx.restore();
+    };
+
+    const glow = (x, y, rad, color) => {
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+        g.addColorStop(0, color);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    };
+
+    if (scene === "kis") {
+        glow(W * .5, 0, W * .9, "rgba(200,230,255,.25)");
+        for (let i = 0; i < 90; i++) {
+            ctx.fillStyle = `rgba(255,255,255,${rnd(.4, .9).toFixed(2)})`;
+            ctx.beginPath(); ctx.arc(rnd(0, W), rnd(0, H), rnd(2, 6), 0, Math.PI * 2); ctx.fill();
+        }
+        for (let i = 0; i < 26; i++) snowflake(rnd(0, W), rnd(0, H * .92), rnd(30, 70), rnd(.5, .9).toFixed(2));
+        for (let i = 0; i < 3; i++) snowflake(rnd(0, W), rnd(0, H * .8), rnd(120, 170), .18);
+        // Kar yığını imzanın altında kalsın
+        ctx.fillStyle = "rgba(235,245,255,.9)";
+        ctx.beginPath(); ctx.moveTo(0, H - 60);
+        ctx.bezierCurveTo(W * .3, H - 95, W * .55, H - 40, W, H - 75);
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath(); ctx.moveTo(0, H - 30);
+        ctx.bezierCurveTo(W * .35, H - 60, W * .6, H - 15, W, H - 45);
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+    }
+
+    if (scene === "gece") {
+        const band = (y, c1, c2) => {
+            ctx.save();
+            ctx.filter = "blur(60px)";
+            const g = ctx.createLinearGradient(0, y - 120, W, y + 120);
+            g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(.35, c1); g.addColorStop(.7, c2); g.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.ellipse(W / 2, y, W * .75, 110, -.25, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        };
+        band(H * .2, "rgba(80,255,190,.35)", "rgba(120,110,255,.3)");
+        band(H * .3, "rgba(150,90,255,.22)", "rgba(80,220,255,.2)");
+        for (let i = 0; i < 220; i++) {
+            const s = r() < .1 ? rnd(3, 5) : rnd(1.2, 2.6);
+            ctx.fillStyle = `rgba(255,255,255,${rnd(.35, 1).toFixed(2)})`;
+            ctx.beginPath(); ctx.arc(rnd(0, W), rnd(0, H * .9), s, 0, Math.PI * 2); ctx.fill();
+        }
+        glow(150, 230, 160, "rgba(243,226,166,.35)");
+        // Hilal: ayrı tuvalde kesip yapıştır (arka plan silinmesin)
+        const moon = document.createElement("canvas");
+        moon.width = moon.height = 140;
+        const mc = moon.getContext("2d");
+        mc.fillStyle = "#f3e2a6";
+        mc.beginPath(); mc.arc(70, 70, 62, 0, Math.PI * 2); mc.fill();
+        mc.globalCompositeOperation = "destination-out";
+        mc.beginPath(); mc.arc(98, 52, 56, 0, Math.PI * 2); mc.fill();
+        ctx.drawImage(moon, 80, 160);
+        ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth = 3;
+        const sg = ctx.createLinearGradient(820, 260, 620, 360);
+        sg.addColorStop(0, "rgba(255,255,255,0)"); sg.addColorStop(1, "#fff");
+        ctx.strokeStyle = sg;
+        ctx.beginPath(); ctx.moveTo(880, 230); ctx.lineTo(640, 350); ctx.stroke();
+    }
+
+    if (scene === "orman") {
+        ctx.save();
+        ctx.globalAlpha = .18;
+        for (let i = 0; i < 4; i++) {
+            const x = W * (.15 + i * .22);
+            const g = ctx.createLinearGradient(x, 0, x + 260, H * .8);
+            g.addColorStop(0, "rgba(220,255,200,.9)"); g.addColorStop(1, "rgba(220,255,200,0)");
+            ctx.fillStyle = g;
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 70, 0); ctx.lineTo(x + 330, H * .8); ctx.lineTo(x + 200, H * .8); ctx.fill();
+        }
+        ctx.restore();
+        const drawPines = (trees, fill) => {
+            ctx.fillStyle = fill;
+            for (const t of trees) for (const poly of wrPinePoints(t, W, H)) {
+                ctx.beginPath(); poly.forEach(([a, b], k) => (k ? ctx.lineTo(a, b) : ctx.moveTo(a, b))); ctx.closePath(); ctx.fill();
+            }
+            ctx.fillRect(0, (trees[0]?.[1] || .95) * H, W, H);
+        };
+        drawPines(wrPines(7, 9, .93, .18, .3), "rgba(6,22,14,.75)");
+        const mg = ctx.createLinearGradient(0, H * .72, 0, H * .9);
+        mg.addColorStop(0, "rgba(200,230,210,0)"); mg.addColorStop(.5, "rgba(200,230,210,.16)"); mg.addColorStop(1, "rgba(200,230,210,0)");
+        ctx.fillStyle = mg; ctx.fillRect(0, H * .72, W, H * .18);
+        drawPines(wrPines(21, 6, .97, .22, .36), "#020805");
+        for (let i = 0; i < 40; i++) {
+            const x = rnd(0, W), y = rnd(H * .08, H * .9), s = rnd(4, 9);
+            glow(x, y, s * 6, `rgba(225,255,120,${rnd(.25, .55).toFixed(2)})`);
+            ctx.fillStyle = "#f2ffb8";
+            ctx.beginPath(); ctx.arc(x, y, s / 2, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    if (scene === "sakura") {
+        for (let i = 0; i < 7; i++) glow(rnd(0, W), rnd(H * .1, H * .85), rnd(120, 260), "rgba(255,220,235,.22)");
+        ctx.save();
+        const k = W * .7 / 400;
+        ctx.scale(k, k);
+        ctx.strokeStyle = "#3b1426"; ctx.lineWidth = 7; ctx.lineCap = "round";
+        ctx.stroke(new Path2D(SAKURA_BRANCH));
+        for (const [x, y, s] of SAKURA_FLOWERS) {
+            ctx.fillStyle = "#ffd3e2";
+            for (const a of [0, 72, 144, 216, 288]) {
+                ctx.save(); ctx.translate(x, y); ctx.rotate(a * Math.PI / 180);
+                ctx.beginPath(); ctx.ellipse(0, -s * .55, s * .42, s * .58, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+            ctx.fillStyle = "#e2668f";
+            ctx.beginPath(); ctx.arc(x, y, s * .22, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+        for (let i = 0; i < 46; i++) {
+            const s = rnd(18, 36);
+            ctx.save();
+            ctx.translate(rnd(0, W), rnd(H * .1, H));
+            ctx.rotate(rnd(0, Math.PI * 2));
+            ctx.globalAlpha = rnd(.55, .95);
+            const pg = ctx.createLinearGradient(-s / 2, 0, s / 2, 0);
+            pg.addColorStop(0, "#ffd6e5"); pg.addColorStop(1, "#f2a3c1");
+            ctx.fillStyle = pg;
+            ctx.beginPath(); ctx.ellipse(0, 0, s / 2, s * .32, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
     }
 
 }

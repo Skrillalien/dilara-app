@@ -17,9 +17,9 @@ const THEMES = [
   { id: 'pembe',     name: 'Pembe (açık)',   group: 'Klasik', color: '#fff4f7', light: true },
   { id: 'kahve',     name: 'Kahve-Krem (açık)', group: 'Klasik', color: '#f6efe6', light: true },
   { id: 'kahvekoyu', name: 'Kahve-Krem (koyu)', group: 'Klasik', color: '#17100b' },
-  { id: 'gs',        name: 'Sarı-Kırmızı',   group: 'Takım',  color: '#0a0500' },
-  { id: 'bjk',       name: 'Siyah-Beyaz',    group: 'Takım',  color: '#050505' },
-  { id: 'fb',        name: 'Sarı-Lacivert',  group: 'Takım',  color: '#0b1a3f', fx: 'plain' },
+  { id: 'gs',        name: 'Sarı-Kırmızı',   group: 'Takım',  color: '#0a0500', premium: true },
+  { id: 'bjk',       name: 'Siyah-Beyaz',    group: 'Takım',  color: '#050505', premium: true },
+  { id: 'fb',        name: 'Sarı-Lacivert',  group: 'Takım',  color: '#0b1a3f', fx: 'plain', premium: true },
   { id: 'kis',       name: 'Kar Tanesi',     group: 'Hareketli', color: '#ffffff', light: true, fx: 'snow',  premium: true },
   { id: 'gece',      name: 'Gece Mavisi',    group: 'Hareketli', color: '#0b1748', fx: 'stars', premium: true },
   { id: 'gunbatimi', name: 'Gün Batımı',     group: 'Hareketli', color: '#2c1045', fx: 'sunset', premium: true },
@@ -52,7 +52,7 @@ function setTheme(id, opts = {}) {
 
   const theme = THEME_BY_ID[id] || THEME_BY_ID.mor;
 
-  // Hareketli temalar Premium (PREMIUM_ENFORCED kapalıyken herkese açık)
+  // Takım ve hareketli temalar Premium (PREMIUM_ENFORCED kapalıyken herkese açık)
   if (!opts.silent && !canUseTheme(theme)) {
     if (typeof openPremium === 'function') openPremium();
     return;
@@ -80,7 +80,7 @@ function setTheme(id, opts = {}) {
 
 }
 
-// Premium bittiyse hareketli temadan çık (premium.js çift kaydı gelince çağırır)
+// Premium bittiyse Premium temadan çık (premium.js çift kaydı gelince çağırır)
 function enforceThemeAccess() {
   const theme = THEME_BY_ID[currentTheme];
   if (theme?.premium && !canUseTheme(theme)) setTheme('mor', { silent: true });
@@ -249,7 +249,7 @@ function renderThemeSheet() {
   const groups = ['Klasik', 'Takım', 'Hareketli'];
 
   list.innerHTML = groups.map(group => `
-    <div class="theme-group-label">${group === 'Hareketli' ? 'Hareketli 👑' : group}</div>
+    <div class="theme-group-label">${group === 'Klasik' ? group : group + ' 👑'}</div>
     <div class="theme-grid">${THEMES.filter(t => t.group === group).map(themeButtonHtml).join('')}</div>
   `).join('') + `
     <button class="theme-fx-toggle${themeFxEnabled() ? ' on' : ''}" type="button" onclick="toggleThemeFx()">
