@@ -517,7 +517,14 @@ function renderBizInfo() {
     setBizInfo("our-memories", mem ? `${mem} anı` : mem === 0 ? "＋ İlk anınızı yazın" : "", unseenBadge("memories"), mem === 0);
 
     // Fotoğraflar (anılardaki fotoğraflar da galeride)
-    const photos = typeof galleryItems !== "undefined" && galleryItems.length ? galleryItems.length : num(s.photos);
+    // Sayım yalnız "photos" koleksiyonunu sayar; anılardaki fotoğrafları
+    // zaten dinlenen anı listesinden ekle (galeri de ikisini birlikte gösterir)
+    const memPhotos = Array.isArray(window.lastMemoryCache) && typeof hasImage === "function"
+        ? window.lastMemoryCache.filter(hasImage).length
+        : null;
+    const photos = num(s.photos) !== null && memPhotos !== null
+        ? s.photos + memPhotos
+        : (typeof galleryItems !== "undefined" && galleryItems.length ? galleryItems.length : num(s.photos));
     setBizInfo("our-photos", photos ? `${photos} fotoğraf` : photos === 0 ? "＋ İlk fotoğrafı ekle" : "", null, photos === 0);
 
     // Şarkılar

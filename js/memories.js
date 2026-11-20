@@ -217,6 +217,9 @@ async function loadLastMemory() {
 
         window.lastMemoryCache = memories;
 
+        // Biz sayfasındaki fotoğraf sayısı anı fotoğraflarını da içerir
+        if (typeof renderBizInfo === "function") renderBizInfo();
+
         const author = document.getElementById('lastMemoryAuthor');
 
         // Hiç anı yoksa: tire yerine yönlendiren bir cümle
