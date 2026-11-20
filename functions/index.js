@@ -2618,6 +2618,8 @@ exports.revenuecatWebhook = onRequest(async (req, res) => {
 // ═════════════════════════════════════════════════════════════
 
 const WRAPPED_CACHE_MS = 6 * 60 * 60 * 1000;
+// Hesaplama değişince artır: eski önbellek kullanılmaz
+const WRAPPED_VERSION = 2;
 
 function songPlayKey(link) {
 
@@ -2701,6 +2703,18 @@ async function computeWrapped(coupleId, couple, year) {
 
     const perAuthor = () => Object.fromEntries(members.map(uid => [uid, 0]));
 
+    // Kaydı kim ekledi? Yeni kayıtlarda authorId var; uygulamanın ilk
+    // sürümlerinden kalan kayıtlarda yalnız isim ("author") yazıyor.
+    const norm = v => String(v || "").trim().toLocaleLowerCase("tr-TR");
+    const authorOf = x => {
+        if (x?.authorId && members.includes(x.authorId)) return x.authorId;
+        const a = norm(x?.author);
+        if (!a) return null;
+        return members.find(uid => norm(names[uid]) === a)
+            || members.find(uid => norm(names[uid]).split(/\s+/)[0] === a.split(/\s+/)[0])
+            || null;
+    };
+
     // Birlikte geçen gün (yıl içinde, başlangıç tarihinden sonra)
     const coupleStart = couple.startDate ? Date.parse(`${couple.startDate}T00:00:00+03:00`) : startMs;
     const from = Math.max(startMs, coupleStart || startMs);
@@ -2716,7 +2730,7 @@ async function computeWrapped(coupleId, couple, year) {
     for (const m of memories) {
         const month = monthOf(tsMillis(m.createdAt));
         memMonths[month] = (memMonths[month] || 0) + 1;
-        if (m.authorId in memAuthors) memAuthors[m.authorId]++;
+        { const a = authorOf(m); if (a) memAuthors[a]++; }
         for (const tag of String(m.text || "").match(/#[\p{L}\p{N}_]+/gu) || []) {
             const t = tag.toLocaleLowerCase("tr-TR");
             tags[t] = (tags[t] || 0) + 1;
@@ -2739,7 +2753,7 @@ async function computeWrapped(coupleId, couple, year) {
     const artists = {};
     const artistLabel = {};
     for (const x of songs) {
-        if (x.authorId in songAuthors) songAuthors[x.authorId]++;
+        { const a = authorOf(x); if (a) songAuthors[a]++; }
         const artist = String(x.artist || "").trim();
         if (artist) {
             const key = artist.toLocaleLowerCase("tr-TR");
@@ -2765,8 +2779,9 @@ async function computeWrapped(coupleId, couple, year) {
         if (!inYear(ms)) continue;
         const n = Math.max(1, Math.floor(Number(m.count) || 1));
         missTotal += n;
-        if (m.authorId in missAuthors) missAuthors[m.authorId] += n;
-        if (!missMax || n > missMax.count) missMax = { count: n, authorId: m.authorId, at: ms };
+        const who = authorOf(m);
+        if (who) missAuthors[who] += n;
+        if (!missMax || n > missMax.count) missMax = { count: n, authorId: who, at: ms };
     }
 
     // Yan yana
@@ -2833,7 +2848,7 @@ async function computeWrapped(coupleId, couple, year) {
             first: firstMemory ? {
                 text: String(firstMemory.text || "").slice(0, 160),
                 at: tsMillis(firstMemory.createdAt),
-                authorId: firstMemory.authorId || null
+                authorId: authorOf(firstMemory)
             } : null
         },
         photos: { count: photoTimes.length, topMonth: monthTop(photoMonths) },
@@ -2843,7 +2858,7 @@ async function computeWrapped(coupleId, couple, year) {
             topArtist: topArtist && topArtist[1] >= 2 ? { artist: artistLabel[topArtist[0]], count: topArtist[1] } : null,
             first: firstSong ? {
                 title: firstSong.title || "", artist: firstSong.artist || "",
-                cover: firstSong.cover || "", authorId: firstSong.authorId || null
+                cover: firstSong.cover || "", authorId: authorOf(firstSong)
             } : null,
             playsTotal: plays?.total || 0,
             topPlays: topPlays.map(p => ({ title: p.title, artist: p.artist, cover: p.cover, count: p.count || 0 }))
@@ -2888,13 +2903,13 @@ exports.getWrapped = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (re
     const cached = await cacheRef.get();
 
     // Geçmiş yıllar değişmez; bu yıl 6 saatte bir tazelenir
-    const fresh = cached.exists && (year < thisYear || Date.now() - (cached.get("computedAt") || 0) < WRAPPED_CACHE_MS);
+    const fresh = cached.exists && cached.get("version") === WRAPPED_VERSION && (year < thisYear || Date.now() - (cached.get("computedAt") || 0) < WRAPPED_CACHE_MS);
 
     if (fresh && !request.data?.refresh) return cached.get("data");
 
     const data = await computeWrapped(coupleId, couple, year);
 
-    await cacheRef.set({ coupleId, year, computedAt: data.computedAt, data });
+    await cacheRef.set({ coupleId, year, version: WRAPPED_VERSION, computedAt: data.computedAt, data });
 
     return data;
 
