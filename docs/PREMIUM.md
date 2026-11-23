@@ -9,7 +9,9 @@ Premium çift başınadır (`couples/{id}.premium`). İki kaynağı var:
 
 `plan` alanı ikisinden biri aktifse `"premium"`, değilse `"free"` olur. İstemci `premium` ve `plan` alanlarını değiştiremez (firestore.rules).
 
-Şimdilik `PREMIUM_ENFORCED = false` (js/app.js ve functions/index.js): 👑 özellikler herkese açık. Satış başlayınca ikisi birlikte `true` yapılır.
+Şimdilik `PREMIUM_ENFORCED = false` (js/app.js ve functions/index.js) ve `premiumEnforced()` false (firestore.rules): 👑 özellikler herkese açık. Satış başlayınca üçü birlikte `true` yapılır.
+
+Ücretsiz kota: 36 fotoğraf (Fotoğraflarımız + fotoğraflı anılar birlikte) ve 36 şarkı. Sayılar `couples.usage`'ta, sunucu her ekleme/silmede baştan sayar (`recountUsage`). Sınır üç yerde: js/premium.js `FREE_LIMITS`, functions/index.js `FREE_LIMITS`, firestore.rules `freeLimitOk` (36).
 
 ## Fiyatlar
 
@@ -29,6 +31,6 @@ Firestore'da `admins/{senin uid}` belgesi oluştur (içi boş olabilir). Ayarlar
 4. RevenueCat → Integrations → Webhooks:
    - URL: `https://europe-west1-dilara-app-6c7ab.cloudfunctions.net/revenuecatWebhook`
    - Authorization: uzun rastgele bir değer; aynısını `functions/.env` içine `REVENUECAT_WEBHOOK_AUTH=...` olarak yaz ve functions'ı deploy et.
-5. `PREMIUM_ENFORCED = true` (iki dosyada) ve yasal metin sürümünü (`legal/config.js → version`) artır.
+5. `PREMIUM_ENFORCED = true` (js/app.js, functions/index.js) ve firestore.rules → `premiumEnforced()` `true` ve yasal metin sürümünü (`legal/config.js → version`) artır.
 
 Kampanyalar için mağazaların kendi promosyon kodları (App Store "Offer Codes", Google Play "Promo codes") kullanılır; uygulama içinde kod girme alanı yoktur (Apple 3.1.1).

@@ -31,11 +31,13 @@ const PREMIUM_PLANS = [
 ];
 
 const PREMIUM_FEATURES = [
+    ["📸", "Sınırsız fotoğraf ve şarkı", "Ücretsiz planda 36 fotoğraf (anılardakiler dahil) ve 36 şarkı"],
     ["💌", "Aynı anda 20 mühürlü mektup", "Ücretsiz planda aynı anda 1 mektup"],
     ["🫶", "Yan Yana istatistikleri", "Birlikte geçirdiğiniz günlerin aylık ve yıllık dökümü"],
     ["💬", "Kendi sorularınız", "Günün Sorusu'na kendi sorularınızı ekleyin"],
     ["📅", "Ruh hali takvimi", "Her ay nasıl hissettiğinizi takvimde görün"],
     ["🎨", "Takım ve hareketli temalar", "Kar, gece, orman, sakura… Yılımız özetinde de temaya özel sahneler"],
+    ["💧", "Su geçmişi ve serisi", "Son 7 günün ve kaç gündür hedefini tamamladığın"],
     ["💜", "Gelecek tüm Premium özellikleri", "Yeni 👑 özellikler geldikçe sizde"]
 ];
 
@@ -84,6 +86,12 @@ function startPremium() {
     window.firebase.listenCouple(couple => {
         premiumCouple = couple;
         renderPremiumStatus();
+        // Eski çiftlerde kota sayısı henüz yok: sunucu bir kez saysın
+        if (couple && !couple.usage && !usageRefreshAsked) {
+            usageRefreshAsked = true;
+            window.firebase.refreshUsage?.().catch(() => {});
+        }
+        renderQuotaNotes();
         if (typeof enforceThemeAccess === "function") enforceThemeAccess();
         // Partner başlangıç tarihini değiştirirse burada da güncellensin
         if (typeof applyStartDate === "function") applyStartDate(couple?.startDate);
@@ -140,7 +148,72 @@ function renderPremiumStatus() {
 
 // ── Premium ekranı ──────────────────────────────────────────
 
-async function openPremium() {
+// ── Ücretsiz kota: 36 fotoğraf (anı fotoğrafları dahil), 36 şarkı ──
+// Sunucudaki eşi: functions/index.js → FREE_LIMITS, firestore.rules → freeLimitOk
+const FREE_LIMITS = { photos: 36, songs: 36 };
+const QUOTA_WORDS = { photos: "fotoğraf", songs: "şarkı" };
+
+let usageRefreshAsked = false;
+
+function mediaQuota(kind) {
+
+    const limit = FREE_LIMITS[kind];
+    const used = Number(premiumCouple?.usage?.[kind]) || 0;
+    const unlimited = isPremiumPlan(premiumCouple);
+
+    return { used, limit, unlimited, left: Math.max(0, limit - used), full: !unlimited && used >= limit };
+
+}
+
+// Eklemeden önce çağır: yer varsa true; yoksa Premium'u açar, false
+function checkMediaQuota(kind) {
+
+    const q = mediaQuota(kind);
+
+    if (!q.full) return true;
+
+    const word = QUOTA_WORDS[kind];
+
+    openPremium(kind === "photos"
+        ? `Ücretsiz planda ${q.limit} fotoğraf ekleyebilirsiniz (anılardaki fotoğraflar dahil). Premium ile sınırsız 💜`
+        : `Ücretsiz planda ${q.limit} ${word} ekleyebilirsiniz. Premium ile sınırsız 💜`);
+
+    return false;
+
+}
+
+function quotaNoteHtml(kind) {
+
+    const q = mediaQuota(kind);
+
+    if (q.unlimited) return "";
+
+    const word = QUOTA_WORDS[kind];
+    const pct = Math.min(100, Math.round(q.used / q.limit * 100));
+
+    return `
+        <button class="quota-note${q.full ? " full" : q.left <= 6 ? " low" : ""}" type="button" onclick="openPremium()">
+            <span class="quota-note-top">
+                <b>${q.used} / ${q.limit} ${word}</b>
+                <small>${q.full ? "Doldu · 👑 Premium ile sınırsız" : "👑 Premium ile sınırsız"}</small>
+            </span>
+            <span class="quota-note-bar"><i style="width:${pct}%"></i></span>
+        </button>
+    `;
+
+}
+
+function renderQuotaNotes() {
+
+    const photos = document.getElementById("photosQuota");
+    const songs = document.getElementById("songsQuota");
+
+    if (photos) photos.innerHTML = quotaNoteHtml("photos");
+    if (songs) songs.innerHTML = quotaNoteHtml("songs");
+
+}
+
+async function openPremium(reason = "") {
 
     if (typeof closeSheets === "function") closeSheets();
 
@@ -161,6 +234,8 @@ async function openPremium() {
             <div class="pm-crown">👑</div>
             <div class="pm-title">Kalp Kalbe Premium</div>
             <div class="pm-sub">Bir kişi alır, ikiniz birlikte kullanırsınız.</div>
+
+            ${typeof reason === "string" && reason ? `<div class="pm-reason">${reason.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>` : ""}
 
             <div class="pm-features">
                 ${PREMIUM_FEATURES.map(([icon, title, text]) => `

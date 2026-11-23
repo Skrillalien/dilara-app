@@ -110,6 +110,7 @@ function closeMemoryComposer(force = false) {
 async function saveMemory() {
     const text = document.getElementById('memoryText').value.trim();
     if (!text) return;
+    if (selectedPhoto && typeof checkMediaQuota === "function" && !checkMediaQuota("photos")) return;
     const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.textContent = 'Kaydediliyor...';
@@ -134,6 +135,11 @@ async function saveMemory() {
 
     catch (e) {
         console.error("Anı kaydedilemedi:", e);
+        if (selectedPhoto && e?.code === "permission-denied" && typeof checkMediaQuota === "function" && !checkMediaQuota("photos")) {
+            btn.disabled = false;
+            btn.textContent = 'Kaydet';
+            return;
+        }
         showToast(selectedPhoto ? 'Fotoğraf yüklenemedi, tekrar dene.' : 'Anı kaydedilemedi.');
     }
 

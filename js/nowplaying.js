@@ -290,6 +290,8 @@ async function saveSharedSong(button) {
 
     if (!song || button.disabled) return;
 
+    if (typeof checkMediaQuota === "function" && !checkMediaQuota("songs")) return;
+
     button.disabled = true;
 
     try {

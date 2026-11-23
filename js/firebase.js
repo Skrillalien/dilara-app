@@ -297,6 +297,15 @@ async function getMyCouple() {
 }
 
 // Yılımız özeti (sunucuda hesaplanır, js/wrapped.js)
+// Ücretsiz kota sayılarını (couples.usage) sunucuya baştan saydırır
+async function refreshUsage() {
+
+    const result = await httpsCallable(functions, "refreshUsage")({});
+
+    return result.data;
+
+}
+
 async function getWrapped(year, refresh = false) {
 
     const result = await httpsCallable(functions, "getWrapped")({ year, refresh });
@@ -2504,6 +2513,7 @@ window.firebase = {
     setCoupleStartDate,
     markQuestionSeen,
     getWrapped,
+    refreshUsage,
     reorderSliderImages,
     amIAdmin,
     adminGrantPremium,

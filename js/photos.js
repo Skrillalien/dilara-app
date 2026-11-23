@@ -196,6 +196,8 @@ let selectedGalleryPhoto = null;
 
 function selectPhoto(){
 
+    if (typeof checkMediaQuota === "function" && !checkMediaQuota("photos")) return;
+
     document.getElementById("galleryPhotoInput").click();
 
 }
@@ -222,6 +224,10 @@ async function previewGalleryPhoto(event) {
     } catch (error) {
 
         console.error("Fotoğraf eklenemedi:", error);
+
+        // Kota başka telefondan dolmuş olabilir (kurallar reddeder)
+        if (error?.code === "permission-denied" && typeof checkMediaQuota === "function" && !checkMediaQuota("photos")) return;
+
         showToast("Fotoğraf yüklenemedi, tekrar dene.");
 
     } finally {

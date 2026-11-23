@@ -348,7 +348,10 @@ async function saveSong() {
 
     } catch (e) {
 
-        showToast("Hata: " + e.message);
+        if (e?.code === "permission-denied" && typeof checkMediaQuota === "function" && !checkMediaQuota("songs")) return;
+
+        showToast("Şarkı eklenemedi, tekrar dene.");
+        console.error(e);
 
     }
 
@@ -381,6 +384,8 @@ function openSongMenu(event, songId) {
 }
 
 function openSongForm() {
+
+    if (typeof checkMediaQuota === "function" && !checkMediaQuota("songs")) return;
 
     const form = document.getElementById("songForm");
     const container = document.getElementById("songFormContainer");
