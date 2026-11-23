@@ -92,6 +92,7 @@ function startPremium() {
             window.firebase.refreshUsage?.().catch(() => {});
         }
         renderQuotaNotes();
+        if (typeof renderBizInfo === "function") renderBizInfo();
         if (typeof enforceThemeAccess === "function") enforceThemeAccess();
         // Partner başlangıç tarihini değiştirirse burada da güncellensin
         if (typeof applyStartDate === "function") applyStartDate(couple?.startDate);

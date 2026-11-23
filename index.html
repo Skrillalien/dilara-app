@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=56">
+  <link rel="stylesheet" href="css/style.css?v=57">
   
   <link
     rel="stylesheet"
@@ -1350,6 +1350,9 @@
 
 <div class="action-overlay" id="actionOverlay" onclick="closeActionMenu()"></div>
 
+<!-- Gerçekleşen hayale fotoğraf (js/dreams.js) -->
+<input type="file" id="dreamPhotoInput" accept="image/*" class="hidden-input" onchange="onDreamPhotoChosen(event)">
+
 <div class="action-sheet" id="actionSheet">
 
     <button
@@ -1361,6 +1364,18 @@
         📥 İndir
 
     </button>
+
+    <button
+        id="actionDreamPhotoBtn"
+        class="action-btn"
+        style="display:none;"
+        onclick="dreamPhotoFromMenu()">📷 Fotoğraf ekle</button>
+
+    <button
+        id="actionDreamPhotoRemoveBtn"
+        class="action-btn"
+        style="display:none;"
+        onclick="removeDreamPhotoFromMenu()">🖼️ Fotoğrafı kaldır</button>
 
     <button
         id="actionDeleteBtn"
@@ -1928,7 +1943,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=29"></script>
+    <script type="module" src="js/firebase.js?v=30"></script>
     
     <script src="js/theme.js?v=8"></script>
     <script src="js/bny.js?v=4"></script>
@@ -1939,13 +1954,13 @@
     <script src="js/notifications.js?v=5"></script>
     <script src="js/images.js?v=4"></script>
     <script src="js/memories.js?v=15"></script>
-    <script src="js/photos.js?v=7"></script>
+    <script src="js/photos.js?v=8"></script>
     <script src="js/songs.js?v=8"></script>
-    <script src="js/dreams.js?v=7"></script>
+    <script src="js/dreams.js?v=8"></script>
 
 
 
-    <script src="js/ui.js?v=22"></script>
+    <script src="js/ui.js?v=23"></script>
 
     <script src="js/slider.js?v=5"></script>
 
@@ -1967,9 +1982,9 @@
     <script src="js/onboarding.js?v=1"></script>
     <script src="js/battery.js?v=1"></script>
     <script src="js/nowplaying.js?v=2"></script>
-    <script src="js/premium.js?v=6"></script>
-    <script src="js/download.js?v=1"></script>
-    <script src="js/guide.js?v=3"></script>
+    <script src="js/premium.js?v=7"></script>
+    <script src="js/download.js?v=2"></script>
+    <script src="js/guide.js?v=4"></script>
     <script src="js/wrapped.js?v=4"></script>
     <script src="js/water.js?v=2"></script>
     <script src="js/app.js?v=33"></script>

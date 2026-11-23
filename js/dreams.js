@@ -100,14 +100,32 @@ function renderDreamCard(dream) {
         ? `${escapeDream(dream.completedMessage || "✨ Birlikte yaptık")}${dream.completedAt ? " · " + dreamDateText(dream.completedAt.toMillis?.()) : ""}`
         : who;
 
-    return `
-        <div class="dream-card${done ? " done" : ""}${dream.id === dreamMovedId ? " moved" : ""}" data-id="${dream.id}" onclick="toggleDreamNote(this)">
+    // Gerçekleşen hayalin fotoğrafı: emoji dairesinin yerine geçer
+    // (kart büyümez); büyük hâli kart açılınca notun altında
+    const photo = done && hasImage(dream);
+    const canExpand = !!note || photo;
 
-            <div class="dream-emoji${emojiCountClass(dream.emoji)}">${escapeDream(dream.emoji || "✨")}</div>
+    return `
+        <div class="dream-card${done ? " done" : ""}${photo ? " has-photo" : ""}${canExpand ? " can-expand" : ""}${dream.id === dreamMovedId ? " moved" : ""}" data-id="${dream.id}" onclick="toggleDreamNote(this)">
+
+            ${photo ? `
+            <button class="dream-photo" type="button" aria-label="Fotoğrafı aç"
+                onclick="event.stopPropagation(); openDreamImage('${dream.id}')">
+                <img src="${imageSrc(dream, "thumb")}" alt="" loading="lazy" decoding="async">
+                <span class="dream-photo-emoji">${escapeDream(dream.emoji || "✨")}</span>
+            </button>` : done ? `
+            <button class="dream-emoji dream-emoji-add${emojiCountClass(dream.emoji)}" type="button" aria-label="Fotoğraf ekle"
+                onclick="event.stopPropagation(); pickDreamPhoto('${dream.id}')">
+                ${escapeDream(dream.emoji || "✨")}
+                <span class="dream-photo-emoji">📷</span>
+            </button>` : `
+            <div class="dream-emoji${emojiCountClass(dream.emoji)}">${escapeDream(dream.emoji || "✨")}</div>`}
 
             <div class="dream-body">
                 <div class="dream-title">${escapeDream(dream.title)}</div>
                 ${note ? `<div class="dream-note">${formatMemoryText(escapeDream(note))}</div>` : ""}
+                ${photo ? `<img class="dream-photo-big" src="${imageSrc(dream, "full")}" alt="" loading="lazy" decoding="async"
+                    onclick="event.stopPropagation(); openDreamImage('${dream.id}')">` : ""}
                 <div class="dream-meta">${meta}</div>
             </div>
 
@@ -207,7 +225,7 @@ function emojiCountClass(emoji) {
 
 // Uzun not iki satırda kısalır; karta dokununca tamamı açılır
 function toggleDreamNote(card) {
-    if (card.querySelector(".dream-note")) card.classList.toggle("expanded");
+    if (card.classList.contains("can-expand")) card.classList.toggle("expanded");
 }
 
 function openDreamForm() {
@@ -323,7 +341,7 @@ async function toggleDreamCompleted(id, completed, button) {
 
         await window.firebase.updateDream(id, data);
 
-        if (completed) showToast("🎉 Bir hayal daha gerçek oldu!");
+        if (completed) showDreamPhotoPrompt(id);
 
     } catch (error) {
 
@@ -337,6 +355,168 @@ async function toggleDreamCompleted(id, completed, button) {
         }
 
     }
+
+}
+
+// ── Gerçekleşen hayale fotoğraf ─────────────────────────────
+
+let dreamPhotoTarget = null;
+let dreamPromptTimer = null;
+
+// Hayal gerçekleşince: mesaj + küçük "📷 Fotoğraf ekle" düğmesi
+// (birkaç saniye durur, basılmazsa kaybolur)
+function showDreamPhotoPrompt(id) {
+
+    document.getElementById("dreamPhotoPrompt")?.remove();
+    clearTimeout(dreamPromptTimer);
+
+    const el = document.createElement("div");
+
+    el.id = "dreamPhotoPrompt";
+    el.className = "dream-prompt";
+    el.innerHTML = `
+        <span>🎉 Gerçek oldu!</span>
+        <button type="button">📷 Fotoğraf ekle</button>
+    `;
+
+    el.querySelector("button").addEventListener("click", () => {
+        hideDreamPhotoPrompt();
+        pickDreamPhoto(id);
+    });
+
+    document.body.appendChild(el);
+
+    requestAnimationFrame(() => el.classList.add("show"));
+
+    dreamPromptTimer = setTimeout(hideDreamPhotoPrompt, 6000);
+
+}
+
+function hideDreamPhotoPrompt() {
+
+    clearTimeout(dreamPromptTimer);
+
+    const el = document.getElementById("dreamPhotoPrompt");
+
+    if (!el) return;
+
+    el.classList.remove("show");
+    setTimeout(() => el.remove(), 250);
+
+}
+
+function pickDreamPhoto(id) {
+
+    // Fotoğraf kotası (36, anı ve hayal fotoğrafları dahil)
+    if (typeof checkMediaQuota === "function") {
+        const dream = currentDreams.find(d => d.id === id);
+        if (!hasImage(dream) && !checkMediaQuota("photos")) return;
+    }
+
+    dreamPhotoTarget = id;
+
+    document.getElementById("dreamPhotoInput").click();
+
+}
+
+async function onDreamPhotoChosen(event) {
+
+    const input = event.target;
+    const file = input.files?.[0];
+    const id = dreamPhotoTarget;
+
+    input.value = "";
+    dreamPhotoTarget = null;
+
+    if (!file || !id) return;
+
+    const card = document.querySelector(`.dream-card[data-id="${id}"]`);
+
+    card?.classList.add("uploading");
+
+    showToast("📷 Fotoğraf yükleniyor…");
+
+    try {
+
+        const prepared = await prepareImage(file);
+
+        await window.firebase.setDreamPhoto(id, prepared);
+
+        showToast("📷 Fotoğraf eklendi");
+
+        if (typeof galleryItems !== "undefined") galleryItems = [];
+
+    } catch (error) {
+
+        console.error("Hayal fotoğrafı eklenemedi:", error);
+
+        if (error?.code === "permission-denied" && typeof checkMediaQuota === "function" && !checkMediaQuota("photos")) return;
+
+        showToast("Fotoğraf yüklenemedi, tekrar dene.");
+
+    } finally {
+
+        card?.classList.remove("uploading");
+
+    }
+
+}
+
+async function removeDreamPhotoFromMenu() {
+
+    const id = currentActionId;
+
+    closeActionMenu();
+
+    if (!id) return;
+
+    const ok = await appConfirm({ icon: "🖼️", title: "Fotoğraf kaldırılsın mı?", text: "Hayal yerinde kalır, sadece fotoğrafı silinir.", ok: "Kaldır", danger: true });
+
+    if (!ok) return;
+
+    try {
+        await window.firebase.removeDreamPhoto(id);
+        showToast("Fotoğraf kaldırıldı");
+    } catch (error) {
+        console.error(error);
+        showToast("Kaldırılamadı, tekrar dene.");
+    }
+
+}
+
+function dreamPhotoFromMenu() {
+
+    const id = currentActionId;
+
+    closeActionMenu();
+
+    if (id) pickDreamPhoto(id);
+
+}
+
+function openDreamImage(id) {
+
+    const dream = currentDreams.find(d => d.id === id);
+
+    if (!dream || !hasImage(dream)) return;
+
+    showInViewer(dream);
+
+    document.getElementById("viewerAuthor").textContent = `${dream.emoji || "✨"} ${dream.title || ""}`;
+
+    const at = dream.completedAt?.toDate?.();
+
+    document.getElementById("viewerDate").textContent = at
+        ? at.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })
+        : "";
+
+    const text = document.getElementById("viewerText");
+    const note = String(dream.note || "").trim();
+
+    text.innerHTML = note ? formatMemoryText(escapeDream(note)) : "";
+    text.style.display = note ? "block" : "none";
+
+    document.getElementById("imageViewer").style.display = "flex";
 
 }
 

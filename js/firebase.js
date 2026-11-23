@@ -1459,6 +1459,38 @@ function listenDreams(callback) {
 
 }
 
+// Gerçekleşen hayale fotoğraf (dreams/{id}.imageUrl …).
+// Aynı yola yazılır: değiştirince eskisinin üzerine gelir.
+async function setDreamPhoto(id, prepared) {
+
+    const coupleId = await getMyCouple();
+
+    if (!coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const uploaded = await uploadCoupleImage(coupleId, "dreams", id, prepared);
+
+    await updateDoc(doc(db, "dreams", id), {
+        ...uploaded,
+        photoAt: serverTimestamp()
+    });
+
+}
+
+// Dosyaları sunucu siler (functions → onDreamUpdated)
+async function removeDreamPhoto(id) {
+
+    await updateDoc(doc(db, "dreams", id), {
+        imageUrl: deleteField(),
+        thumbUrl: deleteField(),
+        imagePath: deleteField(),
+        thumbPath: deleteField(),
+        width: deleteField(),
+        height: deleteField(),
+        photoAt: deleteField()
+    });
+
+}
+
 async function updateDream(id, data) {
 
     await updateDoc(
@@ -2513,6 +2545,8 @@ window.firebase = {
     setCoupleStartDate,
     markQuestionSeen,
     getWrapped,
+    setDreamPhoto,
+    removeDreamPhoto,
     refreshUsage,
     reorderSliderImages,
     amIAdmin,

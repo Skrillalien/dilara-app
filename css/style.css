@@ -9120,3 +9120,144 @@ html.sheet-open .page{
     line-height:1.45;
     text-align:center;
 }
+
+/* ── Gerçekleşen hayalin fotoğrafı (js/dreams.js) ────────── */
+/* Küçük hâli emoji dairesinin yerine geçer: kart büyümez */
+.dream-photo{
+    position:relative;
+    flex:0 0 auto;
+    width:38px;
+    height:38px;
+    padding:0;
+    border:none;
+    border-radius:12px;
+    background:rgba(var(--accent-rgb), .15);
+    overflow:visible;
+    cursor:pointer;
+}
+
+.dream-photo img{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    border-radius:12px;
+    box-shadow:0 0 0 2px rgba(var(--accent-rgb), .55);
+}
+
+.dream-photo-emoji{
+    position:absolute;
+    right:-5px;
+    bottom:-5px;
+    width:19px;
+    height:19px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:var(--surface);
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+    font-size:11px;
+    line-height:1;
+}
+
+/* Büyük hâli sadece kart açılınca */
+.dream-photo-big{
+    display:none;
+    width:100%;
+    max-height:240px;
+    margin-top:8px;
+    border-radius:14px;
+    object-fit:cover;
+    cursor:zoom-in;
+}
+
+.dream-card.expanded .dream-photo-big{
+    display:block;
+    animation:dreamPhotoIn .25s ease;
+}
+
+@keyframes dreamPhotoIn{
+    from{ opacity:0; transform:translateY(-4px); }
+    to{ opacity:1; transform:none; }
+}
+
+/* Gerçekleşmiş ama fotoğrafsız: emojinin köşesinde küçük 📷 */
+.dream-emoji-add{
+    position:relative;
+    padding:0;
+    border:none;
+    overflow:visible;
+    font-family:inherit;
+    color:inherit;
+    cursor:pointer;
+}
+
+.dream-emoji-add .dream-photo-emoji{
+    width:20px;
+    height:20px;
+    font-size:10.5px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow:0 0 0 2px var(--surface), 0 1px 4px rgba(0,0,0,.3);
+}
+
+.dream-emoji-add:active{ transform:scale(.94); }
+
+.dream-card.uploading .dream-emoji,
+.dream-card.uploading .dream-photo{
+    animation:dreamUploading 1s ease-in-out infinite alternate;
+}
+
+@keyframes dreamUploading{
+    from{ opacity:1; }
+    to{ opacity:.45; }
+}
+
+/* Galeride hayal fotoğrafı rozeti */
+.dream-badge{ font-size:13px; }
+
+/* Hayal gerçekleşince: mesaj + "📷 Fotoğraf ekle" */
+.dream-prompt{
+    position:fixed;
+    left:50%;
+    bottom:calc(96px + env(safe-area-inset-bottom));
+    z-index:10050;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    max-width:calc(100% - 32px);
+    padding:8px 8px 8px 16px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--surface);
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+    color:var(--text);
+    font-size:13.5px;
+    white-space:nowrap;
+    opacity:0;
+    transform:translate(-50%, 12px);
+    transition:opacity .2s ease, transform .25s ease;
+}
+
+.dream-prompt.show{
+    opacity:1;
+    transform:translate(-50%, 0);
+}
+
+.dream-prompt span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.dream-prompt button{
+    flex:0 0 auto;
+    padding:7px 12px;
+    border:none;
+    border-radius:999px;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:var(--on-accent);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+}

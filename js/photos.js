@@ -2,7 +2,10 @@ let galleryItems = [];
 
 async function getGalleryItems() {
 
-    const memories = await window.firebase.getMemories();
+    const [memories, dreams] = await Promise.all([
+        window.firebase.getMemories(),
+        window.firebase.getDreams().catch(() => [])
+    ]);
     const photos = (await window.firebase.getPhotos())
     .map(p => ({
         ...p,
@@ -26,7 +29,23 @@ async function getGalleryItems() {
             authorId: m.authorId
         }));
 
-    return [...memoryPhotos, ...photos]
+    // Gerçekleşen hayallerin fotoğrafları (✨ rozetiyle)
+    const dreamPhotos = dreams
+        .filter(d => d.completed && hasImage(d))
+        .map(d => ({
+            id: d.id,
+            imageUrl: d.imageUrl,
+            thumbUrl: d.thumbUrl,
+            width: d.width,
+            height: d.height,
+            createdAt: d.photoAt || d.completedAt || d.createdAt,
+            type: "dream",
+            text: `${d.emoji || "✨"} ${d.title || ""}`,
+            authorId: d.authorId,
+            author: d.author
+        }));
+
+    return [...memoryPhotos, ...dreamPhotos, ...photos]
         .sort((a, b) => {
 
             const ta = a.createdAt?.seconds || 0;
@@ -154,6 +173,8 @@ async function loadPhotos() {
                             `
                             : ""
                     }
+
+                    ${photo.type === "dream" ? `<div class="memory-badge dream-badge">✨</div>` : ""}
 
                     ${
                         photo.type === "photo"

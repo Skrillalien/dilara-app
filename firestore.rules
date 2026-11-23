@@ -185,8 +185,8 @@ service cloud.firestore {
       allow update: if shared()
         && inMyCouple(resource.data.coupleId)
         && !changes().hasAny(['coupleId', 'authorId'])
-        // Fotoğrafsız bir anıya sonradan fotoğraf eklemek de kotaya girer
-        && (collection != 'memories' || !hasPhotoData(request.resource.data)
+        // Fotoğrafsız bir anıya / hayale sonradan fotoğraf eklemek de kotaya girer
+        && (!(collection in ['memories', 'dreams']) || !hasPhotoData(request.resource.data)
             || hasPhotoData(resource.data)
             || freeLimitOk(resource.data.coupleId, 'photos'));
 
