@@ -2993,3 +2993,86 @@ exports.getWrapped = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (re
     return data;
 
 });
+
+// ─────────────────────────────────────────────────────────────
+// Ücretsiz kota: fotoğraf ve şarkı
+//
+// Ücretsiz planda çift başına 36 fotoğraf ve 36 şarkı. Fotoğraf
+// sayısına Fotoğraflarımız'daki fotoğraflar VE fotoğraflı anılar
+// birlikte girer. Anıların kendisi sınırsız.
+//
+// Sayılar couples/{id}.usage = { photos, songs } alanında tutulur;
+// her ekleme/silmede sunucu baştan sayar (kendini düzelten sayaç).
+// İstemci ve firestore.rules bu sayıya bakarak sınırı uygular.
+// İstemcideki eşi: js/app.js → FREE_LIMITS, kurallarda: freeLimitOk()
+// ─────────────────────────────────────────────────────────────
+
+const FREE_LIMITS = { photos: 36, songs: 36 };
+
+const memoryHasPhoto = m => !!(m && (m.imageUrl || m.thumbUrl || m.image));
+
+async function recountUsage(coupleId) {
+
+    if (!coupleId) return null;
+
+    const [photos, songs, memories] = await Promise.all([
+        db.collection("photos").where("coupleId", "==", coupleId).count().get(),
+        db.collection("songs").where("coupleId", "==", coupleId).count().get(),
+        db.collection("memories").where("coupleId", "==", coupleId)
+            .select("imageUrl", "thumbUrl", "image").get()
+    ]);
+
+    const usage = {
+        photos: photos.data().count + memories.docs.filter(d => memoryHasPhoto(d.data())).length,
+        songs: songs.data().count
+    };
+
+    const coupleRef = db.doc(`couples/${coupleId}`);
+    const couple = await coupleRef.get();
+
+    if (!couple.exists) return usage;
+
+    const old = couple.get("usage") || {};
+
+    if (old.photos !== usage.photos || old.songs !== usage.songs) {
+        await coupleRef.update({ usage });
+    }
+
+    return usage;
+
+}
+
+function usageTrigger(onlyIfPhotoChanged) {
+
+    return async (event) => {
+
+        const before = event.data?.before?.data();
+        const after = event.data?.after?.data();
+
+        // Anılarda sadece fotoğraf eklenip/çıkınca say
+        if (onlyIfPhotoChanged && memoryHasPhoto(before) === memoryHasPhoto(after)) return;
+
+        try {
+            await recountUsage(after?.coupleId || before?.coupleId);
+        } catch (error) {
+            logger.error("Kota sayılamadı", error);
+        }
+
+    };
+
+}
+
+exports.usagePhotos = onDocumentWritten("photos/{id}", usageTrigger(false));
+exports.usageSongs = onDocumentWritten("songs/{id}", usageTrigger(false));
+exports.usageMemories = onDocumentWritten("memories/{id}", usageTrigger(true));
+
+// Eski çiftlerde usage alanı henüz yok: uygulama bir kez ister
+exports.refreshUsage = onCall(async (request) => {
+
+    const { coupleId } = await requireCouple(request.auth?.uid);
+
+    const usage = await recountUsage(coupleId);
+
+    return { usage, limits: FREE_LIMITS };
+
+});

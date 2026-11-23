@@ -9048,3 +9048,73 @@ html.sheet-open .page{
     background:#e5484d;
     color:#fff;
 }
+
+/* ── Ücretsiz kota notu (Fotoğraflarımız / Şarkılarımız) ─── */
+.quota-note{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    width:100%;
+    margin:0 0 14px;
+    padding:11px 14px 12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--surface);
+    color:var(--text);
+    font-family:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+
+.quota-note-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.quota-note-top b{
+    font-size:13.5px;
+    font-weight:600;
+    white-space:nowrap;
+}
+
+.quota-note-top small{
+    font-size:12px;
+    color:var(--muted);
+    white-space:nowrap;
+}
+
+.quota-note-bar{
+    display:block;
+    height:5px;
+    border-radius:99px;
+    background:rgba(var(--text-rgb), .1);
+    overflow:hidden;
+}
+
+.quota-note-bar i{
+    display:block;
+    height:100%;
+    border-radius:inherit;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+}
+
+.quota-note.full{ border-color:rgba(var(--accent-rgb), .55); }
+
+.quota-note.full .quota-note-top small,
+.quota-note.low .quota-note-top small{
+    color:var(--accent);
+    font-weight:600;
+}
+
+/* Premium penceresinde neden açıldığı (ör. kota doldu) */
+.pm-reason{
+    margin:12px 0 4px;
+    padding:10px 12px;
+    border-radius:14px;
+    background:rgba(var(--accent-rgb), .12);
+    font-size:13px;
+    line-height:1.45;
+    text-align:center;
+}

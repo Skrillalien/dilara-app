@@ -58,6 +58,39 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys();
     }
 
+    // ── Premium ve ücretsiz kota ────────────────────────────
+    // Premium sınırları uygulanıyor mu? js/app.js ve
+    // functions/index.js'teki PREMIUM_ENFORCED ile AYNI olmalı.
+    function premiumEnforced() {
+      return false;
+    }
+
+    function premiumPartOk(p) {
+      return p is map && ('until' in p)
+        && (p.until == null || p.until > request.time);
+    }
+
+    function couplePremium(c) {
+      return c.get('plan', 'free') == 'premium'
+        || premiumPartOk(c.get('premium', {}).get('gift', null))
+        || premiumPartOk(c.get('premium', {}).get('store', null));
+    }
+
+    // Ücretsiz planda 36 fotoğraf (fotoğraflı anılar dahil) ve 36 şarkı.
+    // Sayılar couples.usage'ta, sunucu tutar (functions → recountUsage).
+    function freeLimitOk(coupleId, kind) {
+      return !premiumEnforced()
+        || couplePremium(get(/databases/$(database)/documents/couples/$(coupleId)).data)
+        || get(/databases/$(database)/documents/couples/$(coupleId)).data
+             .get('usage', {}).get(kind, 0) < 36;
+    }
+
+    function hasPhotoData(d) {
+      return d.get('imageUrl', null) != null
+        || d.get('thumbUrl', null) != null
+        || d.get('image', null) != null;
+    }
+
     // ── Kullanıcı profilleri ─────────────────────────────────
     // Kendi profilini ve partnerinin profilini (isim) okuyabilirsin.
     // coupleId'yi sadece üyesi olduğun bir çifte ayarlayabilir ya da
@@ -110,7 +143,7 @@ service cloud.firestore {
       // ama üye listesine, davet koduna, pakete (plan) ve soru sırasına dokunamaz
       allow update: if signedIn()
         && me() in resource.data.members
-        && !changes().hasAny(['members', 'inviteCode', 'plan', 'premium', 'questionCursor', 'customQueue', 'together'])
+        && !changes().hasAny(['members', 'inviteCode', 'plan', 'premium', 'questionCursor', 'customQueue', 'together', 'usage'])
         // Yakınlık izni: herkes sadece kendi iznini değiştirebilir
         && (!('proximityOptIn' in changes())
             || request.resource.data.proximityOptIn
@@ -141,12 +174,21 @@ service cloud.firestore {
       // Ekleyen kendi adına ekler, kendi çiftine ekler
       allow create: if shared()
         && inMyCouple(request.resource.data.coupleId)
-        && request.resource.data.get('authorId', me()) == me();
+        && request.resource.data.get('authorId', me()) == me()
+        // Ücretsiz kota (fotoğraf, fotoğraflı anı, şarkı)
+        && (collection != 'photos' || freeLimitOk(request.resource.data.coupleId, 'photos'))
+        && (collection != 'songs' || freeLimitOk(request.resource.data.coupleId, 'songs'))
+        && (collection != 'memories' || !hasPhotoData(request.resource.data)
+            || freeLimitOk(request.resource.data.coupleId, 'photos'));
 
       // Kayıt başka bir çifte taşınamaz, yazarı değiştirilemez
       allow update: if shared()
         && inMyCouple(resource.data.coupleId)
-        && !changes().hasAny(['coupleId', 'authorId']);
+        && !changes().hasAny(['coupleId', 'authorId'])
+        // Fotoğrafsız bir anıya sonradan fotoğraf eklemek de kotaya girer
+        && (collection != 'memories' || !hasPhotoData(request.resource.data)
+            || hasPhotoData(resource.data)
+            || freeLimitOk(resource.data.coupleId, 'photos'));
 
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
     }
