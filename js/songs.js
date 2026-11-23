@@ -356,7 +356,7 @@ async function saveSong() {
 
 async function deleteSong(id) {
 
-    if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
+    if (!await appConfirm({ icon: "🎵", title: "Bu şarkı silinsin mi?", ok: "Sil", danger: true })) return;
 
     try {
 

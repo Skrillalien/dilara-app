@@ -223,6 +223,8 @@ function closeTopLayer() {
         return el && getComputedStyle(el).display !== "none";
     };
 
+    if (typeof closeAppConfirm === "function" && closeAppConfirm(false)) return true;
+
     if (typeof onboardingBack === "function" && onboardingBack()) return true;
 
     if (typeof closeNowPlayingSheet === "function" && closeNowPlayingSheet()) return true;
@@ -280,7 +282,7 @@ const App = window.Capacitor?.Plugins?.App;
 
 if (App) {
 
-    App.addListener("backButton", () => {
+    App.addListener("backButton", async () => {
 
         // 1. Açık bir pencere/panel varsa önce onu kapat
         if (closeTopLayer()) return;
@@ -311,7 +313,9 @@ if (App) {
         }
 
         // 4. Ana sayfadaysak çıkışı sor
-        if (confirm("Uygulamadan çıkmak istiyor musun? 💜")) {
+        if (typeof appConfirm === "function"
+            ? await appConfirm({ icon: "💜", title: "Uygulamadan çıkmak istiyor musun?", ok: "Çık", cancel: "Kal" })
+            : confirm("Uygulamadan çıkmak istiyor musun? 💜")) {
             App.exitApp();
         }
 

@@ -481,7 +481,7 @@ async function cancelLetterFromMenu() {
 
     closeLetterMenu();
 
-    if (!confirm("Bu mektubu iptal etmek istiyor musun? Mektup silinecek ve geri getirilemeyecek.")) return;
+    if (!await appConfirm({ icon: "✉️", title: "Mektup iptal edilsin mi?", text: "Mektup silinecek ve geri getirilemeyecek.", ok: "İptal et", cancel: "Vazgeç", danger: true })) return;
 
     try {
 

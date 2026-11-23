@@ -267,11 +267,12 @@ async function toggleProximity() {
 
     }
 
-    const ok = confirm(
-        "Yakınlık açılsın mı?\n\n" +
-        "Uygulama açıkken telefonun kaba konumu kontrol edilir. " +
-        "Konumun partnerine gösterilmez ve saklanmaz; sadece yan yana olup olmadığınız hesaplanır."
-    );
+    const ok = await appConfirm({
+        icon: "💞",
+        title: "Yakınlık açılsın mı?",
+        text: "Uygulama açıkken telefonun kaba konumu kontrol edilir. Konumun partnerine gösterilmez ve saklanmaz; sadece yan yana olup olmadığınız hesaplanır.",
+        ok: "Aç"
+    });
 
     if (!ok) return;
 

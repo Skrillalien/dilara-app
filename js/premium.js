@@ -428,7 +428,7 @@ async function grantGiftPremium(button) {
 
 async function revokeGiftPremium(email) {
 
-    if (!confirm(`${email} için hediye Premium kaldırılsın mı?`)) return;
+    if (!await appConfirm({ icon: "🎁", title: "Hediye Premium kaldırılsın mı?", text: email, ok: "Kaldır", danger: true })) return;
 
     try {
         await window.firebase.adminRevokePremium({ email });

@@ -701,7 +701,7 @@ async function registerUser(button) {
     if (button?.disabled) return;
 
     // "gmial.com" gibi yazım hatalarını yakala
-    email = confirmEmailSpelling(email);
+    email = await confirmEmailSpelling(email);
 
     const originalText = button?.innerHTML;
 
@@ -1216,7 +1216,7 @@ async function saveStartDate(button) {
 
     const nice = new Date(value + "T00:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
-    if (!confirm(`Sevgili olduğunuz tarih ${nice} olarak değişsin mi? Partnerinde de değişir.`)) {
+    if (!await appConfirm({ icon: "💞", title: `Tarih ${nice} olsun mu?`, text: "Sevgili olduğunuz tarih partnerinde de değişir.", ok: "Değiştir" })) {
         renderStartDateSetting();
         return;
     }

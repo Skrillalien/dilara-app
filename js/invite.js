@@ -203,10 +203,12 @@ async function offerJoinInsteadOfOwnCouple(code) {
         return;
     }
 
-    const ok = confirm(
-        "Partnerinin davet bağlantısıyla geldin.\n\n" +
-        "Ona katılmak ister misin? Kendi oluşturduğun boş çift silinir."
-    );
+    const ok = await appConfirm({
+        icon: "💌",
+        title: "Partnerinin davet bağlantısıyla geldin",
+        text: "Ona katılmak ister misin? Kendi oluşturduğun boş çift silinir.",
+        ok: "Katıl"
+    });
 
     if (!ok) {
         clearPendingInvite();

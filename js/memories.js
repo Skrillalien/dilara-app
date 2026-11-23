@@ -91,7 +91,11 @@ function closeMemoryComposer(force = false) {
     const text = document.getElementById("memoryText");
 
     // Yazılmış bir şey varsa yanlışlıkla silinmesin
-    if (!force && (text.value.trim() || selectedPhoto) && !confirm("Yazdıkların silinsin mi?")) return;
+    if (!force && (text.value.trim() || selectedPhoto)) {
+        appConfirm({ icon: "📝", title: "Yazdıkların silinsin mi?", ok: "Sil", cancel: "Yazmaya devam", danger: true })
+            .then(ok => ok && closeMemoryComposer(true));
+        return;
+    }
 
     text.value = "";
     selectedPhoto = null;
