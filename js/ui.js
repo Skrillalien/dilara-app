@@ -616,3 +616,73 @@ function initPageBackButtons() {
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPageBackButtons);
 else initPageBackButtons();
+
+// ── Onay penceresi (tarayıcının confirm() yerine) ───────────
+// Temaya uygun, alttan açılan küçük kart. Promise<boolean> döner.
+//   await appConfirm({ icon: "🗑️", title: "Silinsin mi?", text: "…", ok: "Sil", danger: true })
+
+let appConfirmResolve = null;
+
+function appConfirm(opts = {}) {
+
+    if (typeof opts === "string") opts = { title: opts };
+
+    closeAppConfirm();
+
+    const esc = v => String(v ?? "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const wrap = document.createElement("div");
+
+    wrap.id = "appConfirm";
+    wrap.className = "app-confirm-wrap";
+    wrap.innerHTML = `
+        <div class="app-confirm-overlay"></div>
+        <div class="app-confirm" role="alertdialog" aria-modal="true">
+            ${opts.icon ? `<div class="app-confirm-icon${opts.danger ? " danger" : ""}">${opts.icon}</div>` : ""}
+            <div class="app-confirm-title">${esc(opts.title || "Emin misin?")}</div>
+            ${opts.text ? `<div class="app-confirm-text">${esc(opts.text)}</div>` : ""}
+            <div class="app-confirm-actions">
+                <button type="button" class="app-confirm-btn cancel">${esc(opts.cancel || "Vazgeç")}</button>
+                <button type="button" class="app-confirm-btn ok${opts.danger ? " danger" : ""}">${esc(opts.ok || "Tamam")}</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(wrap);
+
+    requestAnimationFrame(() => wrap.classList.add("show"));
+
+    window.appHaptics?.light?.();
+
+    return new Promise(resolve => {
+
+        appConfirmResolve = resolve;
+
+        wrap.querySelector(".app-confirm-overlay").addEventListener("click", () => closeAppConfirm(false));
+        wrap.querySelector(".cancel").addEventListener("click", () => closeAppConfirm(false));
+        wrap.querySelector(".ok").addEventListener("click", () => closeAppConfirm(true));
+
+    });
+
+}
+
+// Açıksa kapatır (geri tuşu da kullanır); bir şey kapattıysa true
+function closeAppConfirm(result = false) {
+
+    const wrap = document.getElementById("appConfirm");
+
+    if (!wrap) return false;
+
+    const resolve = appConfirmResolve;
+    appConfirmResolve = null;
+
+    wrap.classList.remove("show");
+    wrap.id = "";
+    setTimeout(() => wrap.remove(), 220);
+
+    resolve?.(result);
+
+    return true;
+
+}

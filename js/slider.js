@@ -295,7 +295,7 @@ async function saveSliderOrder() {
 
 async function deleteSliderImage(id){
 
-    if(!confirm("Bu kapak fotoğrafını silmek istiyor musun?"))
+    if(!await appConfirm({ icon: "🖼️", title: "Kapak fotoğrafı silinsin mi?", ok: "Sil", danger: true }))
         return;
 
     await window.firebase.deleteSliderImage(id);

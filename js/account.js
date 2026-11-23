@@ -266,7 +266,7 @@ async function confirmDeleteAccount(button) {
         return;
     }
 
-    if (!confirm("Son kez soruyoruz: hesabın ve eklediğin her şey kalıcı olarak silinecek. Emin misin?")) return;
+    if (!await appConfirm({ icon: "⚠️", title: "Son kez soruyoruz", text: "Hesabın ve eklediğin her şey kalıcı olarak silinecek. Bu geri alınamaz.", ok: "Hesabımı sil", danger: true })) return;
 
     await withButtonBusy(button, "Siliniyor…", async () => {
 

@@ -83,17 +83,19 @@ function suggestEmail(email) {
 }
 
 // Kayıttan önce: öneri varsa sor. Kullanılacak adresi döndürür.
-function confirmEmailSpelling(email) {
+async function confirmEmailSpelling(email) {
 
     const suggestion = suggestEmail(email);
 
     if (!suggestion) return email;
 
-    const ok = confirm(
-        `E-posta adresin "${email}" olarak yazılmış.\n\n` +
-        `"${suggestion}" mu demek istedin?\n\n` +
-        `Tamam: düzelt · İptal: yazdığım gibi kalsın`
-    );
+    const ok = await appConfirm({
+        icon: "✉️",
+        title: `"${suggestion}" mu demek istedin?`,
+        text: `E-posta adresin "${email}" olarak yazılmış.`,
+        ok: "Düzelt",
+        cancel: "Yazdığım gibi kalsın"
+    });
 
     if (!ok) return email;
 
