@@ -50,7 +50,8 @@ const SHEETS = {
     missPanel:     { overlay: "missOverlay",     close: () => closeMissPanel() },
     settingsPanel: { overlay: "settingsOverlay", close: () => toggleSettings() },
     moodSheet:        { overlay: "moodOverlay",  close: () => closeMoodPicker() },
-    partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() }
+    partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() },
+    waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() }
 };
 
 function isSheetOpen(id) {
@@ -190,6 +191,7 @@ function initSheetDrags() {
     initSheetDrag("missPanel");
     initSheetDrag("moodSheet");
     initSheetDrag("partnerMoodSheet");
+    initSheetDrag("waterSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");
@@ -222,6 +224,16 @@ function openAppTarget(target) {
         showPage("home");
         setTimeout(() => {
             document.getElementById("questionCard")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+        return;
+    }
+
+    // Su hatırlatması: ana sayfadaki su kartı (kendi hatırlatıcın paneli açar)
+    if (target === "water") {
+        showPage("home");
+        setTimeout(() => {
+            document.getElementById("waterCard")
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
         return;

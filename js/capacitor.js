@@ -34,11 +34,30 @@ window.appNotifications = {
 
         const pending = await LocalNotifications.getPending();
 
-        if (pending.notifications?.length) {
+        // Su hatırlatıcısı (js/water.js, 7100–7199) telefonda kalır
+        const old = (pending.notifications || []).filter(n => n.id < 7100 || n.id > 7199);
+
+        if (old.length) {
             await LocalNotifications.cancel({
-                notifications: pending.notifications.map(n => ({ id: n.id }))
+                notifications: old.map(n => ({ id: n.id }))
             });
         }
+
+    },
+
+    async cancelIds(ids) {
+
+        if (!ids?.length) return;
+
+        await LocalNotifications.cancel({
+            notifications: ids.map(id => ({ id }))
+        });
+
+    },
+
+    async scheduleMany(notifications) {
+
+        await LocalNotifications.schedule({ notifications });
 
     },
 
@@ -151,6 +170,11 @@ async function setupPush() {
             openPushPage(action.notification?.data?.page);
         });
 
+        // Telefonda kurulan hatırlatmalar (su) için de aynısı
+        LocalNotifications.addListener("localNotificationActionPerformed", action => {
+            openPushPage(action.notification?.extra?.page);
+        });
+
         // Uygulama açıkken gelen bildirim sistem bildirimi olarak
         // gösterilmez; uygulama içi şerit (inbox.js) zaten gösteriyor.
 
@@ -235,6 +259,8 @@ function closeTopLayer() {
     if (isOpen("otdViewer")) { closeOnThisDay(); return true; }
 
     if (isOpen("moodSheet")) { closeMoodPicker(); return true; }
+
+    if (isOpen("waterSheet")) { closeWaterSheet(); return true; }
 
     if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }
 

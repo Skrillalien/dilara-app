@@ -151,6 +151,34 @@ service cloud.firestore {
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
     }
 
+    // ── Su takibi ───────────────────────────────────────────
+    // water/{coupleId}_{uid}_{gün}: herkes sadece kendi gününü yazar,
+    // ikiniz de okuyabilirsiniz. Silinmez (hesap silinince sunucu siler).
+    match /water/{docId} {
+
+      function validWater() {
+        let d = request.resource.data;
+        return signedIn()
+          && d.authorId == me()
+          && inMyCouple(d.coupleId)
+          && d.day is string
+          && docId == d.coupleId + '_' + me() + '_' + d.day
+          && d.ml is int && d.ml >= 0 && d.ml <= 20000
+          && d.goal is int && d.goal >= 500 && d.goal <= 6000;
+      }
+
+      // Henüz olmayan günü okumak (geçmiş) da serbest: içinde bir şey yok
+      allow read: if signedIn()
+        && (resource == null || inMyCouple(resource.data.coupleId));
+
+      allow create: if validWater();
+
+      allow update: if validWater()
+        && !changes().hasAny(['coupleId', 'authorId', 'day']);
+
+      allow delete: if false;
+    }
+
     // ── Mühürlü mektuplar ───────────────────────────────────
     // Yazma işlemleri Cloud Function'lardan geçer (sealLetter,
     // updateLetter, deleteLetter, openLetterNow). İstemci sadece

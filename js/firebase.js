@@ -21,7 +21,8 @@ import {
     runTransaction,
     deleteField,
     writeBatch,
-    getCountFromServer
+    getCountFromServer,
+    increment
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 import {
@@ -1898,6 +1899,106 @@ async function sendNudge(type, extra = {}) {
 
 }
 
+// ── Su takibi (js/water.js) ─────────────────────────────────
+// water/{coupleId}_{uid}_{gün} = { coupleId, authorId, day, ml, goal }
+
+// Bugünün iki kaydını (ikinizin) dinler: uid → { ml, goal }
+function listenWater(day, callback) {
+
+    let unsubscribe = null;
+    let stopped = false;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId || stopped) {
+            callback({});
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(collection(db, "water"), where("coupleId", "==", coupleId), where("day", "==", day)),
+            snap => {
+                const out = {};
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    out[data.authorId] = { ml: data.ml || 0, goal: data.goal || null };
+                });
+                callback(out);
+            },
+            error => console.error("Su dinlenemedi:", error)
+        );
+
+    });
+
+    return () => {
+        stopped = true;
+        unsubscribe?.();
+    };
+
+}
+
+// delta: eklenecek ml (geri alırken eksi)
+async function addWater(day, delta, goal) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    await setDoc(doc(db, "water", `${coupleId}_${user.uid}_${day}`), {
+        coupleId,
+        authorId: user.uid,
+        day,
+        goal: Math.round(goal),
+        ml: increment(Math.round(delta)),
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+
+}
+
+async function getWaterSettings() {
+
+    const profile = await getUserProfile();
+
+    return profile?.water || null;
+
+}
+
+async function saveWaterSettings({ goal, glass }) {
+
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("NOT_SIGNED_IN");
+
+    await updateDoc(doc(db, "users", user.uid), {
+        "water.goal": Math.round(goal),
+        "water.glass": Math.round(glass)
+    });
+
+}
+
+// Kendi son günlerim: gün → { ml, goal }
+async function getWaterHistory(days) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return {};
+
+    const snaps = await Promise.all(days.map(day =>
+        getDoc(doc(db, "water", `${coupleId}_${user.uid}_${day}`)).catch(() => null)
+    ));
+
+    const out = {};
+
+    snaps.forEach((snap, i) => {
+        if (snap?.exists()) out[days[i]] = { ml: snap.get("ml") || 0, goal: snap.get("goal") || null };
+    });
+
+    return out;
+
+}
+
 // Bir kişinin ruh hali geçmişi (takvim)
 async function getMoodLogs(uid) {
 
@@ -2417,6 +2518,11 @@ window.firebase = {
     listenMoods,
     setMood,
     sendNudge,
+    listenWater,
+    addWater,
+    getWaterSettings,
+    saveWaterSettings,
+    getWaterHistory,
     getMoodLogs,
     listenQuestions,
     listenMyAnswers,

@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=50">
+  <link rel="stylesheet" href="css/style.css?v=51">
   
   <link
     rel="stylesheet"
@@ -307,6 +307,9 @@
       <button class="mood-chip" id="moodMine" onclick="openMoodPicker()"></button>
       <button class="mood-chip" id="moodTheirs" onclick="openPartnerMood()"></button>
     </div>
+
+    <!-- Su (js/water.js) -->
+    <div class="water-card" id="waterCard" style="display:none;"></div>
 
     <div class="dashboard-card" id="waitingCard" style="display:none;">
 
@@ -1521,6 +1524,15 @@
 <!-- Ruh hali panelleri -->
 <div class="bny-overlay" id="moodOverlay" onclick="closeSheets()"></div>
 
+<!-- Su: hedef, bardak, hatırlatıcı, son 7 gün (js/water.js) -->
+<div class="bny-overlay" id="waterOverlay" onclick="closeSheets()"></div>
+
+<div class="bny-panel water-sheet" id="waterSheet">
+  <div class="bny-handle"></div>
+  <div class="bny-title">💧 Bugün</div>
+  <div id="waterSheetBody"></div>
+</div>
+
 <div class="bny-panel mood-sheet" id="moodSheet">
 
   <div class="bny-handle"></div>
@@ -1912,7 +1924,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=27"></script>
+    <script type="module" src="js/firebase.js?v=28"></script>
     
     <script src="js/theme.js?v=8"></script>
     <script src="js/bny.js?v=4"></script>
@@ -1920,7 +1932,7 @@
 
     <script type="module" src="js/capacitor.js"></script>
 
-    <script src="js/notifications.js?v=4"></script>
+    <script src="js/notifications.js?v=5"></script>
     <script src="js/images.js?v=4"></script>
     <script src="js/memories.js?v=13"></script>
     <script src="js/photos.js?v=6"></script>
@@ -1929,7 +1941,7 @@
 
 
 
-    <script src="js/ui.js?v=20"></script>
+    <script src="js/ui.js?v=21"></script>
 
     <script src="js/slider.js?v=4"></script>
 
@@ -1955,7 +1967,8 @@
     <script src="js/download.js?v=1"></script>
     <script src="js/guide.js?v=3"></script>
     <script src="js/wrapped.js?v=4"></script>
-    <script src="js/app.js?v=31"></script>
+    <script src="js/water.js?v=1"></script>
+    <script src="js/app.js?v=32"></script>
   
 </body>
 </html>

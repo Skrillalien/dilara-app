@@ -98,7 +98,8 @@ const NOTIFY_TYPES = [
     { key: "letters",   icon: "💌", title: "Mühürlü mektuplar" },
     { key: "questions", icon: "💬", title: "Günün Sorusu" },
     { key: "reminders", icon: "📅", title: "Hatırlatmalar", hint: "Özel günler, ay dönümleri, bugün geçen yıl, seri" },
-    { key: "music",     icon: "🎧", title: "Şu an dinliyorum" }
+    { key: "music",     icon: "🎧", title: "Şu an dinliyorum" },
+    { key: "waterAuto", icon: "💧", title: "Su hatırlatıcısı", hint: "Hedefin gerideyse gün içinde hatırlatır" }
 ];
 
 let notifyPrefs = {};
@@ -114,6 +115,8 @@ async function initNotifyPrefs() {
     } catch {
         notifyPrefs = {};
     }
+
+    if (typeof rescheduleWaterReminders === "function") rescheduleWaterReminders();
 
     box.innerHTML = NOTIFY_TYPES.map(t => `
         <label class="notify-row">
@@ -143,6 +146,11 @@ async function saveNotifyPref(input) {
         await window.firebase.setNotifyPref(key, value);
 
         notifyPrefs[key] = value;
+
+        // Su hatırlatıcısı telefonda kurulur
+        if (key === "waterAuto" && typeof rescheduleWaterReminders === "function") {
+            rescheduleWaterReminders();
+        }
 
     } catch (error) {
 

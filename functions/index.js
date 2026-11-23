@@ -1269,9 +1269,62 @@ exports.onMoodLogged = onDocumentCreated("moodLogs/{id}", async (event) => {
 
 });
 
+// Su hatırlatması (js/water.js): sevgilinin bardağına dokununca.
+// Kişi başına yarım saatte en fazla bir tane.
+const WATER_NUDGE_GAP_MS = 30 * 60 * 1000;
+
+const WATER_NUDGE_LINES = [
+    "Sevgilim, bir bardak su içer misin? Benim için 💙",
+    "Su içme vakti! Sen içmeden içim rahat etmeyecek 🥺",
+    "Bir bardak su iç, sonra gelip sana sarılacağım 🫂",
+    "Güzel bardağın boş kalmasın, hadi bir yudum 💧",
+    "Seni seviyorum, şimdi bir bardak su iç 😘",
+    "Kendine iyi bak diye hatırlatıyorum: bir bardak su 💙"
+];
+
+async function sendWaterNudge(data) {
+
+    const stateRef = db.doc(`waterNudge/${data.authorId}`);
+
+    const allowed = await db.runTransaction(async tx => {
+        const state = await tx.get(stateRef);
+        const last = state.get("lastAt")?.toMillis?.() || 0;
+        if (Date.now() - last < WATER_NUDGE_GAP_MS) return false;
+        tx.set(stateRef, { lastAt: admin.firestore.Timestamp.now() });
+        return true;
+    });
+
+    if (!allowed) {
+        logger.info("Su hatırlatması atlandı (30 dk dolmadı)", { authorId: data.authorId });
+        return;
+    }
+
+    const couple = await db.doc(`couples/${data.coupleId}`).get();
+    const partnerId = (couple.get("members") || []).find(m => m !== data.authorId);
+
+    if (!partnerId) return;
+
+    const line = WATER_NUDGE_LINES[Math.floor(Math.random() * WATER_NUDGE_LINES.length)];
+
+    await sendPushToUser(partnerId, {
+        title: `💧 ${await userName(data.authorId)}`,
+        body: line,
+        data: { page: "water", type: "nudge" },
+        tag: "water",
+        category: "love"
+    });
+
+}
+
 exports.onNudge = onDocumentCreated("nudges/{id}", async (event) => {
 
     const data = event.data?.data();
+
+    if (data?.type === "water") {
+        await sendWaterNudge(data);
+        return;
+    }
+
     const nudge = NUDGES[data?.type];
 
     if (!data || !nudge) return;
@@ -1774,6 +1827,7 @@ exports.clearPresence = onCall(async (request) => {
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
     "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
+    "water",
     // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
     "sliderImages"
 ];
@@ -1919,6 +1973,7 @@ exports.deleteAccount = onCall(async (request) => {
         db.doc(`nowPlaying/${uid}`).delete().catch(() => {}),
         db.doc(`photoNotify/${uid}`).delete().catch(() => {}),
         db.doc(`missNotify/${uid}`).delete().catch(() => {}),
+        db.doc(`waterNudge/${uid}`).delete().catch(() => {}),
         userRef.delete()
     ]);
 
