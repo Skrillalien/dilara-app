@@ -41,12 +41,12 @@ service firebase.storage {
       allow read: if kind != 'sealed' && isMember(coupleId);
 
       // Açılmış mektup fotoğraflarını (letters/) sadece sunucu yazar
-      allow create, update: if kind in ['photos', 'memories', 'slider']
+      allow create, update: if kind in ['photos', 'memories', 'slider', 'dreams']
         && isMember(coupleId)
         && request.resource.size < 3 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
 
-      allow delete: if kind in ['photos', 'memories', 'slider'] && isMember(coupleId);
+      allow delete: if kind in ['photos', 'memories', 'slider', 'dreams'] && isMember(coupleId);
     }
 
   }

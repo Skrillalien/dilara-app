@@ -139,6 +139,11 @@ function actionImageItem(type, id) {
         return item && hasImage(item) ? item : null;
     }
 
+    if (type === "dream") {
+        const item = (typeof currentDreams !== "undefined" ? currentDreams : []).find(d => d.id === id);
+        return item && hasImage(item) ? item : null;
+    }
+
     return null;
 
 }

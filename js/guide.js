@@ -522,9 +522,13 @@ function renderBizInfo() {
     const memPhotos = Array.isArray(window.lastMemoryCache) && typeof hasImage === "function"
         ? window.lastMemoryCache.filter(hasImage).length
         : null;
-    const photos = num(s.photos) !== null && memPhotos !== null
-        ? s.photos + memPhotos
-        : (typeof galleryItems !== "undefined" && galleryItems.length ? galleryItems.length : num(s.photos));
+    // Sunucunun tuttuğu sayı (fotoğraflar + anı + hayal fotoğrafları) varsa o
+    const usagePhotos = typeof premiumCouple !== "undefined" ? num(premiumCouple?.usage?.photos) : null;
+    const photos = usagePhotos !== null
+        ? usagePhotos
+        : num(s.photos) !== null && memPhotos !== null
+            ? s.photos + memPhotos
+            : (typeof galleryItems !== "undefined" && galleryItems.length ? galleryItems.length : num(s.photos));
     setBizInfo("our-photos", photos ? `${photos} fotoğraf` : photos === 0 ? "＋ İlk fotoğrafı ekle" : "", null, photos === 0);
 
     // Şarkılar

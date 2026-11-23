@@ -355,7 +355,7 @@ function openImage(index) {
 
     }
 
-    if (photo.type === "memory" && photo.text) {
+    if ((photo.type === "memory" || photo.type === "dream") && photo.text) {
 
         document.getElementById("viewerText").innerHTML =
             formatMemoryText(photo.text);
@@ -390,6 +390,21 @@ function openActionMenu(type, id) {
     if (download) {
         download.style.display =
             typeof actionImageItem === "function" && actionImageItem(type, id) ? "" : "none";
+    }
+
+    // Gerçekleşen hayal: fotoğraf ekle / değiştir / kaldır
+    const dream = type === "dream" && typeof currentDreams !== "undefined"
+        ? currentDreams.find(d => d.id === id) : null;
+    const dreamPhoto = document.getElementById("actionDreamPhotoBtn");
+    const dreamPhotoRemove = document.getElementById("actionDreamPhotoRemoveBtn");
+
+    if (dreamPhoto) {
+        dreamPhoto.style.display = dream?.completed ? "" : "none";
+        dreamPhoto.textContent = dream && hasImage(dream) ? "📷 Fotoğrafı değiştir" : "📷 Fotoğraf ekle";
+    }
+
+    if (dreamPhotoRemove) {
+        dreamPhotoRemove.style.display = dream && hasImage(dream) ? "" : "none";
     }
 
     document.getElementById("actionOverlay").classList.add("active");

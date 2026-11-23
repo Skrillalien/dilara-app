@@ -412,6 +412,28 @@ async function deleteStoredImages(event) {
 exports.onPhotoDeleted = onDocumentDeleted("photos/{id}", deleteStoredImages);
 exports.onMemoryDeleted = onDocumentDeleted("memories/{id}", deleteStoredImages);
 exports.onSliderImageDeleted = onDocumentDeleted("sliderImages/{id}", deleteStoredImages);
+exports.onDreamDeleted = onDocumentDeleted("dreams/{id}", deleteStoredImages);
+
+// Hayalin fotoğrafı kaldırılınca dosyaları da sil
+exports.onDreamPhotoRemoved = onDocumentUpdated("dreams/{id}", async (event) => {
+
+    const before = event.data?.before?.data() || {};
+    const after = event.data?.after?.data() || {};
+
+    const gone = [before.imagePath, before.thumbPath]
+        .filter(path => path && path !== after.imagePath && path !== after.thumbPath);
+
+    if (gone.length === 0) return;
+
+    const bucket = admin.storage().bucket();
+
+    await Promise.all(gone.map(path =>
+        bucket.file(path).delete({ ignoreNotFound: true }).catch(error => {
+            logger.warn("Dosya silinemedi", { path, error: error.message });
+        })
+    ));
+
+});
 
 
 // ═════════════════════════════════════════════════════════════
@@ -2998,8 +3020,8 @@ exports.getWrapped = onCall({ timeoutSeconds: 120, memory: "512MiB" }, async (re
 // Ücretsiz kota: fotoğraf ve şarkı
 //
 // Ücretsiz planda çift başına 36 fotoğraf ve 36 şarkı. Fotoğraf
-// sayısına Fotoğraflarımız'daki fotoğraflar VE fotoğraflı anılar
-// birlikte girer. Anıların kendisi sınırsız.
+// sayısına Fotoğraflarımız'daki fotoğraflar, fotoğraflı anılar ve
+// fotoğraflı (gerçekleşmiş) hayaller birlikte girer. Anılar sınırsız.
 //
 // Sayılar couples/{id}.usage = { photos, songs } alanında tutulur;
 // her ekleme/silmede sunucu baştan sayar (kendini düzelten sayaç).
@@ -3015,15 +3037,19 @@ async function recountUsage(coupleId) {
 
     if (!coupleId) return null;
 
-    const [photos, songs, memories] = await Promise.all([
+    const [photos, songs, memories, dreams] = await Promise.all([
         db.collection("photos").where("coupleId", "==", coupleId).count().get(),
         db.collection("songs").where("coupleId", "==", coupleId).count().get(),
         db.collection("memories").where("coupleId", "==", coupleId)
-            .select("imageUrl", "thumbUrl", "image").get()
+            .select("imageUrl", "thumbUrl", "image").get(),
+        db.collection("dreams").where("coupleId", "==", coupleId)
+            .select("imageUrl", "thumbUrl").get()
     ]);
 
+    const withPhoto = snap => snap.docs.filter(d => memoryHasPhoto(d.data())).length;
+
     const usage = {
-        photos: photos.data().count + memories.docs.filter(d => memoryHasPhoto(d.data())).length,
+        photos: photos.data().count + withPhoto(memories) + withPhoto(dreams),
         songs: songs.data().count
     };
 
@@ -3065,6 +3091,7 @@ function usageTrigger(onlyIfPhotoChanged) {
 exports.usagePhotos = onDocumentWritten("photos/{id}", usageTrigger(false));
 exports.usageSongs = onDocumentWritten("songs/{id}", usageTrigger(false));
 exports.usageMemories = onDocumentWritten("memories/{id}", usageTrigger(true));
+exports.usageDreams = onDocumentWritten("dreams/{id}", usageTrigger(true));
 
 // Eski çiftlerde usage alanı henüz yok: uygulama bir kez ister
 exports.refreshUsage = onCall(async (request) => {
