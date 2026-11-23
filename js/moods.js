@@ -35,6 +35,7 @@ let moodNudgeCooldown = {};
 let moodHistoryMonth = null;
 let moodHistoryLogs = [];
 let moodHistoryUid = null;
+let moodHistoryDay = null;      // takvimde seçili gün (not ayrıntısı)
 
 // ── Yardımcılar ─────────────────────────────────────────────
 
@@ -139,8 +140,11 @@ function moodChipHtml(entry, who, emptyText) {
         `;
     }
 
+    // Not varsa emojinin köşesinde küçük 💬: "bir not var", dokunup açılsın
+    const hasNote = !!String(entry.note || "").trim();
+
     return `
-        <span class="mood-chip-emoji${stale ? " stale" : ""}">${mood.emoji}</span>
+        <span class="mood-chip-emoji${stale ? " stale" : ""}">${mood.emoji}${hasNote ? `<span class="mood-chip-note" aria-label="Not var">💬</span>` : ""}</span>
         <span class="mood-chip-text">
             <span class="mood-chip-who">${escapeMood(who)}${ms ? ` · ${moodWhenText(ms)}` : ""}</span>
             <span class="mood-chip-label${stale ? " muted" : ""}">${mood.label}</span>
@@ -365,6 +369,7 @@ async function openMoodHistory(whose) {
     moodHistoryUid = whose === "partner" ? moodPartnerUid() : moodMyUid();
     moodHistoryMonth = new Date();
     moodHistoryMonth.setDate(1);
+    moodHistoryDay = null;
 
     closeMoodPicker();
     closePartnerMood();
@@ -395,6 +400,7 @@ function closeMoodHistory() {
 function shiftMoodMonth(delta) {
 
     moodHistoryMonth.setMonth(moodHistoryMonth.getMonth() + delta);
+    moodHistoryDay = null;
     renderMoodHistory();
 
 }
@@ -405,12 +411,15 @@ function renderMoodHistory() {
     const y = moodHistoryMonth.getFullYear();
     const m = moodHistoryMonth.getMonth();
 
-    // Her güne o günün son ruh hali
+    // Her güne o günün son ruh hali; notu olan günler işaretlenir
     const byDay = {};
 
     moodHistoryLogs.forEach(log => {
         const ms = moodMs(log.createdAt) || 0;
-        if (!byDay[log.day] || ms > byDay[log.day].ms) byDay[log.day] = { mood: log.mood, ms };
+        const note = String(log.note || "").trim();
+        const day = byDay[log.day];
+        if (!day || ms > day.ms) byDay[log.day] = { mood: log.mood, ms, hasNote: !!note || !!day?.hasNote };
+        else if (note) day.hasNote = true;
     });
 
     const first = new Date(y, m, 1);
@@ -429,10 +438,18 @@ function renderMoodHistory() {
 
         if (mood) counts[mood.id] = (counts[mood.id] || 0) + 1;
 
-        cells += `
-            <div class="mood-day${mood ? "" : " empty"}">
+        const info = byDay[key];
+
+        cells += mood ? `
+            <button type="button" class="mood-day${info.hasNote ? " has-note" : ""}${key === moodHistoryDay ? " selected" : ""}"
+                onclick="selectMoodDay('${key}')">
                 <span class="mood-day-num">${d}</span>
-                <span class="mood-day-emoji">${mood ? mood.emoji : ""}</span>
+                <span class="mood-day-emoji">${mood.emoji}</span>
+            </button>
+        ` : `
+            <div class="mood-day empty">
+                <span class="mood-day-num">${d}</span>
+                <span class="mood-day-emoji"></span>
             </div>
         `;
 
@@ -454,6 +471,58 @@ function renderMoodHistory() {
         <div class="mood-summary">
             ${top ? `${escapeMood(who)} ${MOOD_BY_ID[top[0]].emoji} ${MOOD_BY_ID[top[0]].label.toLowerCase()} (${top[1]} gün)` : "Bu ay kayıt yok"}
         </div>
+        <div class="mood-day-detail" id="moodDayDetail">${moodDayDetailHtml(moodHistoryDay)}</div>
+    `;
+
+}
+
+// Takvimde bir güne dokununca: o günün ruh halleri ve notları
+
+function selectMoodDay(key) {
+
+    moodHistoryDay = moodHistoryDay === key ? null : key;
+
+    window.appHaptics?.light?.();
+
+    renderMoodHistory();
+
+    if (moodHistoryDay) {
+        document.getElementById("moodDayDetail")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+}
+
+function moodDayDetailHtml(key) {
+
+    if (!key) {
+        return `<div class="mood-day-hint">Bir güne dokun, o günün notunu gör 💬</div>`;
+    }
+
+    const logs = moodHistoryLogs
+        .filter(log => log.day === key && MOOD_BY_ID[log.mood])
+        .sort((a, b) => (moodMs(a.createdAt) || 0) - (moodMs(b.createdAt) || 0));
+
+    if (!logs.length) return "";
+
+    const date = new Date(`${key}T12:00:00`).toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
+
+    return `
+        <div class="mood-day-date">${date}</div>
+        ${logs.map(log => {
+            const mood = MOOD_BY_ID[log.mood];
+            const ms = moodMs(log.createdAt);
+            const time = ms ? new Date(ms).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
+            const note = String(log.note || "").trim();
+            return `
+                <div class="mood-day-entry">
+                    <span class="mood-day-entry-emoji">${mood.emoji}</span>
+                    <span class="mood-day-entry-text">
+                        <b>${mood.label}${time ? `<small> · ${time}</small>` : ""}</b>
+                        ${note ? `<span>“${escapeMood(note)}”</span>` : `<span class="muted">Not yazılmamış</span>`}
+                    </span>
+                </div>
+            `;
+        }).join("")}
     `;
 
 }
