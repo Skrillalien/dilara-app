@@ -9261,3 +9261,108 @@ html.sheet-open .page{
     font-weight:600;
     cursor:pointer;
 }
+
+/* ── Ruh hali notu ───────────────────────────────────────── */
+/* Ana sayfa kutusu: not varsa emojinin köşesinde 💬 */
+.mood-chip-emoji{ position:relative; }
+
+.mood-chip-note{
+    position:absolute;
+    right:-6px;
+    bottom:-6px;
+    width:19px;
+    height:19px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:var(--surface);
+    box-shadow:0 0 0 1.5px rgba(var(--accent-rgb), .55), 0 1px 4px rgba(0,0,0,.25);
+    font-size:10px;
+    line-height:1;
+    animation:moodNotePop .35s cubic-bezier(.3,1.5,.5,1);
+}
+
+@keyframes moodNotePop{
+    from{ transform:scale(0); }
+    to{ transform:scale(1); }
+}
+
+/* Takvim: dokunulabilir günler, notlu günlerde küçük nokta */
+button.mood-day{
+    position:relative;
+    border:none;
+    font-family:inherit;
+    color:inherit;
+    cursor:pointer;
+    transition:transform .12s;
+}
+
+button.mood-day:active{ transform:scale(.94); }
+
+.mood-day.selected{
+    box-shadow:0 0 0 2px var(--accent);
+}
+
+.mood-day.has-note::after{
+    content:"";
+    position:absolute;
+    top:5px;
+    right:5px;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+}
+
+.mood-day-detail{
+    margin-top:14px;
+}
+
+.mood-day-hint{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--muted);
+}
+
+.mood-day-date{
+    margin:0 2px 8px;
+    font-size:12px;
+    letter-spacing:.04em;
+    color:var(--muted);
+    text-transform:capitalize;
+}
+
+.mood-day-entry{
+    display:flex;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:14px;
+    background:var(--surface2);
+}
+
+.mood-day-entry + .mood-day-entry{ margin-top:6px; }
+
+.mood-day-entry-emoji{
+    font-size:22px;
+    line-height:1.2;
+}
+
+.mood-day-entry-text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+    font-size:13.5px;
+    line-height:1.45;
+    overflow-wrap:anywhere;
+}
+
+.mood-day-entry-text b{ font-weight:600; }
+
+.mood-day-entry-text small{
+    font-weight:400;
+    color:var(--muted);
+}
+
+.mood-day-entry-text .muted{ color:var(--muted); }
