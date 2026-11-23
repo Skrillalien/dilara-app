@@ -8569,8 +8569,8 @@ html.sheet-open .page{
     margin-top:2px;
     padding:2px 8px;
     border-radius:999px;
-    background:rgba(var(--water-rgb), .16);
-    color:var(--water-ink);
+    background:rgba(var(--accent-rgb), .16);
+    color:var(--accent);
     font-weight:600;
 }
 
@@ -8626,17 +8626,27 @@ html.sheet-open .page{
     height:42px;
     border:none;
     border-radius:14px;
-    background:linear-gradient(135deg, #5cc8ff, #2f8fd6);
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
     color:#fff;
     font-family:inherit;
     font-size:14.5px;
     font-weight:600;
     cursor:pointer;
-    box-shadow:0 6px 16px rgba(47,143,214,.28);
+    box-shadow:0 6px 16px rgba(var(--accent-rgb), .25);
+    /* Açık renkli temalarda (kahve-krem, sarı-lacivert, orman) okunsun */
+    text-shadow:0 1px 2px rgba(0,0,0,.28);
     transition:transform .12s;
 }
 
 .water-add:active{ transform:scale(.97); }
+
+/* Vurgu rengi açık olan koyu temalarda yazı koyu olsun */
+[data-theme="kahvekoyu"] .water-add,
+[data-theme="fb"] .water-add,
+[data-theme="orman"] .water-add{
+    color:var(--bg);
+    text-shadow:none;
+}
 
 .water-add small{
     font-size:12px;
@@ -8766,9 +8776,9 @@ html.sheet-open .page{
 }
 
 .water-chips button.active{
-    border-color:rgba(var(--water-rgb), .7);
-    background:rgba(var(--water-rgb), .16);
-    color:var(--water-ink);
+    border-color:rgba(var(--accent-rgb), .7);
+    background:rgba(var(--accent-rgb), .16);
+    color:var(--accent);
     font-weight:600;
 }
 
