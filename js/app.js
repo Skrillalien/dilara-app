@@ -235,6 +235,10 @@ async function loadCoupleNames() {
 
         }
 
+        window.couplePartnerUid = partnerUid;
+
+        if (typeof setWaterPartnerProfile === "function") setWaterPartnerProfile(partnerProfile);
+
         // İki telefonda da aynı sonucu veren kural: seçmeyenin kalbi
         // varsayılandır; o kalbi diğeri seçmişse diğer varsayılan kullanılır
         const resolve = (uid, own, other) => {
@@ -281,6 +285,7 @@ function startWaitingApp(inviteCode) {
     startPremium();
     initNotifyPrefs();
 
+    startWater();
     loadLastMemory();
     loadNextEvent();
     updateMemoryAuthorInfo();
@@ -429,6 +434,7 @@ function checkUserSelection() {
             startLetters();
             startQuestions();
             startMoods();
+            startWater();
             startOnThisDay();
             startProximity();
 
