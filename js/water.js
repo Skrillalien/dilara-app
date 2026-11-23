@@ -306,7 +306,7 @@ function renderWaterCard() {
         const state = theirsEl.querySelector(".water-state");
         const wait = waterNudgeWaitMin();
 
-        state.textContent = theirDone ? "Tamamladı 🎉" : wait ? `Hatırlattın ✓ · ${wait} dk` : "Hatırlat 💧";
+        state.textContent = theirDone ? "Tamamladı 🎉" : wait ? "Hatırlattın ✓" : "Hatırlat 💧";
         state.classList.toggle("pill", !theirDone && !wait);
 
     }
