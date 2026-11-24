@@ -193,6 +193,47 @@ service cloud.firestore {
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
     }
 
+    // ── Ona hatırlat (js/reminders.js) ──────────────────────
+    // Kuran (authorId) içeriği ve zamanı yönetir, hatırlatılan
+    // (targetId) sadece "yaptım", "10 dk sonra" ve sessize alma.
+    // Bildirimleri sunucu gönderir (functions → fireReminders).
+    match /reminders/{id} {
+
+      function remCouple(c) {
+        return get(/databases/$(database)/documents/couples/$(c)).data;
+      }
+
+      function validReminder(d) {
+        return d.title is string && d.title.size() > 0 && d.title.size() <= 120
+          && d.get('emoji', '') is string && d.get('emoji', '').size() <= 16
+          && d.repeat in ['once', 'daily', 'weekly']
+          && (d.nextAt == null || d.nextAt is int)
+          && (d.dueAt == null || d.dueAt is int);
+      }
+
+      allow read: if signedIn() && inMyCouple(resource.data.coupleId);
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.targetId != me()
+        && request.resource.data.targetId in remCouple(request.resource.data.coupleId).members
+        && validReminder(request.resource.data);
+
+      allow update: if signedIn()
+        && inMyCouple(resource.data.coupleId)
+        && !changes().hasAny(['coupleId', 'authorId', 'targetId'])
+        && validReminder(request.resource.data)
+        && (
+          (resource.data.authorId == me()
+            && !changes().hasAny(['doneFor', 'doneAt', 'thanks', 'muted', 'snoozeUntil']))
+          || (resource.data.targetId == me()
+            && changes().hasOnly(['doneFor', 'doneAt', 'thanks', 'muted', 'snoozeUntil', 'dueAt', 'updatedAt']))
+        );
+
+      allow delete: if signedIn() && resource.data.authorId == me();
+    }
+
     // ── Su takibi ───────────────────────────────────────────
     // water/{coupleId}_{uid}_{gün}: herkes sadece kendi gününü yazar,
     // ikiniz de okuyabilirsiniz. Silinmez (hesap silinince sunucu siler).

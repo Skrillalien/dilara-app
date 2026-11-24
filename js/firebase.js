@@ -1940,6 +1940,75 @@ async function sendNudge(type, extra = {}) {
 
 }
 
+// ── Ona hatırlat (js/reminders.js) ──────────────────────────
+
+function listenReminders(callback) {
+
+    let unsubscribe = null;
+    let stopped = false;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId || stopped) {
+            callback([]);
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(collection(db, "reminders"), where("coupleId", "==", coupleId)),
+            snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+            error => console.error("Hatırlatmalar dinlenemedi:", error)
+        );
+
+    });
+
+    return () => {
+        stopped = true;
+        unsubscribe?.();
+    };
+
+}
+
+async function addReminder(data) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const ref = await addDoc(collection(db, "reminders"), {
+        ...data,
+        coupleId,
+        authorId: user.uid,
+        muted: false,
+        lastAt: null,
+        doneFor: null,
+        doneAt: null,
+        thanks: null,
+        snoozeUntil: null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    });
+
+    return ref.id;
+
+}
+
+async function updateReminder(id, data) {
+
+    await updateDoc(doc(db, "reminders", id), {
+        ...data,
+        updatedAt: serverTimestamp()
+    });
+
+}
+
+async function deleteReminder(id) {
+
+    await deleteDoc(doc(db, "reminders", id));
+
+}
+
 // ── Su takibi (js/water.js) ─────────────────────────────────
 // water/{coupleId}_{uid}_{gün} = { coupleId, authorId, day, ml, goal }
 
@@ -2546,6 +2615,10 @@ window.firebase = {
     markQuestionSeen,
     getWrapped,
     setDreamPhoto,
+    listenReminders,
+    addReminder,
+    updateReminder,
+    deleteReminder,
     removeDreamPhoto,
     refreshUsage,
     reorderSliderImages,

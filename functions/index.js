@@ -1849,7 +1849,7 @@ exports.clearPresence = onCall(async (request) => {
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
     "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
-    "water",
+    "water", "reminders",
     // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
     "sliderImages"
 ];
@@ -3101,5 +3101,161 @@ exports.refreshUsage = onCall(async (request) => {
     const usage = await recountUsage(coupleId);
 
     return { usage, limits: FREE_LIMITS };
+
+});
+
+// ═════════════════════════════════════════════════════════════
+// ONA HATIRLAT (js/reminders.js)
+//
+//   reminders/{id} = {
+//     coupleId, authorId (kuran), targetId (hatırlatılan),
+//     title, emoji, repeat: "once" | "daily" | "weekly", dayBefore,
+//     nextAt      sıradaki zaman (ms) · tekrar yoksa çalınca null
+//     earlyAt     "1 gün önce de" zamanı (ms), earlySent
+//     snoozeUntil "10 dk sonra" (ms)
+//     lastAt      en son çalan zaman (ms)
+//     doneFor     hangi zamanın yapıldığı (ms), doneAt, thanks
+//     muted       hatırlatılan kişi sessize aldı
+//     dueAt       yukarıdakilerin en yakını: sunucu buna bakar
+//   }
+//
+// Her dakika dueAt'i gelen kayıtlar işlenir; bildirim sunucudan
+// gider (telefon kapalıyken de). Hatırlatılan "yaptım" deyince
+// kurana haber gider. Saati 1 saat geçip yapılmayan, kurana sadece
+// listede "henüz yapılmadı" olarak görünür (bildirim yok).
+// ═════════════════════════════════════════════════════════════
+
+const REMINDER_STEP = { daily: 24 * 60 * 60 * 1000, weekly: 7 * 24 * 60 * 60 * 1000 };
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function reminderDueAt(r) {
+
+    const times = [
+        r.nextAt,
+        !r.earlySent ? r.earlyAt : null,
+        r.snoozeUntil
+    ].filter(t => typeof t === "number" && t > 0);
+
+    return times.length ? Math.min(...times) : null;
+
+}
+
+async function processReminder(doc) {
+
+    const r = doc.data();
+    const now = Date.now();
+    const upd = {};
+    const pushes = [];
+
+    const author = await userName(r.authorId);
+
+    // "1 gün önce" haberi
+    if (r.earlyAt && !r.earlySent && r.earlyAt <= now) {
+
+        if (!r.muted && r.doneFor !== r.nextAt) {
+            const when = new Date(r.nextAt).toLocaleTimeString("tr-TR", {
+                hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul"
+            });
+            pushes.push({ title: `${r.emoji || "⏰"} Yarın ${when}`, body: `${author} hatırlatıyor: ${r.title}` });
+        }
+
+        upd.earlySent = true;
+
+    }
+
+    // Zamanı geldi
+    if (r.nextAt && r.nextAt <= now) {
+
+        const occ = r.nextAt;
+        const doneEarly = r.doneFor === occ;
+
+        // Sunucu uzun süre çalışmadıysa eski hatırlatmayı bildirme
+        if (!doneEarly && !r.muted && now - occ < 6 * 60 * 60 * 1000) {
+            pushes.push({ title: `${r.emoji || "⏰"} ${author} hatırlatıyor`, body: r.title });
+        }
+
+        upd.lastAt = occ;
+
+        if (!doneEarly) {
+            upd.doneAt = null;
+            upd.thanks = null;
+        }
+
+        let next = null;
+        const step = REMINDER_STEP[r.repeat];
+
+        if (step) {
+            next = occ + step;
+            while (next <= now) next += step;
+        }
+
+        upd.nextAt = next;
+        upd.earlyAt = next && r.dayBefore ? next - DAY_MS : null;
+        upd.earlySent = false;
+        upd.snoozeUntil = null;
+
+    }
+
+    // "10 dk sonra"
+    if (r.snoozeUntil && r.snoozeUntil <= now && upd.snoozeUntil === undefined) {
+
+        if (!r.muted && r.doneFor !== r.lastAt) {
+            pushes.push({ title: `${r.emoji || "⏰"} ${author} hatırlatıyor`, body: r.title });
+        }
+
+        upd.snoozeUntil = null;
+
+    }
+
+    upd.dueAt = reminderDueAt({ ...r, ...upd });
+
+    await doc.ref.update(upd);
+
+    for (const push of pushes) {
+        await sendPushToUser(r.targetId, {
+            ...push,
+            data: { page: "reminders", type: "reminders", id: doc.id },
+            tag: `rem-${doc.id}`,
+            category: "reminders"
+        });
+    }
+
+}
+
+exports.fireReminders = onSchedule({ schedule: "every 1 minutes", maxInstances: 1 }, async () => {
+
+    const due = await db.collection("reminders")
+        .where("dueAt", "<=", Date.now())
+        .limit(100)
+        .get();
+
+    for (const doc of due.docs) {
+        try {
+            await processReminder(doc);
+        } catch (error) {
+            logger.error("Hatırlatma işlenemedi", { id: doc.id, error: error.message });
+        }
+    }
+
+});
+
+// Hatırlatılan "yaptım" deyince kurana haber
+exports.onReminderDone = onDocumentUpdated("reminders/{id}", async (event) => {
+
+    const before = event.data.before.data() || {};
+    const after = event.data.after.data() || {};
+
+    if (!after.doneAt || after.doneAt === before.doneAt) return;
+
+    const name = await userName(after.targetId);
+    const thanks = String(after.thanks || "").trim().slice(0, 120);
+
+    await sendPushToUser(after.authorId, {
+        title: `✓ ${name} yaptı`,
+        body: `${after.emoji || "⏰"} ${after.title}${thanks ? ` · “${thanks}”` : ""}`,
+        data: { page: "reminders", type: "reminders", id: event.params.id },
+        tag: `rem-done-${event.params.id}`,
+        category: "reminders"
+    });
 
 });
