@@ -264,6 +264,8 @@ function closeTopLayer() {
 
     if (isOpen("waterSheet")) { closeWaterSheet(); return true; }
 
+    if (isOpen("reminderSheet")) { closeReminderSheet(); return true; }
+
     if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }
 
     if (isOpen("missPanel")) { closeMissPanel(); return true; }

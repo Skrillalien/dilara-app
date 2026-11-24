@@ -286,6 +286,7 @@ function startWaitingApp(inviteCode) {
     initNotifyPrefs();
 
     startWater();
+    startReminders();
     loadLastMemory();
     loadNextEvent();
     updateMemoryAuthorInfo();
@@ -435,6 +436,7 @@ function checkUserSelection() {
             startQuestions();
             startMoods();
             startWater();
+            startReminders();
             startOnThisDay();
             startProximity();
 

@@ -97,7 +97,7 @@ const NOTIFY_TYPES = [
     { key: "content",   icon: "📷", title: "Yeni not, fotoğraf, şarkı, hayal" },
     { key: "letters",   icon: "💌", title: "Mühürlü mektuplar" },
     { key: "questions", icon: "💬", title: "Günün Sorusu" },
-    { key: "reminders", icon: "📅", title: "Hatırlatmalar", hint: "Özel günler, ay dönümleri, bugün geçen yıl, seri" },
+    { key: "reminders", icon: "📅", title: "Hatırlatmalar", hint: "Sevgilinin sana kurduğu hatırlatmalar, özel günler, ay dönümleri, seri" },
     { key: "music",     icon: "🎧", title: "Şu an dinliyorum" },
     { key: "waterAuto", icon: "💧", title: "Su hatırlatıcısı", hint: "Hedefin gerideyse gün içinde hatırlatır" }
 ];

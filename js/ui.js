@@ -51,7 +51,8 @@ const SHEETS = {
     settingsPanel: { overlay: "settingsOverlay", close: () => toggleSettings() },
     moodSheet:        { overlay: "moodOverlay",  close: () => closeMoodPicker() },
     partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() },
-    waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() }
+    waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() },
+    reminderSheet:    { overlay: "reminderOverlay", close: () => closeReminderSheet() }
 };
 
 function isSheetOpen(id) {
@@ -192,6 +193,7 @@ function initSheetDrags() {
     initSheetDrag("moodSheet");
     initSheetDrag("partnerMoodSheet");
     initSheetDrag("waterSheet");
+    initSheetDrag("reminderSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");
@@ -226,6 +228,13 @@ function openAppTarget(target) {
             document.getElementById("questionCard")
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 300);
+        return;
+    }
+
+    // Ona hatırlat: hatırlatmalar sayfası (bana kurulanlar)
+    if (target === "reminders") {
+        if (typeof setReminderTab === "function") remTab = "mine";
+        showPage("our-reminders");
         return;
     }
 
