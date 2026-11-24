@@ -729,6 +729,7 @@ function renderWaterHistory() {
             <span>Son 7 gün</span>
             ${streak >= 2 ? `<b>🔥 ${streak} gündür hedef tamam</b>` : streak === 1 ? `<b>✓ Hedef tamam</b>` : ""}
         </div>
+        <div class="water-history-bars-wrap">
         <div class="water-history-bars">
             ${list.map(h => {
                 const p = waterPct(h.ml, h.goal);
@@ -741,6 +742,8 @@ function renderWaterHistory() {
             }).join("")}
         </div>
         ${waterDayEditorHtml(list)}
+        </div>
+        ${waterEditDay ? "" : `<div class="water-day-hint">Unuttuğun bir gün mü var? Çubuğuna dokun, düzelt 💧</div>`}
     `;
 
 }
@@ -762,20 +765,23 @@ function selectWaterDay(day) {
 
 function waterDayEditorHtml(list) {
 
-    if (!waterEditDay) {
-        return `<div class="water-day-hint">Unuttuğun bir gün mü var? Çubuğuna dokun, düzelt 💧</div>`;
-    }
+    if (!waterEditDay) return "";
 
-    const h = list.find(x => x.day === waterEditDay);
+    const index = list.findIndex(x => x.day === waterEditDay);
+    const h = list[index];
 
     if (!h) return "";
+
+    // Baloncuk seçilen çubuğun üstünde; kenarlarda taşmasın
+    const center = (index + .5) / list.length * 100;
+    const arrow = Math.min(88, Math.max(12, center));
 
     const goal = h.goal || waterSettings.goal || WATER_GOALS.def;
     const glass = waterSettings.glass || 250;
     const label = new Date(`${h.day}T12:00:00`).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" });
 
     return `
-        <div class="water-day-edit">
+        <div class="water-day-edit" style="--arrow:${arrow}%">
             <div class="water-day-edit-head">
                 <span>${label}</span>
                 <b>${waterLiters(h.ml)} / ${waterLiters(goal)} L${h.ml >= goal ? " ✓" : ""}</b>
@@ -902,3 +908,16 @@ async function scheduleWaterReminders() {
     }
 
 }
+
+// Baloncuğun dışına dokununca kapansın
+document.addEventListener("click", event => {
+
+    if (!waterEditDay) return;
+
+    if (event.target.closest?.(".water-day-edit, .water-history-bars")) return;
+
+    waterEditDay = null;
+
+    renderWaterHistory();
+
+});
