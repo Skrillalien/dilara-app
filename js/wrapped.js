@@ -21,6 +21,10 @@ let wrappedData = null;
 let wrappedCards = [];
 let wrappedIndex = 0;
 let wrappedAdmin = false;
+
+// Yönetici hesabında Yılımız'ı sezon dışında da "Önizleme" olarak
+// göster (test için). Kapalı: herkes gibi 15 Aralık'ta görünür.
+const WRAPPED_ADMIN_PREVIEW = false;
 let wrappedStarted = false;
 
 // Gösterilecek yıl: 15-31 Aralık → bu yıl, 1-15 Ocak → geçen yıl
@@ -59,6 +63,8 @@ function startWrapped() {
     wrappedStarted = true;
 
     renderWrappedEntry();
+
+    if (!WRAPPED_ADMIN_PREVIEW) return;
 
     window.firebase?.amIAdmin?.().then(isAdmin => {
         wrappedAdmin = !!isAdmin;
