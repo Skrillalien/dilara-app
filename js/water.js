@@ -204,6 +204,7 @@ function listenWaterDay() {
     waterDay = waterDayKey();
     waterToday = {};
     waterHistory = null;
+    waterEditDay = null;
 
     waterUnsub = window.firebase.listenWater(waterDay, docs => {
 
@@ -732,13 +733,97 @@ function renderWaterHistory() {
             ${list.map(h => {
                 const p = waterPct(h.ml, h.goal);
                 const ok = p >= 1;
-                return `<span class="${h.day === waterDay ? "today" : ""}">
+                const cls = [h.day === waterDay ? "today" : "", h.day === waterEditDay ? "selected" : ""].join(" ").trim();
+                return `<button type="button" class="${cls}" onclick="selectWaterDay('${h.day}')">
                     <i class="${ok ? "ok" : ""}" style="height:${Math.max(4, p * 100).toFixed(0)}%"></i>
                     <small>${dayName(h.day)}</small>
-                </span>`;
+                </button>`;
             }).join("")}
         </div>
+        ${waterDayEditorHtml(list)}
     `;
+
+}
+
+// ── Geçmiş günü düzelt ("dün içtim ama girmeyi unuttum") ────
+// Son 7 günden birine dokun → o günün miktarı ± bir bardak.
+let waterEditDay = null;
+
+function selectWaterDay(day) {
+
+    window.appHaptics?.light?.();
+
+    // Bugün zaten yukarıdaki düğmelerle düzenleniyor
+    waterEditDay = day === waterDay || day === waterEditDay ? null : day;
+
+    renderWaterHistory();
+
+}
+
+function waterDayEditorHtml(list) {
+
+    if (!waterEditDay) {
+        return `<div class="water-day-hint">Unuttuğun bir gün mü var? Çubuğuna dokun, düzelt 💧</div>`;
+    }
+
+    const h = list.find(x => x.day === waterEditDay);
+
+    if (!h) return "";
+
+    const goal = h.goal || waterSettings.goal || WATER_GOALS.def;
+    const glass = waterSettings.glass || 250;
+    const label = new Date(`${h.day}T12:00:00`).toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" });
+
+    return `
+        <div class="water-day-edit">
+            <div class="water-day-edit-head">
+                <span>${label}</span>
+                <b>${waterLiters(h.ml)} / ${waterLiters(goal)} L${h.ml >= goal ? " ✓" : ""}</b>
+            </div>
+            <div class="water-day-edit-actions">
+                <button type="button" onclick="changeWaterDay(-1)" ${h.ml < glass ? "disabled" : ""}>− ${glass} ml</button>
+                <button type="button" class="add" onclick="changeWaterDay(1)">＋ ${glass} ml</button>
+            </div>
+        </div>
+    `;
+
+}
+
+async function changeWaterDay(dir) {
+
+    const day = waterEditDay;
+    const h = waterHistory?.find(x => x.day === day);
+
+    if (!h || day === waterDay) return;
+
+    const glass = waterSettings.glass || 250;
+    const delta = dir > 0 ? glass : -Math.min(glass, h.ml || 0);
+
+    if (!delta) return;
+
+    const goal = h.goal || waterSettings.goal || WATER_GOALS.def;
+    const before = h.ml || 0;
+
+    // Ekranı hemen güncelle; seri de yeniden hesaplanır
+    h.ml = before + delta;
+    h.goal = goal;
+
+    window.appHaptics?.light?.();
+
+    renderWaterHistory();
+
+    try {
+
+        await window.firebase.addWater(day, delta, goal);
+
+    } catch (error) {
+
+        console.error("Geçmiş gün kaydedilemedi:", error);
+        h.ml = before;
+        renderWaterHistory();
+        showToast("Kaydedilemedi, tekrar dene.");
+
+    }
 
 }
 

@@ -9750,3 +9750,81 @@ button.mood-day:active{ transform:scale(.94); }
     font-size:13px;
     color:var(--muted);
 }
+
+/* Su geçmişi: çubuklar dokunulabilir, seçilen gün düzeltilir */
+.water-history-bars button{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    height:100%;
+    padding:0;
+    border:none;
+    background:none;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+.water-history-bars button.today i{ box-shadow:0 0 0 2px rgba(var(--water-rgb), .55); }
+
+.water-history-bars button.selected i{ box-shadow:0 0 0 2px var(--accent); }
+
+.water-history-bars button.selected small{
+    color:var(--accent);
+    font-weight:700;
+}
+
+.water-day-hint{
+    margin-top:-4px;
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+}
+
+.water-day-edit{
+    margin-top:-2px;
+    padding:12px;
+    border-radius:16px;
+    background:var(--surface2);
+    animation:waterUndoIn .2s ease;
+}
+
+.water-day-edit-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+    font-size:13.5px;
+    color:var(--text);
+}
+
+.water-day-edit-head span::first-letter{ text-transform:uppercase; }
+
+.water-day-edit-head b{ white-space:nowrap; }
+
+.water-day-edit-actions{
+    display:flex;
+    gap:8px;
+}
+
+.water-day-edit-actions button{
+    flex:1;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--text);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.water-day-edit-actions button.add{
+    border:none;
+    background:linear-gradient(135deg, var(--accent), var(--accent2));
+    color:var(--on-accent);
+}
+
+.water-day-edit-actions button:disabled{ opacity:.4; }
