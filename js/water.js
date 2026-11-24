@@ -743,7 +743,7 @@ function renderWaterHistory() {
         </div>
         ${waterDayEditorHtml(list)}
         </div>
-        ${waterEditDay ? "" : `<div class="water-day-hint"><span>ⓘ Unuttuğun bir gün için çubuğuna dokun</span></div>`}
+        ${`<div class="water-day-hint"><span>ⓘ Unuttuğun bir gün için çubuğuna dokun</span></div>`}
     `;
 
 }

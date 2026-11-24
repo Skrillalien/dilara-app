@@ -9871,13 +9871,14 @@ button.mood-day:active{ transform:scale(.94); }
 /* Su paneli kaydırmadan sığsın (daha küçük bardak, sıkı aralıklar) */
 .water-sheet{ padding-bottom:calc(96px + env(safe-area-inset-bottom)); }
 .water-sheet .bny-title{ margin-bottom:2px; }
-.water-big{ padding:0; gap:16px; }
-.water-big .water-glass{ width:62px; height:80px; }
-.water-big-amount{ font-size:31px; }
+.water-big{ padding:4px 0 2px; gap:20px; }
+.water-big .water-glass{ width:84px; height:109px; }
+.water-big-amount{ font-size:38px; }
+.water-big-sub{ font-size:13.5px; max-width:210px; }
 .water-actions.sheet{ margin:8px 0 4px; }
 .water-sheet .water-add{ height:40px; }
-.water-setting{ padding:9px 2px; }
+.water-setting{ padding:11px 2px; }
 .water-history{ padding-top:10px; }
 .water-history-title{ margin-bottom:8px; }
-.water-history-bars{ height:56px; }
+.water-history-bars{ height:64px; }
 .water-day-hint{ margin-top:14px; padding-top:6px; }
