@@ -367,15 +367,17 @@ function renderStreak() {
     document.getElementById("streakCount").textContent = count;
     document.getElementById("streakTitle").textContent = current.title;
 
-    document.getElementById("streakNext").textContent = next
+    // Barın yanında "15/30": bir sonraki seviyeye kaç gün
+    document.getElementById("streakGoal").textContent = next ? `${count}/${next.min}` : "👑";
+
+    streakNextText = next
         ? `${next.title} olmanıza ${next.min - count} gün kaldı`
         : "Zirvedesiniz, böyle devam 💜";
 
     document.getElementById("streakFreezes").textContent = left;
 
-    const progress = next
-        ? (count - current.min) / (next.min - current.min)
-        : 1;
+    // Bar, yanındaki "15/30" ile aynı şeyi göstersin
+    const progress = next ? count / next.min : 1;
 
     document.getElementById("streakProgress").style.width =
         `${Math.max(4, Math.min(100, progress * 100))}%`;
@@ -417,10 +419,14 @@ function renderStreak() {
 }
 
 let streakStatusText = "";
+let streakNextText = "";
 
+// İşarete dokununca: bugünkü durum + bir sonraki seviye
 function showStreakStatus() {
 
-    if (streakStatusText) showToast(streakStatusText);
+    const text = [streakStatusText, streakNextText].filter(Boolean).join(" · ");
+
+    if (text) showToast(text);
 
 }
 

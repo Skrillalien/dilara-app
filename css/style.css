@@ -10248,3 +10248,43 @@ button.mood-day:active{ transform:scale(.94); }
     font-size:14px;
     cursor:pointer;
 }
+
+/* Seri: "x gün kaldı" satırı yerine barın yanında 15/30; simge
+   aynı boyutta, çerçevesi küçük */
+.streak-card{ padding:8px 12px; }
+
+.streak-flame{
+    width:34px;
+    height:34px;
+    font-size:22px;
+    border-radius:10px;
+}
+
+.streak-bar-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:5px;
+}
+
+.streak-bar-row .streak-bar{
+    flex:1;
+    margin-top:0;
+}
+
+.streak-goal{
+    flex:0 0 auto;
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+}
+
+/* Buzdolabı baloncuğu: kenardan kenara */
+.fridge-bubble{
+    display:flex;
+    justify-content:center;
+    width:calc(100% - 32px);
+    box-sizing:border-box;
+    padding:9px 14px;
+}

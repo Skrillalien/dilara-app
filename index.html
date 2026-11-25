@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=65">
+  <link rel="stylesheet" href="css/style.css?v=66">
   
   <link
     rel="stylesheet"
@@ -302,11 +302,12 @@
           <button class="streak-status" id="streakStatus" type="button" onclick="showStreakStatus()" aria-label="Bugünkü seri durumu"></button>
         </div>
 
-        <div class="streak-bar">
-          <div class="streak-bar-fill" id="streakProgress"></div>
+        <div class="streak-bar-row">
+          <div class="streak-bar">
+            <div class="streak-bar-fill" id="streakProgress"></div>
+          </div>
+          <span class="streak-goal" id="streakGoal"></span>
         </div>
-
-        <div class="streak-next" id="streakNext"></div>
 
       </div>
 
@@ -2061,7 +2062,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    <script src="js/streak.js?v=4"></script>
+    <script src="js/streak.js?v=5"></script>
     <script src="js/account.js?v=3"></script>
     <script src="js/proximity.js?v=3"></script>
     <script src="js/onthisday.js?v=1"></script>
