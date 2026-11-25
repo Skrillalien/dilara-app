@@ -1940,6 +1940,76 @@ async function sendNudge(type, extra = {}) {
 
 }
 
+// ── Buzdolabı (js/fridge.js) ────────────────────────────────
+// fridge/{coupleId}_{uid} = { coupleId, authorId, text, at, heartAt }
+
+function listenFridge(callback) {
+
+    let unsubscribe = null;
+    let stopped = false;
+
+    getMyCouple().then(coupleId => {
+
+        if (!coupleId || stopped) {
+            callback({});
+            return;
+        }
+
+        unsubscribe = onSnapshot(
+            query(collection(db, "fridge"), where("coupleId", "==", coupleId)),
+            snap => {
+                const out = {};
+                snap.docs.forEach(d => { out[d.get("authorId")] = { id: d.id, ...d.data() }; });
+                callback(out);
+            },
+            error => console.error("Buzdolabı dinlenemedi:", error)
+        );
+
+    });
+
+    return () => {
+        stopped = true;
+        unsubscribe?.();
+    };
+
+}
+
+// Notunu as (yenisi eskisinin yerine geçer; kalp sıfırlanır)
+async function setFridgeNote(text) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    await setDoc(doc(db, "fridge", `${coupleId}_${user.uid}`), {
+        coupleId,
+        authorId: user.uid,
+        text: String(text || "").trim().slice(0, 80),
+        at: Date.now(),
+        heartAt: null
+    });
+
+}
+
+async function clearFridgeNote() {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) return;
+
+    await deleteDoc(doc(db, "fridge", `${coupleId}_${user.uid}`));
+
+}
+
+// Sevgilinin notuna 💜 bırak / geri al
+async function heartFridgeNote(noteId, on) {
+
+    await updateDoc(doc(db, "fridge", noteId), { heartAt: on ? Date.now() : null });
+
+}
+
 // ── Ona hatırlat (js/reminders.js) ──────────────────────────
 
 function listenReminders(callback) {
@@ -2616,6 +2686,10 @@ window.firebase = {
     getWrapped,
     setDreamPhoto,
     listenReminders,
+    listenFridge,
+    setFridgeNote,
+    clearFridgeNote,
+    heartFridgeNote,
     addReminder,
     updateReminder,
     deleteReminder,

@@ -193,6 +193,34 @@ service cloud.firestore {
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
     }
 
+    // ── Buzdolabı (js/fridge.js) ────────────────────────────
+    // fridge/{coupleId}_{uid}: herkes kendi notunu yazar/siler;
+    // sevgilisi sadece kalp (heartAt) bırakabilir.
+    match /fridge/{id} {
+
+      allow read: if signedIn() && inMyCouple(resource.data.coupleId);
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && id == request.resource.data.coupleId + '_' + me()
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 80
+        && request.resource.data.at is int;
+
+      allow update: if signedIn()
+        && inMyCouple(resource.data.coupleId)
+        && !changes().hasAny(['coupleId', 'authorId'])
+        && (
+          (resource.data.authorId == me()
+            && request.resource.data.text is string
+            && request.resource.data.text.size() <= 80)
+          || (resource.data.authorId != me() && changes().hasOnly(['heartAt']))
+        );
+
+      allow delete: if signedIn() && resource.data.authorId == me();
+    }
+
     // ── Ona hatırlat (js/reminders.js) ──────────────────────
     // Kuran (authorId) içeriği ve zamanı yönetir, hatırlatılan
     // (targetId) sadece "yaptım", "10 dk sonra" ve sessize alma.
