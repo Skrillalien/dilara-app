@@ -712,3 +712,44 @@ function closeAppConfirm(result = false) {
     return true;
 
 }
+
+// ── Akıcılık: kaydırırken animasyonları duraklat ────────────
+// Sayfalar kendi içinde kayıyor; scroll olayı yakalama aşamasında
+// her kaydırılan öğeden gelir. Kaydırma bitince 180 ms sonra devam.
+(function () {
+
+    let timer = null;
+
+    document.addEventListener("scroll", () => {
+
+        if (!document.body.classList.contains("is-scrolling")) {
+            document.body.classList.add("is-scrolling");
+        }
+
+        clearTimeout(timer);
+
+        timer = setTimeout(() => document.body.classList.remove("is-scrolling"), 180);
+
+    }, { capture: true, passive: true });
+
+    // Ekranda olmayan su kartının dalgaları dursun
+    if ("IntersectionObserver" in window) {
+
+        const watch = () => {
+
+            const card = document.getElementById("waterCard");
+
+            if (!card) return;
+
+            new IntersectionObserver(entries => {
+                entries.forEach(e => card.classList.toggle("offscreen", !e.isIntersecting));
+            }).observe(card);
+
+        };
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watch);
+        else watch();
+
+    }
+
+})();

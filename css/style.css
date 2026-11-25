@@ -10288,3 +10288,43 @@ button.mood-day:active{ transform:scale(.94); }
     box-sizing:border-box;
     padding:9px 14px;
 }
+
+/* ═════════════════════════════════════════════════════════
+   AKICILIK (Android WebView)
+   Kaydırırken arkası sürekli yeniden bulanıklaştırılan katmanlar
+   (backdrop-filter) ve sürekli dönen animasyonlar bazı
+   telefonlarda kasmaya ve kartların bir an boş görünmesine yol
+   açıyordu. Bulanıklık yerine neredeyse opak zemin; kaydırırken
+   animasyonlar duraklar (js/ui.js → is-scrolling).
+   ═════════════════════════════════════════════════════════ */
+.bottom-nav{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    background:rgba(var(--bg-rgb), .97);
+}
+
+.biz-card,
+.photos-month-title,
+.memory-menu-btn,
+.photo-menu-btn,
+.memory-badge,
+.together-badge{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+}
+
+.photos-month-title{ background:rgba(var(--bg-rgb), .96); }
+
+.memory-menu-btn,
+.photo-menu-btn,
+.memory-badge{ background:rgba(0, 0, 0, .5); }
+
+/* Kaydırırken bütün animasyonlar bir an dursun */
+body.is-scrolling *,
+body.is-scrolling *::before,
+body.is-scrolling *::after{
+    animation-play-state:paused !important;
+}
+
+/* Ekranda olmayan su bardakları dalgalanmasın */
+.water-card.offscreen .water-wave{ animation-play-state:paused; }
