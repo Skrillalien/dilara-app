@@ -1849,7 +1849,7 @@ exports.clearPresence = onCall(async (request) => {
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
     "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
-    "water", "reminders",
+    "water", "reminders", "fridge",
     // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
     "sliderImages"
 ];
@@ -3257,5 +3257,51 @@ exports.onReminderDone = onDocumentUpdated("reminders/{id}", async (event) => {
         tag: `rem-done-${event.params.id}`,
         category: "reminders"
     });
+
+});
+
+// ─────────────────────────────────────────────────────────────
+// BUZDOLABI (js/fridge.js): yeni not ve kalp haberleri
+// ─────────────────────────────────────────────────────────────
+
+exports.onFridgeWritten = onDocumentWritten("fridge/{id}", async (event) => {
+
+    const before = event.data?.before?.data() || {};
+    const after = event.data?.after?.data();
+
+    if (!after) return;
+
+    const couple = await db.doc(`couples/${after.coupleId}`).get();
+    const partnerId = (couple.get("members") || []).find(m => m !== after.authorId);
+
+    if (!partnerId) return;
+
+    // Yeni not asıldı → sevgiline
+    if (after.text && (after.text !== before.text || after.at !== before.at)) {
+
+        await sendPushToUser(partnerId, {
+            title: `📌 ${await userName(after.authorId)} buzdolabına not bıraktı`,
+            body: after.text,
+            data: { page: "home", type: "fridge" },
+            tag: "fridge",
+            category: "love"
+        });
+
+        return;
+
+    }
+
+    // Notuna kalp bırakıldı → not sahibine
+    if (after.heartAt && !before.heartAt) {
+
+        await sendPushToUser(after.authorId, {
+            title: `💜 ${await userName(partnerId)} notuna kalp bıraktı`,
+            body: after.text || "",
+            data: { page: "home", type: "fridge" },
+            tag: "fridge-heart",
+            category: "love"
+        });
+
+    }
 
 });

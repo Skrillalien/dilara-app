@@ -367,15 +367,17 @@ function renderStreak() {
     document.getElementById("streakCount").textContent = count;
     document.getElementById("streakTitle").textContent = current.title;
 
-    document.getElementById("streakNext").textContent = next
+    // Barın yanında "15/30": bir sonraki seviyeye kaç gün
+    document.getElementById("streakGoal").textContent = next ? `${count}/${next.min}` : "👑";
+
+    streakNextText = next
         ? `${next.title} olmanıza ${next.min - count} gün kaldı`
         : "Zirvedesiniz, böyle devam 💜";
 
     document.getElementById("streakFreezes").textContent = left;
 
-    const progress = next
-        ? (count - current.min) / (next.min - current.min)
-        : 1;
+    // Bar, yanındaki "15/30" ile aynı şeyi göstersin
+    const progress = next ? count / next.min : 1;
 
     document.getElementById("streakProgress").style.width =
         `${Math.max(4, Math.min(100, progress * 100))}%`;
@@ -387,29 +389,52 @@ function renderStreak() {
 
     const today = streakDayKey(new Date());
 
-    if (s.lastCountedDay === today) {
+    const done = s.lastCountedDay === today;
 
-        statusEl.className = "streak-status is-done";
-        statusEl.textContent = "✓ Bugünkü seri tamam · yarın yine görüşürüz";
-        return;
+    // Bugün tamamsa kart "okuyup hatırlamak" bölümüne iner; değilse
+    // "senden bir şey bekleyen" bölümünde kalır (index.html'deki yuvalar)
+    placeStreakCard(card, done);
 
-    }
-
-    const meDone = streakHasVisited(s, myUid);
-    const partnerDone = streakHasVisited(s, partnerUid);
+    const meDone = done || streakHasVisited(s, myUid);
+    const partnerDone = done || streakHasVisited(s, partnerUid);
 
     const myName = (typeof coupleNames !== "undefined" && coupleNames.me) || "Sen";
     const partnerName = (typeof coupleNames !== "undefined" && coupleNames.partner) || "Partnerin";
 
     const remaining = (s.lastCompleteAt || Date.now()) + STREAK_WINDOW_MS - Date.now();
-    const urgent = count > 0 && remaining < 6 * 3600000;
+    const urgent = !done && count > 0 && remaining < 6 * 3600000;
 
-    statusEl.className = "streak-status" + (urgent ? " is-urgent" : "");
+    // Durum yazı yerine küçük işaret: ✓ tamam, ⏳ bekleniyor
+    statusEl.className = "streak-status" + (done ? " is-done" : urgent ? " is-urgent" : " is-wait");
+    statusEl.textContent = done ? "✓" : "⏳";
 
-    statusEl.innerHTML =
-        `<span class="${meDone ? "ok" : "wait"}">${typeof coupleHearts !== "undefined" ? coupleHearts.me : "💙"} ${escapeStreakHtml(myName)} ${meDone ? "✓" : "⏳"}</span>` +
-        `<span class="${partnerDone ? "ok" : "wait"}">${typeof coupleHearts !== "undefined" ? coupleHearts.partner : "💗"} ${escapeStreakHtml(partnerName)} ${partnerDone ? "✓" : "⏳"}</span>` +
-        (count > 0 ? `<span class="streak-time">⌛ ${formatStreakRemaining(remaining)}</span>` : "");
+    streakStatusText = done
+        ? "✓ Bugünkü seri tamam · yarın yine görüşürüz"
+        : [
+            `${meDone ? "✓" : "⏳"} ${myName}`,
+            `${partnerDone ? "✓" : "⏳"} ${partnerName}`,
+            count > 0 ? `⌛ ${formatStreakRemaining(remaining)}` : ""
+        ].filter(Boolean).join(" · ");
+
+}
+
+let streakStatusText = "";
+let streakNextText = "";
+
+// İşarete dokununca: bugünkü durum + bir sonraki seviye
+function showStreakStatus() {
+
+    const text = [streakStatusText, streakNextText].filter(Boolean).join(" · ");
+
+    if (text) showToast(text);
+
+}
+
+function placeStreakCard(card, done) {
+
+    const slot = document.getElementById(done ? "streakSlotBottom" : "streakSlotTop");
+
+    if (slot && card.previousElementSibling !== slot) slot.after(card);
 
 }
 

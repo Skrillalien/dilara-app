@@ -52,7 +52,8 @@ const SHEETS = {
     moodSheet:        { overlay: "moodOverlay",  close: () => closeMoodPicker() },
     partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() },
     waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() },
-    reminderSheet:    { overlay: "reminderOverlay", close: () => closeReminderSheet() }
+    reminderSheet:    { overlay: "reminderOverlay", close: () => closeReminderSheet() },
+    fridgeSheet:      { overlay: "fridgeOverlay", close: () => closeFridgeSheet() }
 };
 
 function isSheetOpen(id) {
@@ -194,6 +195,7 @@ function initSheetDrags() {
     initSheetDrag("partnerMoodSheet");
     initSheetDrag("waterSheet");
     initSheetDrag("reminderSheet");
+    initSheetDrag("fridgeSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");

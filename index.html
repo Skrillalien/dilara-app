@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=64">
+  <link rel="stylesheet" href="css/style.css?v=66">
   
   <link
     rel="stylesheet"
@@ -272,47 +272,9 @@
       <button class="verify-card-close" onclick="dismissVerifyCard()" aria-label="Kapat">✕</button>
     </div>
 
-    <!-- Seri (streak) -->
-    <div class="streak-card" id="streakCard" style="display:none;">
-
-      <div class="streak-flame" id="streakEmoji">💗</div>
-
-      <div class="streak-body">
-
-        <div class="streak-top">
-          <span class="streak-count" id="streakCount">1</span>
-          <span class="streak-unit">gün seri</span>
-          <span class="streak-title" id="streakTitle">Sevgili</span>
-        </div>
-
-        <div class="streak-bar">
-          <div class="streak-bar-fill" id="streakProgress"></div>
-        </div>
-
-        <div class="streak-next" id="streakNext"></div>
-
-      </div>
-
-      <button class="streak-freeze" onclick="showStreakInfo()" aria-label="Seri hakları">
-        <span>🧊</span>
-        <span id="streakFreezes">5</span>
-      </button>
-
-      <div class="streak-status" id="streakStatus"></div>
-
-    </div>
-
-    <!-- Ruh Hali: tek satır -->
-    <div class="mood-card" id="moodCard" style="display:none;">
-      <button class="mood-chip" id="moodMine" onclick="openMoodPicker()"></button>
-      <button class="mood-chip" id="moodTheirs" onclick="openPartnerMood()"></button>
-    </div>
-
-    <!-- Su (js/water.js) -->
+    <!-- ── 1 · Şimdi senden bir şey bekleyen (sadece gerekince) ── -->
     <!-- Ona hatırlat: sadece bugün sana kurulmuş bir hatırlatma varsa (js/reminders.js) -->
     <div id="reminderStrip" style="display:none;"></div>
-
-    <div class="water-card" id="waterCard" style="display:none;"></div>
 
     <div class="dashboard-card" id="waitingCard" style="display:none;">
 
@@ -324,6 +286,53 @@
 
     </div>
 
+    <!-- Seri: bugün tamamlanmadıysa burada, tamamsa aşağıda (js/streak.js) -->
+    <div id="streakSlotTop"></div>
+    <!-- Seri (streak) -->
+    <div class="streak-card" id="streakCard" style="display:none;">
+
+      <div class="streak-flame" id="streakEmoji">💗</div>
+
+      <div class="streak-body">
+
+        <div class="streak-top">
+          <span class="streak-count" id="streakCount">1</span>
+          <span class="streak-unit">gün seri</span>
+          <span class="streak-title" id="streakTitle">Sevgili</span>
+          <button class="streak-status" id="streakStatus" type="button" onclick="showStreakStatus()" aria-label="Bugünkü seri durumu"></button>
+        </div>
+
+        <div class="streak-bar-row">
+          <div class="streak-bar">
+            <div class="streak-bar-fill" id="streakProgress"></div>
+          </div>
+          <span class="streak-goal" id="streakGoal"></span>
+        </div>
+
+      </div>
+
+      <button class="streak-freeze" onclick="showStreakInfo()" aria-label="Seri hakları">
+        <span>🧊</span>
+        <span id="streakFreezes">5</span>
+      </button>
+
+
+    </div>
+
+
+    <!-- ── 2 · Bugün nasılız ── -->
+    <!-- Buzdolabı: ikinizin kısa notu (js/fridge.js) -->
+    <div id="fridgeCard"></div>
+
+    <!-- Ruh Hali: tek satır -->
+    <div class="mood-card" id="moodCard" style="display:none;">
+      <button class="mood-chip" id="moodMine" onclick="openMoodPicker()"></button>
+      <button class="mood-chip" id="moodTheirs" onclick="openPartnerMood()"></button>
+    </div>
+
+    <!-- Su (js/water.js) -->
+    <div class="water-card" id="waterCard" style="display:none;"></div>
+
     <!-- Günün Sorusu -->
     <div class="dashboard-card question-card" id="questionCard" style="display:none;">
 
@@ -334,6 +343,18 @@
 
       <div id="questionCardBody"></div>
 
+    </div>
+
+    <!-- ── 3 · Okuyup hatırlamak ── -->
+    <div id="streakSlotBottom"></div>
+
+    <!-- Events -->
+    <div class="section">
+      <div class="section-head">
+        <div class="section-title">Özel Günler</div>
+        <button class="section-link" onclick="openCard('our-calendar')">Tümü →</button>
+      </div>
+      <div id="eventsList"></div>
     </div>
 
     <!-- Dashboard Card -->
@@ -368,15 +389,6 @@
         <span class="last-memory-empty">Henüz not yok.</span>
       </div>
 
-    </div>
-
-    <!-- Events -->
-    <div class="section">
-      <div class="section-head">
-        <div class="section-title">Özel Günler</div>
-        <button class="section-link" onclick="openCard('our-calendar')">Tümü →</button>
-      </div>
-      <div id="eventsList"></div>
     </div>
 
   </div><!-- end page-home -->
@@ -1614,6 +1626,14 @@
 <!-- Su: hedef, bardak, hatırlatıcı, son 7 gün (js/water.js) -->
 <div class="bny-overlay" id="waterOverlay" onclick="closeSheets()"></div>
 
+<!-- Buzdolabı: not yaz / onun notu (js/fridge.js) -->
+<div class="bny-overlay" id="fridgeOverlay" onclick="closeSheets()"></div>
+
+<div class="bny-panel fridge-sheet" id="fridgeSheet">
+  <div class="bny-handle"></div>
+  <div id="fridgeSheetBody"></div>
+</div>
+
 <!-- Ona hatırlat: kur / düzenle / yaptım (js/reminders.js) -->
 <div class="bny-overlay" id="reminderOverlay" onclick="closeSheets()"></div>
 
@@ -2019,7 +2039,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=31"></script>
+    <script type="module" src="js/firebase.js?v=32"></script>
     
     <script src="js/theme.js?v=8"></script>
     <script src="js/bny.js?v=4"></script>
@@ -2036,13 +2056,13 @@
 
 
 
-    <script src="js/ui.js?v=24"></script>
+    <script src="js/ui.js?v=25"></script>
 
     <script src="js/slider.js?v=5"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-    <script src="js/streak.js?v=3"></script>
+    <script src="js/streak.js?v=5"></script>
     <script src="js/account.js?v=3"></script>
     <script src="js/proximity.js?v=3"></script>
     <script src="js/onthisday.js?v=1"></script>
@@ -2064,7 +2084,8 @@
     <script src="js/wrapped.js?v=5"></script>
     <script src="js/water.js?v=6"></script>
     <script src="js/reminders.js?v=1"></script>
-    <script src="js/app.js?v=34"></script>
+    <script src="js/fridge.js?v=1"></script>
+    <script src="js/app.js?v=35"></script>
   
 </body>
 </html>
