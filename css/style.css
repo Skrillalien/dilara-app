@@ -10657,3 +10657,7 @@ body.is-scrolling *::after{
 .nb-tabs button{ padding:7px 11px; }
 
 .nb-sheet .rem-chips{ flex-wrap:wrap; overflow:visible; }
+
+.nb-section small{ font-weight:500; letter-spacing:0; text-transform:none; opacity:.8; }
+
+.nb-edit{ margin-left:4px; font-style:normal; font-size:11px; opacity:.55; }

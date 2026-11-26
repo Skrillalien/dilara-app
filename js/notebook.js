@@ -365,7 +365,8 @@ function nbAboutMeHtml() {
     const question = f => nbFixing === f.id ? `
         <div class="nb-ask">
             <b>${emoji(f)} ${label(f)}</b>
-            <input id="nbFixInput" class="rem-input" maxlength="200" value="${nbEsc(f.value)}">
+            <input id="nbFixInput" class="rem-input" maxlength="200" value="${nbEsc(f.value)}"
+                enterkeyhint="done" onkeydown="if (event.key === 'Enter') confirmNotebookFact('${f.id}', true)">
             <div class="nb-ask-actions">
                 <button type="button" class="yes" onclick="confirmNotebookFact('${f.id}', true)">Kaydet</button>
                 <button type="button" onclick="nbFixing = null; renderNotebookPage()">Vazgeç</button>
@@ -376,7 +377,7 @@ function nbAboutMeHtml() {
             <b>${emoji(f)} ${label(f)}: “${nbEsc(f.value)}” mi?</b>
             <div class="nb-ask-actions">
                 <button type="button" class="yes" onclick="confirmNotebookFact('${f.id}')">✓ Doğru</button>
-                <button type="button" onclick="nbFixing = '${f.id}'; renderNotebookPage(); setTimeout(() => document.getElementById('nbFixInput')?.focus(), 50)">Düzelt</button>
+                <button type="button" onclick="openNotebookFix('${f.id}')">Düzelt</button>
             </div>
         </div>
     `;
@@ -389,13 +390,13 @@ function nbAboutMeHtml() {
 
         ${pending.map(question).join("")}
 
-        ${confirmed.length ? `<div class="nb-section">Onayladıkların</div>` : ""}
-        ${confirmed.map(f => `
-            <div class="nb-row static">
+        ${confirmed.length ? `<div class="nb-section">Onayladıkların <small>· düzeltmek için dokun</small></div>` : ""}
+        ${confirmed.map(f => nbFixing === f.id ? question(f) : `
+            <button type="button" class="nb-row" onclick="openNotebookFix('${f.id}')">
                 <span class="nb-row-emoji">${emoji(f)}</span>
                 <span class="nb-row-text"><b>${nbEsc(f.value)}</b><small>${label(f)}</small></span>
-                <span class="nb-row-mark ok">✓</span>
-            </div>
+                <span class="nb-row-mark ok">✓ <i class="nb-edit">✏️</i></span>
+            </button>
         `).join("")}
 
         <div class="nb-foot">🔒 ${nbEsc(nbGen(name))} gizli notlarını ve hediye fikirlerini göremezsin</div>
@@ -719,6 +720,25 @@ async function toggleNotebookGiven(id) {
 
 // ── Onun benim hakkımda yazdıkları: onayla / düzelt ─────────
 
+// Onun yazdığını düzelt (onaylamadan önce ya da onayladıktan sonra)
+function openNotebookFix(id) {
+
+    nbFixing = id;
+
+    window.appHaptics?.light?.();
+
+    renderNotebookPage();
+
+    setTimeout(() => {
+        const input = document.getElementById("nbFixInput");
+        if (!input) return;
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+        input.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 60);
+
+}
+
 async function confirmNotebookFact(id, withFix = false) {
 
     const f = nbAboutMe.find(x => x.id === id);
@@ -736,10 +756,21 @@ async function confirmNotebookFact(id, withFix = false) {
         data.value = value;
     }
 
+    // Değişmediyse ve zaten onaylıysa yazmaya gerek yok
+    if (withFix && f.confirmedAt && data.value === f.value) {
+        nbFixing = null;
+        renderNotebookPage();
+        return;
+    }
+
+    const wasConfirmed = !!f.confirmedAt;
+
     Object.assign(f, data);
     nbFixing = null;
 
     renderNotebook();
+
+    if (withFix && wasConfirmed) showToast("✏️ Düzeltildi");
 
     (window.appHaptics?.success || window.appHaptics?.light)?.();
 
