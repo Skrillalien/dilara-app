@@ -1940,6 +1940,88 @@ async function sendNudge(type, extra = {}) {
 
 }
 
+// ── Defter (js/notebook.js) ─────────────────────────────────
+// notebook/{id} = { coupleId, authorId (yazan), subjectId (anlatılan),
+//   kind: "fact" | "idea", secret, … }
+// Gizli bilgiler ve bütün hediye fikirleri sadece yazana görünür.
+
+function listenNotebook(callback) {
+
+    const unsubs = [];
+    let stopped = false;
+    const state = { mine: [], aboutMe: [] };
+
+    getMyCouple().then(coupleId => {
+
+        const user = auth.currentUser;
+
+        if (!coupleId || !user || stopped) {
+            callback(state);
+            return;
+        }
+
+        const map = snap => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Benim yazdıklarım (onun hakkında + hediye fikirlerim)
+        unsubs.push(onSnapshot(
+            query(collection(db, "notebook"),
+                where("coupleId", "==", coupleId),
+                where("authorId", "==", user.uid)),
+            snap => { state.mine = map(snap); callback({ ...state }); },
+            error => console.error("Defter dinlenemedi:", error)
+        ));
+
+        // Onun benim hakkımda yazdıkları (sadece gizli olmayan bilgiler)
+        unsubs.push(onSnapshot(
+            query(collection(db, "notebook"),
+                where("coupleId", "==", coupleId),
+                where("subjectId", "==", user.uid),
+                where("kind", "==", "fact"),
+                where("secret", "==", false)),
+            snap => { state.aboutMe = map(snap); callback({ ...state }); },
+            error => console.error("Defter dinlenemedi:", error)
+        ));
+
+    });
+
+    return () => {
+        stopped = true;
+        unsubs.forEach(u => u());
+    };
+
+}
+
+async function addNotebookEntry(data) {
+
+    const user = auth.currentUser;
+    const coupleId = await getMyCouple();
+
+    if (!user || !coupleId) throw new Error("COUPLE_NOT_FOUND");
+
+    const ref = await addDoc(collection(db, "notebook"), {
+        ...data,
+        coupleId,
+        authorId: user.uid,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    });
+
+    return ref.id;
+
+}
+
+async function updateNotebookEntry(id, data) {
+
+    await updateDoc(doc(db, "notebook", id), { ...data, updatedAt: Date.now() });
+
+}
+
+async function deleteNotebookEntry(id) {
+
+    await deleteDoc(doc(db, "notebook", id));
+
+}
+
 // ── Buzdolabı (js/fridge.js) ────────────────────────────────
 // fridge/{coupleId}_{uid} = { coupleId, authorId, text, at, heartAt }
 
@@ -2687,6 +2769,10 @@ window.firebase = {
     setDreamPhoto,
     listenReminders,
     listenFridge,
+    listenNotebook,
+    addNotebookEntry,
+    updateNotebookEntry,
+    deleteNotebookEntry,
     setFridgeNote,
     clearFridgeNote,
     heartFridgeNote,

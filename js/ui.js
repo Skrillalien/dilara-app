@@ -53,7 +53,8 @@ const SHEETS = {
     partnerMoodSheet: { overlay: "moodOverlay",  close: () => closePartnerMood() },
     waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() },
     reminderSheet:    { overlay: "reminderOverlay", close: () => closeReminderSheet() },
-    fridgeSheet:      { overlay: "fridgeOverlay", close: () => closeFridgeSheet() }
+    fridgeSheet:      { overlay: "fridgeOverlay", close: () => closeFridgeSheet() },
+    notebookSheet:    { overlay: "notebookOverlay", close: () => closeNotebookSheet() }
 };
 
 function isSheetOpen(id) {
@@ -196,6 +197,7 @@ function initSheetDrags() {
     initSheetDrag("waterSheet");
     initSheetDrag("reminderSheet");
     initSheetDrag("fridgeSheet");
+    initSheetDrag("notebookSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");
@@ -237,6 +239,14 @@ function openAppTarget(target) {
     if (target === "reminders") {
         if (typeof setReminderTab === "function") remTab = "mine";
         showPage("our-reminders");
+        return;
+    }
+
+    // Hediye hatırlatması: defterin hediye fikirleri sekmesi
+    if (target === "our-notebook") {
+        if (typeof setNotebookTab === "function") nbTab = "ideas";
+        showPage("our-notebook");
+        if (typeof renderNotebookPage === "function") renderNotebookPage();
         return;
     }
 
