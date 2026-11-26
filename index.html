@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=67">
+  <link rel="stylesheet" href="css/style.css?v=68">
   
   <link
     rel="stylesheet"
@@ -767,6 +767,36 @@
 </div>
 
 
+<!-- Defter: sevgilin hakkında + gizli hediye fikirleri (js/notebook.js) -->
+<div class="page" id="page-our-notebook">
+
+    <div class="photos-page">
+
+        <div class="photos-header">
+
+            <div class="biz-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/>
+                    <path d="M5 17a3 3 0 0 1 3-3h11"/>
+                    <path d="M12 7.6c.7-1 2.6-.8 2.6.8 0 1.3-2.6 2.8-2.6 2.8s-2.6-1.5-2.6-2.8c0-1.6 1.9-1.8 2.6-.8z" fill="currentColor" stroke="none"/>
+                </svg>
+            </div>
+
+            <div class="header-title" id="notebookTitle">
+                Defter
+            </div>
+
+        </div>
+
+        <div class="rem-tabs nb-tabs" id="notebookTabs"></div>
+
+        <div id="notebookBody"></div>
+
+    </div>
+
+</div>
+
+
 <!-- Dreams Page -->
 <div class="page" id="page-our-reminders">
 
@@ -1173,6 +1203,30 @@
 
           <div class="biz-card-subtitle">
               Birbirimize küçük hatırlatmalar
+          </div>
+
+      </div>
+
+    </div>
+
+    <div class="biz-card" onclick="openCard('our-notebook', this)">
+
+      <div class="biz-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/>
+                <path d="M5 17a3 3 0 0 1 3-3h11"/>
+                <path d="M12 7.6c.7-1 2.6-.8 2.6.8 0 1.3-2.6 2.8-2.6 2.8s-2.6-1.5-2.6-2.8c0-1.6 1.9-1.8 2.6-.8z" fill="currentColor" stroke="none"/>
+            </svg>
+      </div>
+
+      <div>
+
+          <div class="biz-card-title" id="notebookBizTitle">
+              Defter
+          </div>
+
+          <div class="biz-card-subtitle">
+              Onun defteri · sevdikleri, hediye fikirleri
           </div>
 
       </div>
@@ -1634,6 +1688,14 @@
   <div id="fridgeSheetBody"></div>
 </div>
 
+<!-- Defter: bilgi / hediye fikri (js/notebook.js) -->
+<div class="bny-overlay" id="notebookOverlay" onclick="closeSheets()"></div>
+
+<div class="bny-panel rem-sheet nb-sheet" id="notebookSheet">
+  <div class="bny-handle"></div>
+  <div id="notebookSheetBody"></div>
+</div>
+
 <!-- Ona hatırlat: kur / düzenle / yaptım (js/reminders.js) -->
 <div class="bny-overlay" id="reminderOverlay" onclick="closeSheets()"></div>
 
@@ -2039,7 +2101,7 @@
 </div>
 
     <script src="dailyMessages.js?v=2"></script>
-    <script type="module" src="js/firebase.js?v=32"></script>
+    <script type="module" src="js/firebase.js?v=33"></script>
     
     <script src="js/theme.js?v=8"></script>
     <script src="js/bny.js?v=4"></script>
@@ -2056,7 +2118,7 @@
 
 
 
-    <script src="js/ui.js?v=26"></script>
+    <script src="js/ui.js?v=27"></script>
 
     <script src="js/slider.js?v=5"></script>
 
@@ -2085,7 +2147,8 @@
     <script src="js/water.js?v=6"></script>
     <script src="js/reminders.js?v=1"></script>
     <script src="js/fridge.js?v=1"></script>
-    <script src="js/app.js?v=35"></script>
+    <script src="js/notebook.js?v=1"></script>
+    <script src="js/app.js?v=36"></script>
   
 </body>
 </html>

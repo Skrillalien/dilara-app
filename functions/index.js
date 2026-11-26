@@ -1849,7 +1849,7 @@ exports.clearPresence = onCall(async (request) => {
 const AUTHORED_COLLECTIONS = [
     "memories", "photos", "songs", "dreams", "events",
     "misses", "moodLogs", "nudges", "letters", "letterContents", "questionAnswers",
-    "water", "reminders", "fridge",
+    "water", "reminders", "fridge", "notebook",
     // Eski slider fotoğraflarında authorId yok; onlar çift silinince gider
     "sliderImages"
 ];
@@ -2323,6 +2323,8 @@ exports.morningReminders = onSchedule({
                 });
             }
         }
+
+        await giftNotebookReminders(couple, members);
 
         const milestone = milestoneText(couple.get("startDate"), today);
 
@@ -3305,3 +3307,60 @@ exports.onFridgeWritten = onDocumentWritten("fridge/{id}", async (event) => {
     }
 
 });
+
+// ─────────────────────────────────────────────────────────────
+// DEFTER: hediye zamanı hatırlatması (js/notebook.js)
+//
+// Doğum günü, yıldönümü, sevgililer günü gibi günlerden 14 ve 3 gün
+// önce (sabah hatırlatmasıyla birlikte) sadece hediye alacak kişiye:
+// "Hediye defterinde 4 fikir var". Kendi doğum gününde kendisine
+// gitmez (etkinliğin adında kendi adı geçiyorsa).
+// ─────────────────────────────────────────────────────────────
+
+const GIFT_EVENT_RE = /doğum|yıldönüm|yil ?dönüm|sevgililer|evlilik|nişan/i;
+
+async function giftNotebookReminders(couple, members) {
+
+    const now = new Date();
+    const events = (await db.collection("events").where("coupleId", "==", couple.id).get())
+        .docs.map(d => d.data())
+        .filter(e => e.name && (GIFT_EVENT_RE.test(e.name) || e.emoji === "🎂"));
+
+    if (!events.length) return;
+
+    for (const ahead of [14, 3]) {
+
+        const target = istanbulParts(new Date(now.getTime() + ahead * 24 * 60 * 60 * 1000));
+        const due = events.filter(e => Number(e.month) === target.m && Number(e.day) === target.d);
+
+        for (const e of due) {
+            for (const uid of members) {
+
+                const name = String(await userName(uid, "")).trim().toLocaleLowerCase("tr-TR");
+
+                if (name && e.name.toLocaleLowerCase("tr-TR").includes(name)) continue;
+
+                const ideas = await db.collection("notebook")
+                    .where("coupleId", "==", couple.id)
+                    .where("authorId", "==", uid)
+                    .where("kind", "==", "idea")
+                    .get();
+
+                const open = ideas.docs.filter(d => !d.get("givenAt")).length;
+
+                await sendPushToUser(uid, {
+                    title: `🎁 ${e.name} ${ahead} gün sonra`,
+                    body: open
+                        ? `Hediye defterinde ${open} fikir var. Bir göz at 💝`
+                        : "Hediye defterine bir fikir not etmek ister misin? 💝",
+                    data: { page: "our-notebook", type: "notebook" },
+                    tag: `gift-${target.m}-${target.d}`,
+                    category: "reminders"
+                });
+
+            }
+        }
+
+    }
+
+}

@@ -267,6 +267,7 @@ function closeTopLayer() {
     if (isOpen("reminderSheet")) { closeReminderSheet(); return true; }
 
     if (isOpen("fridgeSheet")) { closeFridgeSheet(); return true; }
+    if (isOpen("notebookSheet")) { closeNotebookSheet(); return true; }
 
     if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }
 

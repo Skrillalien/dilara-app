@@ -193,6 +193,50 @@ service cloud.firestore {
       allow delete: if shared() && inMyCouple(resource.data.coupleId);
     }
 
+    // ── Defter (js/notebook.js) ─────────────────────────────
+    // Yazan (authorId) sevgilisi (subjectId) hakkında bilgi ve hediye
+    // fikri tutar. Hediye fikirleri ve gizli bilgiler SADECE yazana
+    // görünür; anlatılan kişi gizli olmayan bilgileri görür ve
+    // sadece onaylayıp düzeltebilir.
+    match /notebook/{id} {
+
+      function nbValid(d) {
+        return d.kind in ['fact', 'idea']
+          && d.secret is bool
+          && (d.kind == 'fact' || d.secret == true)
+          && d.get('value', '') is string && d.get('value', '').size() <= 200
+          && d.get('title', '') is string && d.get('title', '').size() <= 200
+          && d.get('note', '') is string && d.get('note', '').size() <= 500
+          && d.get('link', '') is string && d.get('link', '').size() <= 500;
+      }
+
+      allow read: if signedIn()
+        && inMyCouple(resource.data.coupleId)
+        && (resource.data.authorId == me()
+          || (resource.data.subjectId == me()
+            && resource.data.kind == 'fact'
+            && resource.data.secret == false));
+
+      allow create: if signedIn()
+        && request.resource.data.authorId == me()
+        && inMyCouple(request.resource.data.coupleId)
+        && request.resource.data.subjectId != me()
+        && request.resource.data.subjectId in get(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members
+        && nbValid(request.resource.data);
+
+      allow update: if signedIn()
+        && inMyCouple(resource.data.coupleId)
+        && !changes().hasAny(['coupleId', 'authorId', 'subjectId', 'kind'])
+        && nbValid(request.resource.data)
+        && (resource.data.authorId == me()
+          || (resource.data.subjectId == me()
+            && resource.data.kind == 'fact'
+            && resource.data.secret == false
+            && changes().hasOnly(['value', 'confirmedAt', 'guess', 'updatedAt'])));
+
+      allow delete: if signedIn() && resource.data.authorId == me();
+    }
+
     // ── Buzdolabı (js/fridge.js) ────────────────────────────
     // fridge/{coupleId}_{uid}: herkes kendi notunu yazar/siler;
     // sevgilisi sadece kalp (heartAt) bırakabilir.
