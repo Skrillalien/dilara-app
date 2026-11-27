@@ -10071,7 +10071,6 @@ button.mood-day:active{ transform:scale(.94); }
 
 .fridge-paper.mine{ transform:rotate(2deg); }
 
-.fridge-paper.old{ opacity:.55; }
 
 .fridge-text{
     font-size:17px;
@@ -10661,3 +10660,10 @@ body.is-scrolling *::after{
 .nb-section small{ font-weight:500; letter-spacing:0; text-transform:none; opacity:.8; }
 
 .nb-edit{ margin-left:4px; font-style:normal; font-size:11px; opacity:.55; }
+
+.fridge-ttl{
+    margin:10px 0 2px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+}

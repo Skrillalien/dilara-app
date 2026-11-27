@@ -3364,3 +3364,97 @@ async function giftNotebookReminders(couple, members) {
     }
 
 }
+
+
+// ═════════════════════════════════════════════════════════════
+// VERİ TEMİZLİĞİ
+//
+// İşi biten kayıtlar tutulmaz:
+//   • Buzdolabı notu: asıldıktan 24 saat sonra silinir (15 dk'da bir)
+//   • Sarıl / kahve gibi karşılıklar (nudges): 7 gün sonra (her gece)
+//   • Yılımız biter bitmez (16 Ocak), geçen yıl ve öncesine ait:
+//       misses     özledim kayıtları (sadece yıl sonu sayısı için tutuluyordu)
+//       songPlays  "şu an dinliyorum" yıllık sayaçları
+//       water      günlük su kayıtları
+//   Anılar, fotoğraflar, ruh hali takvimi, Yan Yana günleri, sorular,
+//   mektuplar, hayaller kalıcıdır (kullanıcı geçmişe dönüp bakıyor).
+// ═════════════════════════════════════════════════════════════
+
+const FRIDGE_TTL_MS = 24 * 60 * 60 * 1000;
+const NUDGE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Sorgu boşalana kadar 400'erli siler; silinen sayıyı döner
+async function deleteAllMatching(makeQuery, maxRounds = 50) {
+
+    let total = 0;
+
+    for (let round = 0; round < maxRounds; round++) {
+
+        const snap = await makeQuery().limit(400).get();
+
+        if (snap.empty) break;
+
+        await deleteQueryInBatches(snap.docs);
+
+        total += snap.size;
+
+        if (snap.size < 400) break;
+
+    }
+
+    return total;
+
+}
+
+exports.cleanupFridge = onSchedule({ schedule: "every 15 minutes", maxInstances: 1 }, async () => {
+
+    const cutoff = Date.now() - FRIDGE_TTL_MS;
+
+    const n = await deleteAllMatching(() => db.collection("fridge").where("at", "<", cutoff));
+
+    if (n) logger.info("Süresi dolan buzdolabı notları silindi", { count: n });
+
+});
+
+exports.dailyCleanup = onSchedule({ schedule: "20 4 * * *", timeZone: OTD_TIMEZONE, maxInstances: 1 }, async () => {
+
+    const cutoff = admin.firestore.Timestamp.fromMillis(Date.now() - NUDGE_TTL_MS);
+
+    const n = await deleteAllMatching(() => db.collection("nudges").where("createdAt", "<", cutoff));
+
+    if (n) logger.info("Eski karşılıklar silindi", { count: n });
+
+});
+
+// Yılımız 15 Ocak'a kadar gösteriliyor (js/wrapped.js); 16 Ocak gecesi
+// geçen yılın ham kayıtları silinir.
+async function yearlyCleanup(year) {
+
+    const firstDay = `${year}-01-01`;
+    // 1 Ocak 00:00 İstanbul (UTC+3)
+    const yearStart = admin.firestore.Timestamp.fromMillis(Date.UTC(year, 0, 1) - 3 * 60 * 60 * 1000);
+
+    const counts = {
+        misses: await deleteAllMatching(() => db.collection("misses").where("day", "<", firstDay), 200)
+            // İlk sürümlerden kalan, "day" alanı olmayan kayıtlar
+            + await deleteAllMatching(() => db.collection("misses").where("createdAt", "<", yearStart), 200),
+        songPlays: await deleteAllMatching(() => db.collection("songPlays").where("year", "<", year), 200),
+        water: await deleteAllMatching(() => db.collection("water").where("day", "<", firstDay), 200)
+    };
+
+    logger.info("Yıllık temizlik bitti", { year, ...counts });
+
+    return counts;
+
+}
+
+exports.yearlyCleanup = onSchedule({
+    schedule: "30 4 16 1 *",
+    timeZone: OTD_TIMEZONE,
+    timeoutSeconds: 540,
+    maxInstances: 1
+}, async () => {
+
+    await yearlyCleanup(Number(istanbulDayKey(new Date()).slice(0, 4)));
+
+});
