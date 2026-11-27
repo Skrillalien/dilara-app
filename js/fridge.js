@@ -8,13 +8,15 @@
 // • Kimse yazmadıysa: sadece küçük "📌 Buzdolabına not bırak" baloncuğu
 // • Kendi kâğıdına dokun → yaz (80 karakter, hazır kısa notlar)
 // • Onun kâğıdına dokun → büyük hâli + 💜 bırak (köşesine yapışır)
-// • 24 saati geçen not hafifçe solar ("dün")
+// • Not asıldıktan 24 saat sonra kendiliğinden silinir
+//   (functions → cleanupFridge; burada da hemen gizlenir)
 // • Yeni not asılınca sevgiline bildirim (functions → onFridgeWritten)
 //
 // Veri: fridge/{coupleId}_{uid} = { text, at, heartAt, … }
 // ─────────────────────────────────────────────────────────────
 
 const FRIDGE_MAX = 80;
+const FRIDGE_TTL_MS = 24 * 60 * 60 * 1000;
 const FRIDGE_QUICK = [
     "🍝 Akşam yemeği bende",
     "🛒 Eve gelirken ekmek al",
@@ -70,7 +72,22 @@ function fridgeWhen(ms) {
 
 function fridgeNote(uid) {
     const n = uid ? fridgeNotes[uid] : null;
-    return n && String(n.text || "").trim() ? n : null;
+    if (!n || !String(n.text || "").trim()) return null;
+    // Süresi doldu: sunucu birazdan siler, şimdiden gösterme
+    if (n.at && Date.now() - n.at >= FRIDGE_TTL_MS) return null;
+    return n;
+}
+
+// "3 sa kaldı" (son 6 saatte)
+function fridgeLeft(note) {
+
+    const left = (note.at || 0) + FRIDGE_TTL_MS - Date.now();
+
+    if (left > 6 * 60 * 60 * 1000) return "";
+    if (left < 60 * 60 * 1000) return " · son saat";
+
+    return ` · ${Math.ceil(left / (60 * 60 * 1000))} sa kaldı`;
+
 }
 
 // ── Başlatma ────────────────────────────────────────────────
@@ -98,8 +115,11 @@ function startFridge() {
 
     });
 
-    // "dün" / solma güncel kalsın
-    setInterval(renderFridge, 5 * 60 * 1000);
+    // Süresi dolan not kalksın, "sa kaldı" güncel kalsın
+    setInterval(() => {
+        renderFridge();
+        if (isSheetOpen?.("fridgeSheet") && fridgeSheetMode === "view") renderFridgeView();
+    }, 60 * 1000);
 
 }
 
@@ -107,17 +127,16 @@ function startFridge() {
 
 function fridgePaperHtml(note, uid, mine) {
 
-    const old = Date.now() - note.at > 24 * 60 * 60 * 1000;
     const heart = note.heartAt
         ? `<span class="fridge-heart">${fridgeHeart(mine ? fridgePartner() : fridgeMe())}</span>`
         : "";
 
     return `
-        <button type="button" class="fridge-paper ${mine ? "mine" : "theirs"}${old ? " old" : ""}"
+        <button type="button" class="fridge-paper ${mine ? "mine" : "theirs"}"
             onclick="${mine ? "openFridgeEditor()" : "openFridgeView()"}">
             <span class="fridge-magnet"></span>
             <span class="fridge-text">${fridgeEsc(note.text)}</span>
-            <small>${mine ? "Sen" : fridgeEsc(fridgePartnerName())} · ${fridgeWhen(note.at)}</small>
+            <small>${mine ? "Sen" : fridgeEsc(fridgePartnerName())} · ${fridgeWhen(note.at)}${fridgeLeft(note)}</small>
             ${heart}
         </button>
     `;
@@ -223,6 +242,8 @@ function openFridgeEditor() {
         </div>
 
         <button type="button" class="fridge-save" onclick="saveFridgeNote(this)">📌 Buzdolabına as</button>
+
+        <div class="fridge-ttl">⏳ Not 24 saat asılı kalır, sonra kendiliğinden kalkar</div>
 
         ${mine ? `<button type="button" class="fridge-remove" onclick="removeFridgeNote()">Notumu kaldır</button>` : ""}
     `;
