@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=72">
+  <link rel="stylesheet" href="css/style.css?v=73">
   
   <link
     rel="stylesheet"
@@ -55,9 +55,36 @@
 </div>
 <script>
   window.splashVisible = true;
+  // Addaki kalp emojisinin (Berk 💜 Dilara) yerine Kalp Kalbe logosu.
+  // Logo eklendiyse true döner. Ana sayfa başlığı da kullanır (js/brand.js).
+  window.BRAND_HEART_RE = /\s*(?:❤️|❤|♥️|♥|💙|💗|💜|💚|🧡|💛|🤍|🖤|💖|💕|💞|💓|🤎|🩷|🩵|🩶)\s*/u;
+  window.setBrandTitle = function (el, text) {
+    if (!el) return false;
+    text = String(text || '');
+    var m = window.BRAND_HEART_RE.exec(text);
+    if (!m) { el.textContent = text; return false; }
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    var use = document.createElementNS(ns, 'use');
+    svg.setAttribute('class', 'brand-mark title-mark');
+    svg.setAttribute('aria-hidden', 'true');
+    use.setAttribute('href', '#brandMark');
+    svg.appendChild(use);
+    var a = document.createElement('span');
+    var b = document.createElement('span');
+    a.textContent = text.slice(0, m.index);
+    b.textContent = text.slice(m.index + m[0].length);
+    el.textContent = '';
+    el.setAttribute('aria-label', text);
+    if (a.textContent) el.appendChild(a);
+    el.appendChild(svg);
+    if (b.textContent) el.appendChild(b);
+    return true;
+  };
   try {
     var n = localStorage.getItem('splashNames');
-    document.getElementById('splashNames').textContent = n || 'Kalp Kalbe';
+    var splash = document.getElementById('splash');
+    var inline = window.setBrandTitle(document.getElementById('splashNames'), n || 'Kalp Kalbe');
     // Premium → Uygulama adı ve ikonu (js/brand.js): kalbin yerine fotoğraf
     var ic = localStorage.getItem('splashIcon');
     if (ic && /^data:image\//.test(ic)) {
@@ -65,6 +92,9 @@
       h.classList.add('photo');
       h.style.backgroundImage = 'url("' + ic + '")';
       h.innerHTML = '';
+    } else if (inline) {
+      // Logo zaten adın içinde: üstte ikinci bir kalp olmasın
+      splash.classList.add('inline-mark');
     }
   } catch (e) {}
   // Ne olursa olsun açılış ekranı sonsuza kadar kalmasın
@@ -223,7 +253,7 @@
       <!-- Şu an dinliyorum (js/nowplaying.js) -->
       <button class="now-playing" id="nowPlaying" type="button" onclick="onNowPlayingTap(event)"></button>
 
-      <div class="header-content">
+      <div class="header-content" id="headerContent">
         <span class="header-emoji"><svg class="brand-mark" role="img" aria-label="Kalp Kalbe"><use href="#brandMark"/></svg></span>
         <div class="header-title" id="coupleNameDisplay">Sen & Ben</div>
         <div class="together-badge" id="togetherBadge" style="display:none;">💞 Şu an birliktesiniz</div>
@@ -2180,7 +2210,7 @@
     <script src="js/fridge.js?v=2"></script>
     <script src="js/notebook.js?v=2"></script>
     <script src="js/app.js?v=37"></script>
-    <script src="js/brand.js?v=1"></script>
+    <script src="js/brand.js?v=2"></script>
   
 </body>
 </html>

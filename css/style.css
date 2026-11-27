@@ -10882,3 +10882,24 @@ body.is-scrolling *::after{
 }
 
 .brand-note b{ color:var(--text); }
+
+/* ── Addaki kalp yerine logo (Berk ♥ Dilara) ──────────────── */
+.title-mark{
+    display:inline-block;
+    width:.9em;
+    height:.9em;
+    margin:0 .2em;
+    vertical-align:-.1em;
+    animation:pulse 3s ease-in-out infinite;
+    filter:drop-shadow(0 2px 8px rgba(0,0,0,.45));
+}
+
+/* Logo adın içindeyse üstteki ayrı logo görünmesin */
+.header-content.inline-mark .header-emoji,
+.splash.inline-mark .splash-heart{
+    display:none;
+}
+
+.splash.inline-mark .splash-names{
+    font-size:34px;
+}
