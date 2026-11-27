@@ -65,7 +65,18 @@ function applyAppBrand() {
     const brand = brandInApp();
     const title = document.getElementById("coupleNameDisplay");
 
-    if (brand?.name && title) title.textContent = brand.name;
+    // "Berk 💜 Dilara" → kalbin yerine logo; üstteki logo gizlenir
+    let inlineMark = false;
+
+    if (brand?.name && title) {
+        inlineMark = typeof window.setBrandTitle === "function"
+            ? window.setBrandTitle(title, brand.name)
+            : (title.textContent = brand.name, false);
+    } else if (title) {
+        title.removeAttribute("aria-label");
+    }
+
+    document.getElementById("headerContent")?.classList.toggle("inline-mark", inlineMark);
 
     try {
         if (brand?.name) localStorage.setItem("splashNames", brand.name);
