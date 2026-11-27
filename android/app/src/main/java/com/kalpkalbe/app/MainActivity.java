@@ -17,6 +17,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Uygulamaya özel eklenti: ana ekran kısayolu (js/brand.js)
+        registerPlugin(HomeShortcutPlugin.class);
         convertShareIntent(getIntent());
         super.onCreate(savedInstanceState);
     }

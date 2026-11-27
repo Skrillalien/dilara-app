@@ -54,7 +54,8 @@ const SHEETS = {
     waterSheet:       { overlay: "waterOverlay", close: () => closeWaterSheet() },
     reminderSheet:    { overlay: "reminderOverlay", close: () => closeReminderSheet() },
     fridgeSheet:      { overlay: "fridgeOverlay", close: () => closeFridgeSheet() },
-    notebookSheet:    { overlay: "notebookOverlay", close: () => closeNotebookSheet() }
+    notebookSheet:    { overlay: "notebookOverlay", close: () => closeNotebookSheet() },
+    brandSheet:       { overlay: "brandOverlay", close: () => closeBrandSheet() }
 };
 
 function isSheetOpen(id) {
@@ -198,6 +199,7 @@ function initSheetDrags() {
     initSheetDrag("reminderSheet");
     initSheetDrag("fridgeSheet");
     initSheetDrag("notebookSheet");
+    initSheetDrag("brandSheet");
 
     // Ayarlarda başlık alanı biraz daha yüksek
     const header = document.querySelector("#settingsPanel .settings-header");

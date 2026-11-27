@@ -25,7 +25,7 @@
     } catch (e) {}
   </script>
 
-  <link rel="stylesheet" href="css/style.css?v=71">
+  <link rel="stylesheet" href="css/style.css?v=72">
   
   <link
     rel="stylesheet"
@@ -58,6 +58,14 @@
   try {
     var n = localStorage.getItem('splashNames');
     document.getElementById('splashNames').textContent = n || 'Kalp Kalbe';
+    // Premium → Uygulama adı ve ikonu (js/brand.js): kalbin yerine fotoğraf
+    var ic = localStorage.getItem('splashIcon');
+    if (ic && /^data:image\//.test(ic)) {
+      var h = document.querySelector('#splash .splash-heart');
+      h.classList.add('photo');
+      h.style.backgroundImage = 'url("' + ic + '")';
+      h.innerHTML = '';
+    }
   } catch (e) {}
   // Ne olursa olsun açılış ekranı sonsuza kadar kalmasın
   setTimeout(function () { if (window.hideSplash) window.hideSplash(true); }, 9000);
@@ -1380,6 +1388,12 @@
     <!-- Seçili tema + 2 öneri + Tümü (js/theme.js) -->
     <div class="theme-grid theme-strip" id="themeGrid"></div>
 
+    <div class="settings-label" style="margin-top:24px;">Uygulama adı ve ikonu <span class="premium-crown">👑</span></div>
+
+    <!-- Ana ekran kısayolu + uygulama içi ad (js/brand.js) -->
+    <div id="brandSetting"></div>
+    <input type="file" id="brandPhotoInput" accept="image/*" hidden onchange="onBrandPhotoChosen(event)">
+
     <input
       type="file"
       id="sliderPhotoInput"
@@ -1696,6 +1710,14 @@
 
 <!-- Hayal gerçekleşme tarihi seçici (js/dreams.js → openDreamDate) -->
 <input type="date" id="dreamDateInput" class="dream-date-input" aria-hidden="true" tabindex="-1" onchange="onDreamDateChosen()">
+
+<!-- Uygulama adı ve ikonu (js/brand.js) -->
+<div class="bny-overlay" id="brandOverlay" onclick="closeSheets()"></div>
+
+<div class="bny-panel rem-sheet brand-sheet" id="brandSheet">
+  <div class="bny-handle"></div>
+  <div id="brandSheetBody"></div>
+</div>
 
 <!-- Defter: bilgi / hediye fikri (js/notebook.js) -->
 <div class="bny-overlay" id="notebookOverlay" onclick="closeSheets()"></div>
@@ -2127,7 +2149,7 @@
 
 
 
-    <script src="js/ui.js?v=28"></script>
+    <script src="js/ui.js?v=29"></script>
 
     <script src="js/slider.js?v=5"></script>
 
@@ -2149,7 +2171,7 @@
     <script src="js/onboarding.js?v=1"></script>
     <script src="js/battery.js?v=1"></script>
     <script src="js/nowplaying.js?v=2"></script>
-    <script src="js/premium.js?v=7"></script>
+    <script src="js/premium.js?v=8"></script>
     <script src="js/download.js?v=2"></script>
     <script src="js/guide.js?v=4"></script>
     <script src="js/wrapped.js?v=5"></script>
@@ -2157,7 +2179,8 @@
     <script src="js/reminders.js?v=1"></script>
     <script src="js/fridge.js?v=2"></script>
     <script src="js/notebook.js?v=2"></script>
-    <script src="js/app.js?v=36"></script>
+    <script src="js/app.js?v=37"></script>
+    <script src="js/brand.js?v=1"></script>
   
 </body>
 </html>

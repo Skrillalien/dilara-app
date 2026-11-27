@@ -5,6 +5,10 @@ import { Purchases } from "@revenuecat/purchases-capacitor";
 import { Media } from "@capacitor-community/media";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
+import { registerPlugin } from "@capacitor/core";
+
+// Uygulamaya özel yerel eklenti (android/…/HomeShortcutPlugin.java)
+const HomeShortcut = registerPlugin("HomeShortcut");
 
 window.appHaptics = {
 
@@ -268,6 +272,7 @@ function closeTopLayer() {
 
     if (isOpen("fridgeSheet")) { closeFridgeSheet(); return true; }
     if (isOpen("notebookSheet")) { closeNotebookSheet(); return true; }
+    if (isOpen("brandSheet")) { closeBrandSheet(); return true; }
 
     if (isOpen("partnerMoodSheet")) { closePartnerMood(); return true; }
 
@@ -503,5 +508,34 @@ window.appShareImage = async function (dataUrl, fileName, text = "") {
     });
 
     await Share.share({ files: [uri], text, dialogTitle: "Paylaş" });
+
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// Ana ekran kısayolu (Premium → Uygulama adı ve ikonu, js/brand.js)
+// Sadece Android uygulamasında. status() → { supported, pinned }
+// pin() → { requested } ya da { updated } (zaten ana ekrandaysa)
+// ─────────────────────────────────────────────────────────────
+
+window.appShortcut = {
+
+    available() {
+        return window.Capacitor?.getPlatform?.() === "android";
+    },
+
+    async status(id = "couple") {
+        if (!this.available()) return { supported: false, pinned: false };
+        try {
+            return await HomeShortcut.status({ id });
+        } catch (error) {
+            console.warn("Kısayol durumu okunamadı:", error);
+            return { supported: false, pinned: false };
+        }
+    },
+
+    async pin({ id = "couple", label, icon }) {
+        return HomeShortcut.pin({ id, label, icon });
+    }
 
 };

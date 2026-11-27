@@ -86,6 +86,8 @@ function startPremium() {
     window.firebase.listenCouple(couple => {
         premiumCouple = couple;
         renderPremiumStatus();
+        // Premium bitince uygulama içi özel ad varsayılana döner (js/brand.js)
+        if (typeof applyAppBrand === "function") applyAppBrand();
         // Eski çiftlerde kota sayısı henüz yok: sunucu bir kez saysın
         if (couple && !couple.usage && !usageRefreshAsked) {
             usageRefreshAsked = true;
