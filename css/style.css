@@ -10667,3 +10667,24 @@ body.is-scrolling *::after{
     font-size:12px;
     text-align:center;
 }
+
+.dream-date{
+    padding:0;
+    border:0;
+    background:none;
+    color:inherit;
+    font:inherit;
+    text-decoration:underline dotted;
+    text-underline-offset:3px;
+    cursor:pointer;
+}
+
+.dream-date-input{
+    position:fixed;
+    left:50%;
+    bottom:30%;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+}
