@@ -428,6 +428,10 @@ function openActionMenu(type, id) {
         dreamPhotoRemove.style.display = dream && hasImage(dream) ? "" : "none";
     }
 
+    const dreamDate = document.getElementById("actionDreamDateBtn");
+
+    if (dreamDate) dreamDate.style.display = dream?.completed ? "" : "none";
+
     document.getElementById("actionOverlay").classList.add("active");
     document.getElementById("actionSheet").classList.add("active");
 

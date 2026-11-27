@@ -97,7 +97,8 @@ function renderDreamCard(dream) {
     const who = escapeInboxHtml(authorInfo(dream).label);
 
     const meta = done
-        ? `${escapeDream(dream.completedMessage || "✨ Birlikte yaptık")}${dream.completedAt ? " · " + dreamDateText(dream.completedAt.toMillis?.()) : ""}`
+        ? `${escapeDream(dream.completedMessage || "✨ Birlikte yaptık")} · <button type="button" class="dream-date" aria-label="Tarihi değiştir"
+            onclick="event.stopPropagation(); openDreamDate('${dream.id}')">${dream.completedAt ? dreamDateText(dream.completedAt.toMillis?.()) : "tarih ekle"}</button>`
         : who;
 
     // Gerçekleşen hayalin fotoğrafı: emoji dairesinin yerine geçer
@@ -310,10 +311,26 @@ let dreamMovedId = null;
 async function toggleDreamCompleted(id, completed, button) {
 
     const card = button?.closest(".dream-card");
+    const dream = currentDreams.find(d => d.id === id);
+
+    if (card?.dataset.busy) return;
+
+    // Yanlışlıkla dokunma: geri almadan önce sor
+    if (!completed && dream?.completed) {
+
+        const ok = await appConfirm({
+            icon: dream.emoji || "✨",
+            title: "Gerçekleşmedi olarak işaretlensin mi?",
+            text: "Hayal tekrar listeye döner. Tarihi saklanır; yeniden işaretlersen aynı tarih geri gelir.",
+            ok: "Geri al",
+            cancel: "Vazgeç"
+        });
+
+        if (!ok) return;
+
+    }
 
     if (card) {
-
-        if (card.dataset.busy) return;
         card.dataset.busy = "1";
 
         // 1) Halka hemen dolsun / boşalsın
@@ -329,12 +346,17 @@ async function toggleDreamCompleted(id, completed, button) {
 
     dreamMovedId = id;
 
+    // Tarih korunur: geri alıp yeniden işaretlemek tarihi değiştirmez
+    // (tarihi değiştirmek için karttaki tarihe ya da ⋯ menüsüne dokun)
+    const keepDate = dream?.completedAt?.toDate?.();
+
     const data = {
         completed,
-        completedAt: completed ? new Date() : null,
-        completedMessage: completed
-            ? COMPLETED_MESSAGES[Math.floor(Math.random() * COMPLETED_MESSAGES.length)]
-            : ""
+        ...(completed ? { completedAt: keepDate || new Date() } : {}),
+        // Mesaj da korunur
+        ...(completed && !dream?.completedMessage
+            ? { completedMessage: COMPLETED_MESSAGES[Math.floor(Math.random() * COMPLETED_MESSAGES.length)] }
+            : {})
     };
 
     try {
@@ -354,6 +376,81 @@ async function toggleDreamCompleted(id, completed, button) {
             delete card.dataset.busy;
         }
 
+    }
+
+}
+
+// ── Gerçekleşme tarihini değiştir ───────────────────────────
+
+let dreamDateTarget = null;
+
+function dreamDateValue(date) {
+    const pad = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function openDreamDate(id) {
+
+    const dream = currentDreams.find(d => d.id === id);
+    const input = document.getElementById("dreamDateInput");
+
+    if (!dream?.completed || !input) return;
+
+    dreamDateTarget = id;
+
+    input.max = dreamDateValue(new Date());
+    input.value = dreamDateValue(dream.completedAt?.toDate?.() || new Date());
+
+    window.appHaptics?.light?.();
+
+    try {
+        if (typeof input.showPicker === "function") input.showPicker();
+        else input.click();
+    } catch (error) {
+        input.click();
+    }
+
+}
+
+function dreamDateFromMenu() {
+
+    const id = currentActionId;
+
+    closeActionMenu();
+
+    if (id) setTimeout(() => openDreamDate(id), 150);
+
+}
+
+async function onDreamDateChosen() {
+
+    const input = document.getElementById("dreamDateInput");
+    const id = dreamDateTarget;
+    const dream = currentDreams.find(d => d.id === id);
+
+    if (!input?.value || !dream) return;
+
+    const [y, m, d] = input.value.split("-").map(Number);
+    const old = dream.completedAt?.toDate?.();
+
+    // Saat korunur (sıralama aynı gün içinde bozulmasın), gün değişir
+    const at = new Date(y, m - 1, d, old ? old.getHours() : 12, old ? old.getMinutes() : 0);
+
+    if (at.getTime() > Date.now()) {
+        showToast("Gelecekte bir tarih seçilemez");
+        return;
+    }
+
+    if (old && dreamDateValue(old) === input.value) return;
+
+    dreamMovedId = id;
+
+    try {
+        await window.firebase.updateDream(id, { completedAt: at });
+        showToast(`📅 ${dreamDateText(at.getTime())}`);
+    } catch (error) {
+        console.error(error);
+        showToast("Kaydedilemedi, tekrar dene.");
     }
 
 }
