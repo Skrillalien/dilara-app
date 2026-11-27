@@ -60,7 +60,7 @@ firebase.initializeApp({
 
 firebase.messaging();
 
-const CACHE_NAME = "kalpkalbe-v0.18.3";
+const CACHE_NAME = "kalpkalbe-v0.19.0";
 
 const FILES_TO_CACHE = [
   "./",
